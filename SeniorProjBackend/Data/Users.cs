@@ -4,6 +4,24 @@ namespace SeniorProjBackend.Data
 {
     public class Users
     {
+        /*
+         1.  **Users Table**:
+            *   `UserID` (Primary Key, INT): Unique identifier for each user.
+            *   `Username` (VARCHAR): User's chosen username.
+            *   `PasswordHash` (VARCHAR): Hash of the user's password for secure storage.
+            *   `EmailAddress` (VARCHAR): User's email address.
+            *   `TwoFactorEnabled` (Boolean): Indicates if two-factor authentication is enabled.
+            *   `SecretKey` (VARCHAR, optional): Encrypted  secret key used for generating 2FA codes. Null or empty if 2FA is not enabled.
+            *   `TotalScore` (INT): Accumulated score from problem-solving activities.
+            *   `Bio` (VARCHAR, optional): Short biography or user description.
+            *   `ProfilePictureURL` (VARCHAR, optional): URL to the user's profile picture.
+            *   `RegistrationDate` (DateTime): Date and time when the user registered.
+            *   `LastActiveDate` (DateTime): Date and time when the user was last active.
+            *   `Rank` (VARCHAR, optional): User's rank, calculated from `TotalScore`.
+            *   `RankIconURL` (VARCHAR, optional): URL to an icon/image representing the user's rank.
+            *   `ActiveStreak` (INT, optional): Number of consecutive days the user has been active.
+        */
+
         public int UserId { get; set; }
         public string Username { get; set; }
         public string PasswordHash { get; set; }
