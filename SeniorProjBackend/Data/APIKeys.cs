@@ -4,6 +4,8 @@ using Microsoft.Extensions.Options;
 
 namespace SeniorProjBackend.Data
 {
+
+    // MIGHT NOT NEED THIS ANYMORE!!!! POSSIBLY FREE CHATGPT USE https://github.com/PawanOsman/ChatGPT
     public class APIKeys
     {
         /*
