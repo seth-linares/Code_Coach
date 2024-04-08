@@ -22,7 +22,8 @@
         public string TestCodeFileName { get; set; }
 
         // Navigation properties
-        public List<AIConversation> AIConversation { get; set; }
+        public List<ProblemLanguage> ProblemLanguages { get; set; }
+        public List<ProblemCategory> ProblemCategories { get; set; }
 
     }
 }

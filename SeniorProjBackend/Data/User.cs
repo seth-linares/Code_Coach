@@ -38,9 +38,10 @@ namespace SeniorProjBackend.Data
         public int ActiveStreak { get; set; }
 
         // Navigation properties
-        public List<AIConversation> AIConversation { get; set; }
-        public List<APIKey> APIKey { get; set; }
-        public List<UserPreference> UserPreference { get; set; }
+        public List<AIConversation> AIConversations { get; set; }
+        public List<APIKey> APIKeys { get; set; }
+        public List<UserPreference> UserPreferences { get; set; }
+        public List<RecoveryCode> RecoveryCodes { get; set; }
 
     }
 }

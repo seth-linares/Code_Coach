@@ -2,7 +2,7 @@
 
 namespace SeniorProjBackend.Data
 {
-    public class RecoveryCodes
+    public class RecoveryCode
     {
         /*
         11. **RecoveryCodes Table**:
@@ -16,5 +16,8 @@ namespace SeniorProjBackend.Data
         public int UserID { get; set; } // Foreign Key; Users.UserID
         public string Code { get; set; } // needs to be hashed
         public DateTime CreationDate { get; set; }
+
+        // Navigation properties
+        public User User { get; set; }
     }
 }

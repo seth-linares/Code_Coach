@@ -2,7 +2,7 @@
 
 namespace SeniorProjBackend.Data
 {
-    public class AuditLogs
+    public class AuditLog
     {
         /*
         13. **AuditLogs Table** (New):
@@ -18,6 +18,9 @@ namespace SeniorProjBackend.Data
         public string EventType { get; set; }
         public string Details { get; set; } // Varchar Max
         public DateTime Timestamp { get; set; }
+
+        // Navigation Properties
+        public User User { get; set; }
 
     }
 }
