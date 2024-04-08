@@ -7,13 +7,13 @@
     
             *   `UserPreferenceID` (Primary Key, INT).
             *   `UserID` (INT, Foreign Key, references `Users.UserID`).
-            *   `PreferenceType` (VARCHAR).
-            *   `PreferenceValue` (VARCHAR).
+            *   `PreferenceKey` (VARCHAR) represents the type or name of the preference (e.g., "Language", "Theme", "Notification", etc.)
+            *   `PreferenceValue` (VARCHAR) holds the value of the preference (e.g., "en" for English language, "dark" for dark theme, "true" for enabling notifications, etc.)
          */
         public int UserPreferenceID { get; set; }
         public int UserID { get; set; } // Foreign Key; Users.UserID
-        public string PreferenceType { get; set; } // WiP I suppose!
-        public string PreferenceValue { get; set; } // WiP I suppose!
+        public string PreferenceKey { get; set; } 
+        public string PreferenceValue { get; set; } 
 
         // Navigation Properties
         public User User { get; set; }

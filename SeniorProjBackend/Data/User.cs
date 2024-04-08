@@ -43,6 +43,8 @@ namespace SeniorProjBackend.Data
         public List<UserPreference> UserPreferences { get; set; }
         public List<RecoveryCode> RecoveryCodes { get; set; }
         public List<AuditLog> AuditLogs { get; set; }
+        public List<UserSubmission> UserSubmissions { get; set; }
+        public List<Feedback> Feedbacks { get; set; }
 
     }
 }
