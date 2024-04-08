@@ -10,5 +10,8 @@
          */
         public int CategoryID { get; set; }
         public string CategoryName { get; set; }
+
+        // Navigation Properties
+        public ICollection<ProblemCategory> ProblemCategories { get; set; }
     }
 }

@@ -22,7 +22,7 @@ namespace SeniorProjBackend.Data
             *   `ActiveStreak` (INT, optional): Number of consecutive days the user has been active.
         */
 
-        public int UserId { get; set; }
+        public int UserID { get; set; }
         public string Username { get; set; }
         public string PasswordHash { get; set; }
         public string EmailAddress { get; set; }

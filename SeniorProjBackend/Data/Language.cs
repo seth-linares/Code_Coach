@@ -10,5 +10,8 @@
         */
         public int LanguageID { get; set; }
         public string LanguageName { get; set; }
+
+        // Navigation Properties
+        public ICollection<ProblemLanguage> ProblemLanguages { get; set; }
     }
 }
