@@ -31,7 +31,5 @@
         public User User { get; set; }
         public Problem Problem { get; set; }
         public Language Language { get; set; }
-        
-
     }
 }

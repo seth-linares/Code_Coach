@@ -12,6 +12,6 @@
         public string CategoryName { get; set; }
 
         // Navigation Properties
-        public ICollection<ProblemCategory> ProblemCategories { get; set; }
+        public List<ProblemCategory> ProblemCategories { get; set; }
     }
 }
