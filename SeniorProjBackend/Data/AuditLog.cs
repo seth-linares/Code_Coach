@@ -14,13 +14,13 @@ namespace SeniorProjBackend.Data
         */
 
         public int AuditLogID { get; set; }
-        public int UserID { get; set; } // Foreign Key; Users.UserID
+        public int? UserID { get; set; } // Foreign Key; Users.UserID
         public string EventType { get; set; }
         public string Details { get; set; } // Varchar Max
         public DateTime Timestamp { get; set; }
 
         // Navigation Properties
-        public User User { get; set; }
+        public User? User { get; set; }
 
     }
 }

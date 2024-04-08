@@ -1,6 +1,6 @@
 ﻿namespace SeniorProjBackend.Data
 {
-    public class Categories
+    public class Category
     {
         /*
          * 5.  **Categories Table**:

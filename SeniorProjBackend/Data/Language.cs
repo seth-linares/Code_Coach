@@ -1,6 +1,6 @@
 ﻿namespace SeniorProjBackend.Data
 {
-    public class Languages
+    public class Language
     {
         /*
          * 4.  **Languages Table**:
