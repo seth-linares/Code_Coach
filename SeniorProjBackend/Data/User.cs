@@ -42,6 +42,7 @@ namespace SeniorProjBackend.Data
         public List<APIKey> APIKeys { get; set; }
         public List<UserPreference> UserPreferences { get; set; }
         public List<RecoveryCode> RecoveryCodes { get; set; }
+        public List<AuditLog> AuditLogs { get; set; }
 
     }
 }
