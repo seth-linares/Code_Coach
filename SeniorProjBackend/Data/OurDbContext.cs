@@ -128,6 +128,32 @@ namespace SeniorProjBackend.Data
             modelBuilder.Entity<AuditLog>()
                 .HasKey(AuditLog => AuditLog.AuditLogID);
 
+            // One-to-many relationship between AuditLog and User
+            modelBuilder.Entity<AuditLog>()
+                .HasOne(a => a.User)
+                .WithMany(u => u.AuditLogs)
+                .HasForeignKey(a => a.UserID)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Properties
+            modelBuilder.Entity<AuditLog>()
+                .Property(a => a.AuditLogID)
+                .ValueGeneratedOnAdd();
+            modelBuilder.Entity<AuditLog>()
+                .Property(a => a.EventType) // We have an enum for this!! We convert it to a string for storage
+                .HasConversion<string>()
+                .HasColumnType("varchar(50)")
+                .IsRequired();
+            modelBuilder.Entity<AuditLog>()
+                .Property(a => a.Details)
+                .HasColumnType("nvarchar(max)")
+                .IsRequired();
+            modelBuilder.Entity<AuditLog>()
+                .Property(a => a.Timestamp)
+                .HasColumnType("datetime2")
+                .HasDefaultValueSql("GETDATE()")
+                .IsRequired();
+
 
         }
 
