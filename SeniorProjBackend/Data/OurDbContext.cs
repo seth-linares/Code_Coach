@@ -208,6 +208,63 @@ namespace SeniorProjBackend.Data
                 .IsRequired();
 
 
+            // Language Table
+            modelBuilder.Entity<Language>()
+                .HasKey(l => l.LanguageID);
+
+            modelBuilder.Entity<Language>()
+                .Property(l => l.LanguageName)
+                .HasColumnType("varchar(50)")
+                .IsRequired();
+
+            // Problem Table
+            modelBuilder.Entity<Problem>()
+                .HasKey(p => p.ProblemID);
+
+            // One-to-many relationship between Problem and AIConversation
+            modelBuilder.Entity<Problem>()
+                .HasMany(a => a.AIConversations) // Each Problem can have many AIConversations
+                .WithOne(c => c.Problem) // Each AIConversation is associated with one Problem
+                .HasForeignKey(c => c.ProblemID) // The foreign key in the AIConversation table is ProblemID
+                .OnDelete(DeleteBehavior.SetNull); // If a Problem is deleted, the ProblemID in the AIConversation table is set to null
+
+
+            // One-to-many relationship between Problem and Feedback
+            modelBuilder.Entity<Problem>()
+                .HasMany(p => p.Feedbacks) // Each Problem can have many Feedbacks
+                .WithOne(f => f.Problem) // Each Feedback is associated with one Problem
+                .HasForeignKey(f => f.ProblemID) // The foreign key in the Feedback table is ProblemID
+                .OnDelete(DeleteBehavior.Cascade); // If a Problem is deleted, all associated Feedbacks are also deleted
+
+
+            // Properties
+            modelBuilder.Entity<Problem>()
+                .Property(p => p.Title)
+                .HasColumnType("nvarchar(250)")
+                .IsRequired();
+            modelBuilder.Entity<Problem>()
+                .Property(p => p.Description)
+                .HasColumnType("nvarchar(max)")
+                .IsRequired();
+            modelBuilder.Entity<Problem>()
+                .Property(p => p.DifficultyScore)
+                .HasColumnType("int")
+                .IsRequired();
+            modelBuilder.Entity<Problem>()
+                .Property(p => p.IsActive)
+                .HasColumnType("bit")
+                .HasDefaultValue(true)
+                .IsRequired();
+            modelBuilder.Entity<Problem>()
+                .Property(p => p.LastModifiedDate)
+                .HasColumnType("datetime2")
+                .HasDefaultValueSql("GETDATE()")
+                .IsRequired();
+            modelBuilder.Entity<Problem>()
+                .Property(p => p.TestCodeFileName)
+                .HasColumnType("nvarchar(250)")
+                .IsRequired();
+            
         }
 
     }
