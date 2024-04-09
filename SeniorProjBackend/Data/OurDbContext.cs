@@ -159,12 +159,12 @@ namespace SeniorProjBackend.Data
             modelBuilder.Entity<Category>()
                 .HasKey(c => c.CategoryID);
 
-            //// handle many-to-many relationship between Category and Problem
-            //modelBuilder.Entity<Category>()
-            //    .HasMany(c => c.ProblemCategories)
-            //    .WithOne(pc => pc.Category)
-            //    .HasForeignKey(pc => pc.CategoryID)
-            //    .OnDelete(DeleteBehavior.Cascade); // Set Cascade for now
+            // handle one-to-many relationship between Category and ProblemCategory
+            modelBuilder.Entity<Category>()
+                .HasMany(c => c.ProblemCategories)
+                .WithOne(pc => pc.Category)
+                .HasForeignKey(pc => pc.CategoryID)
+                .OnDelete(DeleteBehavior.Cascade); // Set Cascade for now
 
             // Properties
             modelBuilder.Entity<Category>()
@@ -217,6 +217,9 @@ namespace SeniorProjBackend.Data
                 .HasColumnType("varchar(50)")
                 .IsRequired();
 
+
+
+
             // Problem Table
             modelBuilder.Entity<Problem>()
                 .HasKey(p => p.ProblemID);
@@ -224,8 +227,8 @@ namespace SeniorProjBackend.Data
             // One-to-many relationship between Problem and AIConversation
             modelBuilder.Entity<Problem>()
                 .HasMany(p => p.AIConversations) // Each Problem can have many AIConversations
-                .WithOne(a => a.Problem) // Each AIConversation is associated with one Problem
-                .HasForeignKey(a => a.ProblemID) // The foreign key in the AIConversation table is ProblemID
+                .WithOne(ai => ai.Problem) // Each AIConversation is associated with one Problem
+                .HasForeignKey(ai => ai.ProblemID) // The foreign key in the AIConversation table is ProblemID
                 .OnDelete(DeleteBehavior.SetNull); // If a Problem is deleted, the ProblemID in the AIConversation table is set to null
 
 
