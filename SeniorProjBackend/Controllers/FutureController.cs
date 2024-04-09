@@ -4,7 +4,7 @@ using SeniorProjBackend.Data;
 
 namespace SeniorProjBackend.Controllers
 {
-    public class DbContextController
+    public class FutureController
     {
     }
 }
