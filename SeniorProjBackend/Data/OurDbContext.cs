@@ -37,7 +37,7 @@ namespace SeniorProjBackend.Data
 
 
 
-            // AIConversations Table
+            // AIConversation Table
 
             // Primary Key
             modelBuilder.Entity<AIConversation>()
@@ -45,7 +45,7 @@ namespace SeniorProjBackend.Data
 
             // One-to-many relationship between AIConversation and User
             modelBuilder.Entity<AIConversation>()
-                .HasOne(c => c.User) 
+                .HasOne(c => c.User)
                 .WithMany(u => u.AIConversations) // Users navigation property
                 .HasForeignKey(c => c.UserID)
                 .IsRequired() // Required to have a user
@@ -53,7 +53,7 @@ namespace SeniorProjBackend.Data
 
             // One-to-many relationship between AIConversation and Problem
             modelBuilder.Entity<AIConversation>()
-                .HasOne(c => c.Problem) 
+                .HasOne(c => c.Problem)
                 .WithMany(p => p.AIConversations)  // Problems navigation property
                 .HasForeignKey(c => c.ProblemID)
                 .OnDelete(DeleteBehavior.SetNull); // Set null for now, but could change to ClientSetNull for more fine control 
@@ -76,16 +76,16 @@ namespace SeniorProjBackend.Data
                 .HasColumnType("bit")
                 .HasDefaultValue(false)
                 .IsRequired();
-            
-
-            
 
 
 
 
 
 
-            // APIKeys Table
+
+
+
+            // APIKey Table
             modelBuilder.Entity<APIKey>()
                 .HasKey(a => a.APIKeyID);
 
@@ -121,10 +121,10 @@ namespace SeniorProjBackend.Data
                 .Property(a => a.ExpiresAt)
                 .HasColumnType("datetime2");
 
-            
 
 
-            // AuditLogs Table
+
+            // AuditLog Table
             modelBuilder.Entity<AuditLog>()
                 .HasKey(AuditLog => AuditLog.AuditLogID);
 
@@ -150,6 +150,59 @@ namespace SeniorProjBackend.Data
                 .IsRequired();
             modelBuilder.Entity<AuditLog>()
                 .Property(a => a.Timestamp)
+                .HasColumnType("datetime2")
+                .HasDefaultValueSql("GETDATE()")
+                .IsRequired();
+
+
+            // Category Table
+            modelBuilder.Entity<Category>()
+                .HasKey(c => c.CategoryID);
+
+            //// handle many-to-many relationship between Category and Problem
+            //modelBuilder.Entity<Category>()
+            //    .HasMany(c => c.ProblemCategories)
+            //    .WithOne(pc => pc.Category)
+            //    .HasForeignKey(pc => pc.CategoryID)
+            //    .OnDelete(DeleteBehavior.Cascade); // Set Cascade for now
+
+            // Properties
+            modelBuilder.Entity<Category>()
+                .Property(c => c.CategoryName)
+                .HasColumnType("varchar(50)")
+                .IsRequired();
+
+
+
+            // Feedback Table
+            modelBuilder.Entity<Feedback>()
+                .HasKey(f => f.FeedbackID);
+
+            // One-to-many relationship between Feedback and User
+            modelBuilder.Entity<Feedback>()
+                .HasOne(f => f.User)
+                .WithMany(u => u.Feedbacks)
+                .HasForeignKey(f => f.UserID)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // One-to-many relationship between Feedback and Problem
+            modelBuilder.Entity<Feedback>()
+                .HasOne(f => f.Problem)
+                .WithMany(p => p.Feedbacks)
+                .HasForeignKey(f => f.ProblemID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Properties
+            modelBuilder.Entity<Feedback>()
+                .Property(f => f.FeedbackID)
+                .ValueGeneratedOnAdd();
+            modelBuilder.Entity<Feedback>()
+                .Property(f => f.FeedbackText)
+                .HasColumnType("nvarchar(max)")
+                .IsRequired();
+            modelBuilder.Entity<Feedback>()
+                .Property(f => f.SubmissionTime)
                 .HasColumnType("datetime2")
                 .HasDefaultValueSql("GETDATE()")
                 .IsRequired();
