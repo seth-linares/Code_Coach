@@ -223,9 +223,9 @@ namespace SeniorProjBackend.Data
 
             // One-to-many relationship between Problem and AIConversation
             modelBuilder.Entity<Problem>()
-                .HasMany(a => a.AIConversations) // Each Problem can have many AIConversations
-                .WithOne(c => c.Problem) // Each AIConversation is associated with one Problem
-                .HasForeignKey(c => c.ProblemID) // The foreign key in the AIConversation table is ProblemID
+                .HasMany(p => p.AIConversations) // Each Problem can have many AIConversations
+                .WithOne(a => a.Problem) // Each AIConversation is associated with one Problem
+                .HasForeignKey(a => a.ProblemID) // The foreign key in the AIConversation table is ProblemID
                 .OnDelete(DeleteBehavior.SetNull); // If a Problem is deleted, the ProblemID in the AIConversation table is set to null
 
 
