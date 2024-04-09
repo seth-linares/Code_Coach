@@ -40,11 +40,11 @@ namespace SeniorProjBackend.Data
         // Navigation properties
         public List<AIConversation> AIConversations { get; set; }
         public List<APIKey> APIKeys { get; set; }
-        public List<UserPreference> UserPreferences { get; set; }
+        public List<Feedback> Feedbacks { get; set; }
         public List<RecoveryCode> RecoveryCodes { get; set; }
+        public List<UserPreference> UserPreferences { get; set; }
         public List<AuditLog> AuditLogs { get; set; }
         public List<UserSubmission> UserSubmissions { get; set; }
-        public List<Feedback> Feedbacks { get; set; }
-
+        
     }
 }
