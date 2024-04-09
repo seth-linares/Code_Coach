@@ -1,7 +1,29 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
-
-namespace SeniorProjBackend.Data
+﻿namespace SeniorProjBackend.Data
 {
+    public enum EventType
+    {
+        Login,
+        TwoFactorAuth,
+        APIKeyUsage,
+        PasswordChange,
+        PasswordReset,
+        AccountCreation,
+        AccountDeletion,
+        RecoveryCodeUsage,
+        RecoveryCodeChange,
+        AccountLockout,
+        AccountUnlock,
+        AccountUpdate,
+        AccountEmailUpdate,
+        JWTTokenCreation,
+        JWTTokenVerification,
+        InvalidLoginAttempt,
+        InvalidRecoveryCodeAttempt,
+        InvalidAPIKeyAttempt,
+        InvalidTwoFactorAuthAttempt,
+        PasswordResetRequest,
+ 
+    }
     public class AuditLog
     {
         /*
@@ -15,7 +37,7 @@ namespace SeniorProjBackend.Data
 
         public int AuditLogID { get; set; }
         public int? UserID { get; set; } // Foreign Key; Users.UserID
-        public string EventType { get; set; }
+        public EventType EventType { get; set; }
         public string Details { get; set; } // Varchar Max
         public DateTime Timestamp { get; set; }
 
