@@ -34,6 +34,68 @@ namespace SeniorProjBackend.Data
             // Fluent API section
 
 
+
+
+
+            // AIConversations Table
+
+            // Primary Key
+            modelBuilder.Entity<AIConversation>()
+                .HasKey(c => c.ConversationID);
+
+            // One-to-many relationship between AIConversation and User
+            modelBuilder.Entity<AIConversation>()
+                .HasOne(c => c.User) 
+                .WithMany(u => u.AIConversations) // Users navigation property
+                .HasForeignKey(c => c.UserID)
+                .IsRequired() // Required to have a user
+                .OnDelete(DeleteBehavior.Cascade); // Set Cascade for now but also could become ClientCascade 
+
+            // One-to-many relationship between AIConversation and Problem
+            modelBuilder.Entity<AIConversation>()
+                .HasOne(c => c.Problem) 
+                .WithMany(p => p.AIConversations)  // Problems navigation property
+                .HasForeignKey(c => c.ProblemID)
+                .OnDelete(DeleteBehavior.SetNull); // Set null for now, but could change to ClientSetNull for more fine control 
+
+            // Properties
+            modelBuilder.Entity<AIConversation>()
+                .Property(c => c.ConversationID)
+                .ValueGeneratedOnAdd(); // should auto increment 
+            modelBuilder.Entity<AIConversation>()
+                .Property(c => c.Timestamp)
+                .HasColumnType("datetime2") // should be datetime2
+                .HasDefaultValueSql("GETDATE()") // should default to current date and time. Will need to modify timestamp each time we change content
+                .ValueGeneratedOnAddOrUpdate() // should auto update
+                .IsRequired();
+            modelBuilder.Entity<AIConversation>()
+                .Property(c => c.ConversationContent)
+                .HasColumnType("nvarchar(max)")
+                .IsRequired();
+            modelBuilder.Entity<AIConversation>()
+                .Property(c => c.IsCompleted)
+                .HasColumnType("bit")
+                .HasDefaultValue(false)
+                .IsRequired();
+            
+
+            
+
+
+
+
+
+
+            // APIKeys Table
+            modelBuilder.Entity<APIKey>()
+                .HasKey(APIKey => APIKey.APIKeyID);
+
+
+            // AuditLogs Table
+            modelBuilder.Entity<AuditLog>()
+                .HasKey(AuditLog => AuditLog.AuditLogID);
+
+
         }
 
     }
