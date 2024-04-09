@@ -87,7 +87,41 @@ namespace SeniorProjBackend.Data
 
             // APIKeys Table
             modelBuilder.Entity<APIKey>()
-                .HasKey(APIKey => APIKey.APIKeyID);
+                .HasKey(a => a.APIKeyID);
+
+            // One-to-many relationship between APIKey and User
+            modelBuilder.Entity<APIKey>()
+                .HasOne(a => a.User)
+                .WithMany(u => u.APIKeys)
+                .HasForeignKey(a => a.UserID)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Properties
+            modelBuilder.Entity<APIKey>()
+                .Property(a => a.APIKeyID)
+                .ValueGeneratedOnAdd();
+            modelBuilder.Entity<APIKey>()
+                .Property(a => a.KeyType)
+                .HasColumnType("varchar(50)")
+                .IsRequired();
+            modelBuilder.Entity<APIKey>()
+                .Property(a => a.KeyValue)
+                .HasColumnType("varchar(255)")
+                .IsRequired();
+            modelBuilder.Entity<APIKey>()
+                .Property(a => a.Permissions)
+                .HasColumnType("varchar(255)");
+            modelBuilder.Entity<APIKey>()
+                .Property(a => a.CreatedAt)
+                .HasColumnType("datetime2")
+                .HasDefaultValueSql("GETDATE()")
+                .IsRequired();
+            modelBuilder.Entity<APIKey>()
+                .Property(a => a.ExpiresAt)
+                .HasColumnType("datetime2");
+
+            
 
 
             // AuditLogs Table
