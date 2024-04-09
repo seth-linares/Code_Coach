@@ -31,7 +31,7 @@ namespace SeniorProjBackend.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Fluent API section
+            // Fluent API section, will need to add indexing later in development
 
 
 
