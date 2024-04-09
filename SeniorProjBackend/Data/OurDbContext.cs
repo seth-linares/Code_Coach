@@ -124,6 +124,9 @@ namespace SeniorProjBackend.Data
 
 
 
+
+
+
             // AuditLog Table
             modelBuilder.Entity<AuditLog>()
                 .HasKey(AuditLog => AuditLog.AuditLogID);
@@ -155,6 +158,11 @@ namespace SeniorProjBackend.Data
                 .IsRequired();
 
 
+
+
+
+
+
             // Category Table
             modelBuilder.Entity<Category>()
                 .HasKey(c => c.CategoryID);
@@ -164,13 +172,18 @@ namespace SeniorProjBackend.Data
                 .HasMany(c => c.ProblemCategories)
                 .WithOne(pc => pc.Category)
                 .HasForeignKey(pc => pc.CategoryID)
-                .OnDelete(DeleteBehavior.Cascade); // Set Cascade for now
+                .OnDelete(DeleteBehavior.Cascade); // if a Category is deleted, all associated ProblemCategories are also deleted
 
             // Properties
             modelBuilder.Entity<Category>()
                 .Property(c => c.CategoryName)
                 .HasColumnType("varchar(50)")
                 .IsRequired();
+
+
+
+
+
 
 
 
@@ -208,6 +221,12 @@ namespace SeniorProjBackend.Data
                 .IsRequired();
 
 
+
+
+
+
+
+
             // Language Table
             modelBuilder.Entity<Language>()
                 .HasKey(l => l.LanguageID);
@@ -216,6 +235,10 @@ namespace SeniorProjBackend.Data
                 .Property(l => l.LanguageName)
                 .HasColumnType("varchar(50)")
                 .IsRequired();
+
+
+
+
 
 
 
@@ -268,6 +291,16 @@ namespace SeniorProjBackend.Data
                 .HasColumnType("nvarchar(250)")
                 .IsRequired();
             
+
+
+
+
+
+
+
+
+
+
         }
 
     }
