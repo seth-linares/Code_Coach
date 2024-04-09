@@ -1,8 +1,4 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.Extensions.Options;
-
-namespace SeniorProjBackend.Data
+﻿namespace SeniorProjBackend.Data
 {
 
     // MIGHT NOT NEED THIS ANYMORE!!!! POSSIBLY FREE CHATGPT USE https://github.com/PawanOsman/ChatGPT
@@ -27,7 +23,7 @@ namespace SeniorProjBackend.Data
         public DateTime? ExpiresAt { get; set;}
 
         // Navigation Properties
-        public User User { get; set; }
+        public User User { get; set; }  
 
     }
 }
