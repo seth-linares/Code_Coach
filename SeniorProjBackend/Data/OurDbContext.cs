@@ -66,7 +66,6 @@ namespace SeniorProjBackend.Data
                 .Property(c => c.Timestamp)
                 .HasColumnType("datetime2") // should be datetime2
                 .HasDefaultValueSql("GETDATE()") // should default to current date and time. Will need to modify timestamp each time we change content
-                .ValueGeneratedOnAddOrUpdate() // should auto update
                 .IsRequired();
             modelBuilder.Entity<AIConversation>()
                 .Property(c => c.ConversationContent)
