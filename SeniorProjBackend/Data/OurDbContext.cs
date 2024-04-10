@@ -447,6 +447,136 @@ namespace SeniorProjBackend.Data
                 .HasForeignKey(f => f.UserID)
                 .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated Feedbacks are also deleted
 
+            // One-to-many relationship between User and RecoveryCode
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.RecoveryCodes)
+                .WithOne(rc => rc.User)
+                .HasForeignKey(rc => rc.UserID)
+                .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated RecoveryCodes are also deleted
+
+            // One-to-many relationship between User and UserPreference
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.UserPreferences)
+                .WithOne(up => up.User)
+                .HasForeignKey(up => up.UserID)
+                .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated UserPreferences are also deleted
+
+            // One-to-many relationship between User and AuditLog
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.AuditLogs)
+                .WithOne(al => al.User)
+                .HasForeignKey(al => al.UserID)
+                .OnDelete(DeleteBehavior.SetNull); // If a User is deleted, the UserID in the AuditLog table is set to null
+
+            // One-to-many relationship between User and UserSubmission
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.UserSubmissions)
+                .WithOne(us => us.User)
+                .HasForeignKey(us => us.UserID)
+                .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated UserSubmissions are also deleted
+
+            // Properties
+            modelBuilder.Entity<User>()
+                .Property(u => u.UserID)
+                .ValueGeneratedOnAdd();
+            modelBuilder.Entity<User>()
+                .Property(u => u.Username)
+                .HasColumnType("varchar(50)")
+                .IsRequired();
+            modelBuilder.Entity<User>()
+                .Property(u => u.PasswordHash)
+                .HasColumnType("varchar(255)")
+                .IsRequired();
+            modelBuilder.Entity<User>()
+                .Property(u => u.EmailAddress)
+                .HasColumnType("varchar(255)")
+                .IsRequired();
+            modelBuilder.Entity<User>()
+                .Property(u => u.TwoFactorEnabled)
+                .HasColumnType("bit")
+                .HasDefaultValue(false)
+                .IsRequired();
+            modelBuilder.Entity<User>()
+                .Property(u => u.SecretKey)
+                .HasColumnType("varchar(255)"); // encrypted secret key for 2FA; nullable
+            modelBuilder.Entity<User>()
+                .Property(u => u.TotalScore)
+                .HasColumnType("int")
+                .HasDefaultValue(0)
+                .IsRequired();
+            modelBuilder.Entity<User>()
+                .Property(u => u.Bio)
+                .HasColumnType("nvarchar(max)"); // might remove since we likely won't do community features
+            modelBuilder.Entity<User>()
+                .Property(u => u.ProfilePictureURL)
+                .HasColumnType("varchar(255)")
+                .HasDefaultValue("path/to/default/profile-picture.jpg")
+                .IsRequired();
+            modelBuilder.Entity<User>()
+                .Property(u => u.RegistrationDate)
+                .HasColumnType("datetime2")
+                .HasDefaultValueSql("GETDATE()")
+                .IsRequired();
+            modelBuilder.Entity<User>()
+                .Property(u => u.LastActiveDate)
+                .HasColumnType("datetime2")
+                .HasDefaultValueSql("GETDATE()")
+                .IsRequired();
+            modelBuilder.Entity<User>()
+                .Property(u => u.Rank)
+                .HasColumnType("varchar(50)")
+                .HasDefaultValue("Newbie")
+                .IsRequired();
+            modelBuilder.Entity<User>()
+                .Property(u => u.RankIconURL)
+                .HasColumnType("varchar(255)")
+                .HasDefaultValue("path/to/default/rank-icon.jpg")
+                .IsRequired();
+            modelBuilder.Entity<User>()
+                .Property(u => u.ActiveStreak)
+                .HasColumnType("int")
+                .HasDefaultValue(0)
+                .IsRequired();
+
+            // Unique constraints and indexes
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Username)
+                .IsUnique();
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.EmailAddress)
+                .IsUnique();
+
+
+
+            
+            // UserPreference Table
+            modelBuilder.Entity<UserPreference>()
+                .HasKey(up => up.UserPreferenceID);
+
+            // One-to-many relationship between UserPreference and User
+            modelBuilder.Entity<UserPreference>()
+                .HasOne(up => up.User)
+                .WithMany(u => u.UserPreferences)
+                .HasForeignKey(up => up.UserID)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated UserPreferences are also deleted
+
+            // Properties
+            modelBuilder.Entity<UserPreference>()
+                .Property(up => up.UserPreferenceID)
+                .ValueGeneratedOnAdd();
+            modelBuilder.Entity<UserPreference>()
+                .Property(up => up.PreferenceKey)
+                .HasConversion<string>() // Convert enum to string for storage
+                .HasColumnType("varchar(50)")
+                .IsRequired();
+            modelBuilder.Entity<UserPreference>()
+                .Property(up => up.PreferenceValue)
+                .HasColumnType("varchar(255)")
+                .IsRequired();
+
         }
 
     }
