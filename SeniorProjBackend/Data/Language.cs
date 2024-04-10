@@ -13,6 +13,7 @@
 
         // Navigation Properties
         public List<ProblemLanguage> ProblemLanguages { get; set; }
+        public List<UserSubmission> UserSubmissions { get; set; }
 
     }
 }
