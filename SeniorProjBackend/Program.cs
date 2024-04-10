@@ -11,6 +11,8 @@ using SeniorProjBackend.Data;
  * 
  * 
  * SEEMS BROKEN FOR CONTAINERS FOR ME (SETH) AT LEAST SO USE THE ACTUAL DB FROM JAREDS SERVER
+ * Connection string is called JaredConnection in the appsettings.development.json file
+ * The JaredConnectionVS connection string is from me using VS to add a connected service to the database
  * 
  */
 
@@ -53,6 +55,16 @@ if (context.Database.CanConnect())
 {
     var databaseName = context.Database.GetDbConnection().Database;
     Console.WriteLine($"Successfully connected to the database: {databaseName}.");
+
+    try
+    {
+        var users = context.Users.ToList();
+        Console.WriteLine($"Successfully retrieved {users.Count} users from the database.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Failed to retrieve users from the database. Error: {ex.Message}");
+    }
 }
 else
 {
