@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SeniorProjBackend.Data;
+using SeniorProjBackend.Encryption;
 
 /*
  * Start SQL Server container:
@@ -18,6 +19,9 @@ using SeniorProjBackend.Data;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+builder.Services.AddSingleton<ITokenService, TokenService>();
 
 builder.Services.AddDbContext<OurDbContext>(options =>
     options.UseSqlServer(

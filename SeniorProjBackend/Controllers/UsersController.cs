@@ -16,11 +16,13 @@ namespace SeniorProjBackend.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
+        private readonly ITokenService _tokenService;
         private readonly OurDbContext _context;
 
-        public UsersController(OurDbContext context)
+        public UsersController(OurDbContext context, ITokenService tokenService)
         {
             _context = context;
+            _tokenService=tokenService;
         }
 
         // GET: api/Users
@@ -144,10 +146,7 @@ namespace SeniorProjBackend.Controllers
             // Save changes
             await _context.SaveChangesAsync();
 
-            var _tokenService = new TokenService(_configuration); // Create a new instance of the TokenService
-
-
-            var token = _tokenService.GenerateToken(newUser); // Generate JWT for the new user
+            var token = _tokenService.GenerateToken(newUser); // Use the injected _tokenService
 
             return Ok(new { token }); // Return the JWT in the response
         }

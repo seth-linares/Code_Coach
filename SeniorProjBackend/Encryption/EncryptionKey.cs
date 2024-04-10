@@ -44,18 +44,6 @@ namespace SeniorProjBackend.Encryption
     }
     public class EncryptionKey
     {
-        /*
-         * Need a method to generate the encryption keys for 2FA Secret Key and API Key for AI
-         * 
-         * Need to have a method that rotates the keys out and re-encrypts with new key
-         * Both need to update appsettings.json
-         * 
-         */
-        // Need a gen method
-
-        // Need a rotate method
-
-        
 
 
         public async Task GenerateEncryptionKey()
