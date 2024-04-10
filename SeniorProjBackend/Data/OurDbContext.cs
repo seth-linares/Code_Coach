@@ -136,7 +136,7 @@ namespace SeniorProjBackend.Data
                 .HasOne(a => a.User)
                 .WithMany(u => u.AuditLogs)
                 .HasForeignKey(a => a.UserID)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.SetNull); // If a User is deleted, the UserID in the AuditLog table is set to null
 
             // Properties
             modelBuilder.Entity<AuditLog>()
@@ -191,20 +191,28 @@ namespace SeniorProjBackend.Data
             modelBuilder.Entity<Feedback>()
                 .HasKey(f => f.FeedbackID);
 
+            /*
+             * THE CASCADE DELETING MIGHT HAVE TO BE CHANGED TO CLIENTSETNULL FOR PROBLEM
+             * IT IS UNCLEAR UNTIL WE HAVE SOME TESTING DONE
+             * FOR NOW ASSUME IT IS FINE BUT IT MIGHT NEED TO BE CHANGED
+            */ 
+
             // One-to-many relationship between Feedback and User
             modelBuilder.Entity<Feedback>()
                 .HasOne(f => f.User)
                 .WithMany(u => u.Feedbacks)
                 .HasForeignKey(f => f.UserID)
                 .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade); // if a User is deleted, all associated Feedbacks are also deleted
 
             // One-to-many relationship between Feedback and Problem
             modelBuilder.Entity<Feedback>()
                 .HasOne(f => f.Problem)
                 .WithMany(p => p.Feedbacks)
                 .HasForeignKey(f => f.ProblemID)
-                .OnDelete(DeleteBehavior.Cascade);
+                .IsRequired(false) // Ensure ProblemID is nullable
+                .OnDelete(DeleteBehavior.ClientSetNull); // Set ProblemID to null in Feedback when a Problem is deleted
+
 
             // Properties
             modelBuilder.Entity<Feedback>()
@@ -231,10 +239,22 @@ namespace SeniorProjBackend.Data
             modelBuilder.Entity<Language>()
                 .HasKey(l => l.LanguageID);
 
+            // one-to-many relationship between Language and ProblemLanguage
+            modelBuilder.Entity<Language>()
+                .HasMany(l => l.ProblemLanguages)
+                .WithOne(pl => pl.Language)
+                .HasForeignKey(pl => pl.LanguageID)
+                .OnDelete(DeleteBehavior.Cascade); // if a Language is deleted, all associated ProblemLanguages are also deleted
+            
+            // Properties
+            modelBuilder.Entity<Language>()
+                .Property(l => l.LanguageID)
+                .ValueGeneratedOnAdd();
             modelBuilder.Entity<Language>()
                 .Property(l => l.LanguageName)
                 .HasColumnType("varchar(50)")
                 .IsRequired();
+
 
 
 
@@ -257,13 +277,30 @@ namespace SeniorProjBackend.Data
 
             // One-to-many relationship between Problem and Feedback
             modelBuilder.Entity<Problem>()
-                .HasMany(p => p.Feedbacks) // Each Problem can have many Feedbacks
-                .WithOne(f => f.Problem) // Each Feedback is associated with one Problem
-                .HasForeignKey(f => f.ProblemID) // The foreign key in the Feedback table is ProblemID
+                .HasMany(p => p.Feedbacks) 
+                .WithOne(f => f.Problem) 
+                .HasForeignKey(f => f.ProblemID) 
                 .OnDelete(DeleteBehavior.Cascade); // If a Problem is deleted, all associated Feedbacks are also deleted
+
+            // One-to-many relationship between Problem and ProblemCategory
+            modelBuilder.Entity<Problem>()
+                .HasMany(p => p.ProblemCategories) 
+                .WithOne(pc => pc.Problem) 
+                .HasForeignKey(pc => pc.ProblemID) 
+                .OnDelete(DeleteBehavior.Cascade); // If a Problem is deleted, all associated ProblemCategories are also deleted
+
+            // One-to-many relationship between Problem and ProblemLanguage
+            modelBuilder.Entity<Problem>()
+                .HasMany(p => p.ProblemLanguages) 
+                .WithOne(pl => pl.Problem) 
+                .HasForeignKey(pl => pl.ProblemID) 
+                .OnDelete(DeleteBehavior.Cascade); // If a Problem is deleted, all associated ProblemLanguages are also deleted
 
 
             // Properties
+            modelBuilder.Entity<Problem>()
+                .Property(p => p.ProblemID)
+                .ValueGeneratedOnAdd();
             modelBuilder.Entity<Problem>()
                 .Property(p => p.Title)
                 .HasColumnType("nvarchar(250)")
@@ -297,9 +334,118 @@ namespace SeniorProjBackend.Data
 
 
 
+            // ProblemCategory Table
+            modelBuilder.Entity<ProblemCategory>()
+                .HasKey(pc => pc.ProblemCategoryID);
+
+            // One-to-many relationship between ProblemCategory and Problem
+            modelBuilder.Entity<ProblemCategory>()
+                .HasOne(pc => pc.Problem)
+                .WithMany(p => p.ProblemCategories)
+                .HasForeignKey(pc => pc.ProblemID)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade); // If a Problem is deleted, all associated ProblemCategories are also deleted
+
+            // One-to-many relationship between ProblemCategory and Category
+            modelBuilder.Entity<ProblemCategory>()
+                .HasOne(pc => pc.Category)
+                .WithMany(c => c.ProblemCategories)
+                .HasForeignKey(pc => pc.CategoryID)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade); // If a Category is deleted, all associated ProblemCategories are also deleted
+
+            // Property
+            modelBuilder.Entity<ProblemCategory>()
+                .Property(pc => pc.ProblemCategoryID)
+                .ValueGeneratedOnAdd();
 
 
 
+
+
+            // ProblemLanguage Table
+            modelBuilder.Entity<ProblemLanguage>()
+                .HasKey(pl => pl.ProblemLanguageID);
+
+            // One-to-many relationship between ProblemLanguage and Problem
+            modelBuilder.Entity<ProblemLanguage>()
+                .HasOne(pl => pl.Problem)
+                .WithMany(p => p.ProblemLanguages)
+                .HasForeignKey(pl => pl.ProblemID)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade); // If a Problem is deleted, all associated ProblemLanguages are also deleted
+
+
+            // One-to-many relationship between ProblemLanguage and Language
+            modelBuilder.Entity<ProblemLanguage>()
+                .HasOne(pl => pl.Language)
+                .WithMany(l => l.ProblemLanguages)
+                .HasForeignKey(pl => pl.LanguageID)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade); // If a Language is deleted, all associated ProblemLanguages are also deleted
+
+            // Property
+            modelBuilder.Entity<ProblemLanguage>()
+                .Property(pl => pl.ProblemLanguageID)
+                .ValueGeneratedOnAdd();
+
+
+
+
+
+            // RecoveryCode Table
+            modelBuilder.Entity<RecoveryCode>()
+                .HasKey(rc => rc.RecoveryCodeID);
+
+            // One-to-many relationship between RecoveryCode and User
+            modelBuilder.Entity<RecoveryCode>()
+                .HasOne(rc => rc.User)
+                .WithMany(u => u.RecoveryCodes)
+                .HasForeignKey(rc => rc.UserID)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated RecoveryCodes are also deleted
+
+            // Properties
+            modelBuilder.Entity<RecoveryCode>()
+                .Property(rc => rc.RecoveryCodeID)
+                .ValueGeneratedOnAdd();
+            modelBuilder.Entity<RecoveryCode>()
+                .Property(rc => rc.Code)
+                .HasColumnType("varchar(255)") // Hashed recovery code
+                .IsRequired();
+            modelBuilder.Entity<RecoveryCode>()
+                .Property(rc => rc.CreationDate)
+                .HasColumnType("datetime2")
+                .HasDefaultValueSql("GETDATE()")
+                .IsRequired();
+
+
+
+
+            // User Table
+            modelBuilder.Entity<User>()
+                .HasKey(u => u.UserID);
+
+            // One-to-many relationship between User and AIConversation
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.AIConversations)
+                .WithOne(ai => ai.User)
+                .HasForeignKey(ai => ai.UserID)
+                .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated AIConversations are also deleted
+
+            // One-to-many relationship between User and APIKey
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.APIKeys)
+                .WithOne(a => a.User)
+                .HasForeignKey(a => a.UserID)
+                .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated APIKeys are also deleted
+
+            // One-to-many relationship between User and Feedback
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.Feedbacks)
+                .WithOne(f => f.User)
+                .HasForeignKey(f => f.UserID)
+                .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated Feedbacks are also deleted
 
         }
 
