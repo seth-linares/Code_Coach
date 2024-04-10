@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace SeniorProjBackend.Data
+﻿namespace SeniorProjBackend.Data
 {
     public class RecoveryCode
     {
