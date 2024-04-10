@@ -632,7 +632,7 @@ namespace SeniorProjBackend.Data
                 .HasColumnType("bit")
                 .IsRequired();
             modelBuilder.Entity<UserSubmission>()
-                .Property(us => us.ScoreAwarded)
+                .Property(us => us.ScoreAwarded) // This might belong in the Problems table, not sure!!!
                 .HasColumnType("int")
                 .IsRequired();
             modelBuilder.Entity<UserSubmission>()
