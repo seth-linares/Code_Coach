@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SeniorProjBackend.Data;
 using SeniorProjBackend.DTOs;
+using SeniorProjBackend.Encryption;
 
 namespace SeniorProjBackend.Controllers
 {
@@ -107,32 +108,48 @@ namespace SeniorProjBackend.Controllers
 
 
 
-        // POST: api/Users/Register
         [HttpPost("Register")]
         public async Task<ActionResult<User>> RegisterUser(UserRegistrationDto userDto)
         {
-            // Validate request data and ensure username/email uniqueness
-            // Hash the password
-            // Create a new User entity and save it to the database
-            // Return a success response
-
-            // Check if the username is already taken
-            bool user_exists = await _context.Users.AnyAsync(u => u.Username == userDto.Username);
-            if (user_exists)
+            // check if the username is already taken
+            bool userExists = await _context.Users.AnyAsync(u => u.Username == userDto.Username);
+            if (userExists)
             {
                 return BadRequest("Username is already taken.");
             }
 
-            // Check if the email address is already taken
-            bool email_exists = await _context.Users.AnyAsync(u => u.EmailAddress == userDto.EmailAddress);
-            if (email_exists)
+            // check if the email address is already taken
+            bool emailExists = await _context.Users.AnyAsync(u => u.EmailAddress == userDto.EmailAddress);
+            if (emailExists)
             {
                 return BadRequest("Email Address is already taken.");
             }
 
+            // hash the password
+            var hasher = new PasswordHasher();
+            var hashedPassword = hasher.HashPassword(userDto.Password);
+
+            // create a new User entity
+            var newUser = new User
+            {
+                Username = userDto.Username,
+                PasswordHash = hashedPassword, // store the hashed password
+                EmailAddress = userDto.EmailAddress
+            };
+
+            // add user to the database context
+            _context.Users.Add(newUser);
 
 
-            return await default(Task<ActionResult<User>>);
+            // Save changes
+            await _context.SaveChangesAsync();
+
+            var _tokenService = new TokenService(_configuration); // Create a new instance of the TokenService
+
+
+            var token = _tokenService.GenerateToken(newUser); // Generate JWT for the new user
+
+            return Ok(new { token }); // Return the JWT in the response
         }
 
         // POST: api/Users/Login
