@@ -9,13 +9,19 @@ using SeniorProjBackend.Data;
  * for authentication use SQL Server Authentication
  * Trust Server Certificate: True
  * 
+ * 
+ * SEEMS BROKEN FOR CONTAINERS FOR ME (SETH) AT LEAST SO USE THE ACTUAL DB FROM JAREDS SERVER
+ * 
  */
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<OurDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ContainerConnection"))
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("JaredConnectionVS"),
+        sqlOptions => sqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null)
+    )
 );
 
 // Add services to the container.
@@ -24,6 +30,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+//builder.Services.AddDbContext<OurDbContext>();
 
 var app = builder.Build();
 
@@ -44,14 +51,14 @@ var context = app.Services.CreateScope().ServiceProvider.GetRequiredService<OurD
 
 if (context.Database.CanConnect())
 {
-    Console.WriteLine("Successfully connected to the database.");
+    var databaseName = context.Database.GetDbConnection().Database;
+    Console.WriteLine($"Successfully connected to the database: {databaseName}.");
 }
 else
 {
-
     Console.WriteLine("Failed to connect to the database.");
-
 }
+
 
 
 app.Run();
