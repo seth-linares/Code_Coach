@@ -26,6 +26,7 @@
         public List<Feedback> Feedbacks { get; set; }
         public List<ProblemCategory> ProblemCategories { get; set; }
         public List<ProblemLanguage> ProblemLanguages { get; set; }
+        public List<UserSubmission> UserSubmissions { get; set; }
         
     }
 }
