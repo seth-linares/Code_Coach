@@ -115,6 +115,12 @@ namespace SeniorProjBackend.Controllers
             // Hash the password
             // Create a new User entity and save it to the database
             // Return a success response
+
+            // Check if the username is already taken
+            bool user_exists = await _context.Users.AnyAsync(u => u.Username == userDto.Username);
+
+
+
             return await default(Task<ActionResult<User>>);
         }
 
