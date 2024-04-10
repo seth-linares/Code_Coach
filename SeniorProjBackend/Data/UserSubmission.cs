@@ -27,6 +27,12 @@
         public int? ExecutionTime { get; set; } // ET and MU might be worth scrapping, we'll see as we go on
         public int? MemoryUsage { get; set; }
 
+        /*
+         * If the score awarded is specific to each user submission and can vary based on factors like execution time or memory usage, 
+         * then keeping it in the UserSubmission table makes sense. However, if the score is directly associated with the problem itself 
+         * and remains constant for all submissions, you could consider moving it to the Problem table instead.
+         */ 
+
         // Navigation properties
         public User User { get; set; }
         public Problem Problem { get; set; }
