@@ -42,17 +42,6 @@ app.MapControllers();
 
 var context = app.Services.CreateScope().ServiceProvider.GetRequiredService<OurDbContext>();
 
-//try
-//{
-//    // Try to query the first User from the database
-//    var user = context.Users.FirstOrDefault();
-//    Console.WriteLine("Successfully connected to the database.");
-//}
-//catch (Exception ex)
-//{
-//    Console.WriteLine($"An error occurred while connecting to the database: {ex.Message}");
-//}
-
 try
 {
     if (context.Database.CanConnect())
