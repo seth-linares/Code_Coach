@@ -42,23 +42,17 @@ app.MapControllers();
 
 var context = app.Services.CreateScope().ServiceProvider.GetRequiredService<OurDbContext>();
 
-try
+if (context.Database.CanConnect())
 {
-    if (context.Database.CanConnect())
-    {
-        Console.WriteLine("Successfully connected to the database.");
-    }
-    else
-    {
-
-        Console.WriteLine("Failed to connect to the database.");
-
-    }
+    Console.WriteLine("Successfully connected to the database.");
 }
-catch (Exception ex)
+else
 {
-    Console.WriteLine($"An error occurred while connecting to the database: {ex.Message}");
+
+    Console.WriteLine("Failed to connect to the database.");
+
 }
+
 
 app.Run();
     
