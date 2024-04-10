@@ -1,5 +1,13 @@
 ﻿namespace SeniorProjBackend.Data
 {
+    public enum PreferenceKey
+    {
+        Language,
+        Theme,
+        Notification,
+
+    }
+
     public class UserPreference // Might be able to scrap this table tbh. Preferences can likely be done locally on frontend?
     {
         /*
@@ -12,7 +20,7 @@
          */
         public int UserPreferenceID { get; set; }
         public int UserID { get; set; } // Foreign Key; Users.UserID
-        public string PreferenceKey { get; set; } 
+        public PreferenceKey PreferenceKey { get; set; } 
         public string PreferenceValue { get; set; } 
 
         // Navigation Properties
