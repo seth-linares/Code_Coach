@@ -118,6 +118,17 @@ namespace SeniorProjBackend.Controllers
 
             // Check if the username is already taken
             bool user_exists = await _context.Users.AnyAsync(u => u.Username == userDto.Username);
+            if (user_exists)
+            {
+                return BadRequest("Username is already taken.");
+            }
+
+            // Check if the email address is already taken
+            bool email_exists = await _context.Users.AnyAsync(u => u.EmailAddress == userDto.EmailAddress);
+            if (email_exists)
+            {
+                return BadRequest("Email Address is already taken.");
+            }
 
 
 
