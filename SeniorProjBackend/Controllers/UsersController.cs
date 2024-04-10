@@ -111,7 +111,7 @@ namespace SeniorProjBackend.Controllers
 
 
         [HttpPost("Register")]
-        public async Task<ActionResult<User>> RegisterUser(UserRegistrationDto userDto)
+        public async Task<ActionResult<string>> RegisterUser(UserRegistrationDto userDto)
         {
             // check if the username is already taken
             bool userExists = await _context.Users.AnyAsync(u => u.Username == userDto.Username);
@@ -143,8 +143,9 @@ namespace SeniorProjBackend.Controllers
             _context.Users.Add(newUser);
 
 
-            // Save changes
             await _context.SaveChangesAsync();
+
+
 
             var token = _tokenService.GenerateToken(newUser); // Use the injected _tokenService
 
@@ -155,12 +156,28 @@ namespace SeniorProjBackend.Controllers
         [HttpPost("Login")]
         public async Task<ActionResult<string>> LoginUser(UserLoginDto userDto)
         {
-            // Validate request data and retrieve the user from the database
-            // Verify the password
-            // Generate a JWT and return it in the response
-            return await default(Task<ActionResult<string>>);
-            
+            // retrieve the user from the database
+            var user = await _context.Users.SingleOrDefaultAsync(u => u.Username == userDto.Username);
+            if (user == null)
+            {
+                return Unauthorized("Invalid username or password.");
+            }
+
+            // verify the password hash
+            var hasher = new PasswordHasher();
+            var passwordIsValid = hasher.VerifyPassword(user.PasswordHash, userDto.Password);
+            if (!passwordIsValid)
+            {
+                return Unauthorized("Invalid username or password.");
+            }
+
+            // generate a JWT
+            var token = _tokenService.GenerateToken(user);
+
+            // Return the JWT in the response
+            return Ok(new { token = token });
         }
+
 
     }
 }

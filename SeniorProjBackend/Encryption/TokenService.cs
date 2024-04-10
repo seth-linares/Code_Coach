@@ -22,14 +22,13 @@ namespace SeniorProjBackend.Encryption
 
         public string GenerateToken(User user)
         {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["EncryptionKeys:JwtKey"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
             {
             new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),
             new Claim(ClaimTypes.Name, user.Username),
-            // Add additional claims as needed
         };
 
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -45,5 +44,6 @@ namespace SeniorProjBackend.Encryption
             return tokenHandler.WriteToken(token);
         }
     }
+
 
 }
