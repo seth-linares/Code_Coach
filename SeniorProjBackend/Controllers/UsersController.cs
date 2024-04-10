@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SeniorProjBackend.Data;
+using SeniorProjBackend.DTOs;
 
 namespace SeniorProjBackend.Controllers
 {
@@ -29,6 +31,7 @@ namespace SeniorProjBackend.Controllers
 
         // GET: api/Users/5
         [HttpGet("{id}")]
+        [Authorize] // Apply JWT authentication middleware
         public async Task<ActionResult<User>> GetUser(int id)
         {
             var user = await _context.Users.FindAsync(id);
@@ -101,5 +104,30 @@ namespace SeniorProjBackend.Controllers
         {
             return _context.Users.Any(e => e.UserID == id);
         }
+
+
+
+        // POST: api/Users/Register
+        [HttpPost("Register")]
+        public async Task<ActionResult<User>> RegisterUser(UserRegistrationDto userDto)
+        {
+            // Validate request data and ensure username/email uniqueness
+            // Hash the password
+            // Create a new User entity and save it to the database
+            // Return a success response
+            return await default(Task<ActionResult<User>>);
+        }
+
+        // POST: api/Users/Login
+        [HttpPost("Login")]
+        public async Task<ActionResult<string>> LoginUser(UserLoginDto userDto)
+        {
+            // Validate request data and retrieve the user from the database
+            // Verify the password
+            // Generate a JWT and return it in the response
+            return await default(Task<ActionResult<string>>);
+            
+        }
+
     }
 }
