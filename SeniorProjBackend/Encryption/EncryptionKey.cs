@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.IO;
 using System.Text.Json.Serialization;
-
+using Microsoft.AspNetCore.Identity;
 // Might scrap since we want to use KMS and I don't think we need to store the keys in the appsettings.json
 
 namespace SeniorProjBackend.Encryption
