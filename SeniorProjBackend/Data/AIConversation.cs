@@ -1,4 +1,5 @@
-﻿namespace SeniorProjBackend.Data
+﻿using Microsoft.EntityFrameworkCore;
+namespace SeniorProjBackend.Data
 {
     public class AIConversation
     {
@@ -12,6 +13,7 @@
             *   `ConversationContent` (NVARCHAR(MAX)): The entire conversation text, possibly in a structured format like JSON to preserve the flow of the conversation.
             *   `IsCompleted` (Boolean): Indicates whether the problem was solved in this session or if the conversation is ongoing.
         */
+
         public int ConversationID { get; set; }
         public int UserID { get; set; } // Foreign Key; Users.UserID
         public int? ProblemID { get; set; } // Foreign Key; Problems.ProblemID

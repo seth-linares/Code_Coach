@@ -14,6 +14,7 @@
         * `CreatedAt` (DateTime): Timestamp of when the key was created.
         * `ExpiresAt` (DateTime, optional): Timestamp of when the key expires, if applicable.
         */
+
         public int APIKeyID { get; set; }
         public int UserID { get; set; } // Foreign Key; Users.UserID
         public string KeyType { get; set; }
