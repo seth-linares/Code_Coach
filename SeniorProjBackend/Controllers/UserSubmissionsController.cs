@@ -42,7 +42,6 @@ namespace SeniorProjBackend.Controllers
         }
 
         // PUT: api/UserSubmissions/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUserSubmission(int id, UserSubmission userSubmission)
         {
@@ -73,7 +72,6 @@ namespace SeniorProjBackend.Controllers
         }
 
         // POST: api/UserSubmissions
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<UserSubmission>> PostUserSubmission(UserSubmission userSubmission)
         {
