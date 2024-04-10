@@ -296,6 +296,13 @@ namespace SeniorProjBackend.Data
                 .HasForeignKey(pl => pl.ProblemID) 
                 .OnDelete(DeleteBehavior.Cascade); // If a Problem is deleted, all associated ProblemLanguages are also deleted
 
+            // One-to-many relationship between Problem and UserSubmission
+            modelBuilder.Entity<Problem>()
+                .HasMany(p => p.UserSubmissions) 
+                .WithOne(us => us.Problem) 
+                .HasForeignKey(us => us.ProblemID) 
+                .OnDelete(DeleteBehavior.Cascade); // If a Problem is deleted, all associated UserSubmissions are also deleted
+
 
             // Properties
             modelBuilder.Entity<Problem>()
@@ -576,6 +583,64 @@ namespace SeniorProjBackend.Data
                 .Property(up => up.PreferenceValue)
                 .HasColumnType("varchar(255)")
                 .IsRequired();
+
+
+
+            // UserSubmission Table
+            modelBuilder.Entity<UserSubmission>()
+                .HasKey(us => us.SubmissionID);
+
+            // One-to-many relationship between UserSubmission and User
+            modelBuilder.Entity<UserSubmission>()
+                .HasOne(us => us.User)
+                .WithMany(u => u.UserSubmissions)
+                .HasForeignKey(us => us.UserID)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated UserSubmissions are also deleted
+
+            // One-to-many relationship between UserSubmission and Problem
+            modelBuilder.Entity<UserSubmission>()
+                .HasOne(us => us.Problem)
+                .WithMany(p => p.UserSubmissions)
+                .HasForeignKey(us => us.ProblemID)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade); // If a Problem is deleted, all associated UserSubmissions are also deleted
+
+            // One-to-many relationship between UserSubmission and Language
+            modelBuilder.Entity<UserSubmission>()
+                .HasOne(us => us.Language)
+                .WithMany(l => l.UserSubmissions)
+                .HasForeignKey(us => us.LanguageID)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade); // If a Language is deleted, all associated UserSubmissions are also deleted
+
+            // Properties
+            modelBuilder.Entity<UserSubmission>()
+                .Property(us => us.SubmissionID)
+                .ValueGeneratedOnAdd();
+            modelBuilder.Entity<UserSubmission>()
+                .Property(us => us.SubmittedCode)
+                .HasColumnType("nvarchar(max)")
+                .IsRequired();
+            modelBuilder.Entity<UserSubmission>()
+                .Property(us => us.SubmissionTime)
+                .HasColumnType("datetime2")
+                .HasDefaultValueSql("GETDATE()")
+                .IsRequired();
+            modelBuilder.Entity<UserSubmission>()
+                .Property(us => us.IsSuccessful)
+                .HasColumnType("bit")
+                .IsRequired();
+            modelBuilder.Entity<UserSubmission>()
+                .Property(us => us.ScoreAwarded)
+                .HasColumnType("int")
+                .IsRequired();
+            modelBuilder.Entity<UserSubmission>()
+                .Property(us => us.ExecutionTime)
+                .HasColumnType("int");
+            modelBuilder.Entity<UserSubmission>()
+                .Property(us => us.MemoryUsage)
+                .HasColumnType("int");
 
         }
 
