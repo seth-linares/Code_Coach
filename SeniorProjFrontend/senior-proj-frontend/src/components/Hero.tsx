@@ -87,6 +87,10 @@ const Hero = () => {
                         justifyContent: 'center',
                     }}>
                     <img src={url('server')} style={{ width: '20%' }}  alt="server"/>
+                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                        <h1 className="text-9xl font-Noto text-blue-200">CodeCoach</h1>
+                        <h2 className="text-3xl font-thin text-green-200">Learn to Code with the power of AI</h2>
+                    </div>
                 </ParallaxLayer>
 
                 <ParallaxLayer
