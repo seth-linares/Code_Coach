@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SeniorProjBackend.Migrations
 {
     /// <inheritdoc />
-    public partial class mssqlonprem_migration_114 : Migration
+    public partial class mssqlonprem_migration_177 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

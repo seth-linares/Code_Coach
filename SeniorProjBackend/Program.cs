@@ -25,7 +25,7 @@ builder.Services.AddSingleton<ITokenService, TokenService>();
 
 builder.Services.AddDbContext<OurDbContext>(options =>
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("JaredConnectionVS"),
+        builder.Configuration.GetConnectionString("JamesConnection"),
         sqlOptions => sqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null)
     )
 );

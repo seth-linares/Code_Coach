@@ -12,15 +12,15 @@ using SeniorProjBackend.Data;
 namespace SeniorProjBackend.Migrations
 {
     [DbContext(typeof(OurDbContext))]
-    [Migration("20240410143657_mssql.onprem_migration_114")]
-    partial class mssqlonprem_migration_114
+    [Migration("20240413221607_mssql.onprem_migration_177")]
+    partial class mssqlonprem_migration_177
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.3")
+                .HasAnnotation("ProductVersion", "8.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
