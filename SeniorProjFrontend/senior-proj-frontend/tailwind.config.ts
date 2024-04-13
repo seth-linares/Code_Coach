@@ -17,10 +17,6 @@ const config: Config = {
         Noto: ["Noto Serif", "sans-serif"],
       }
     },
-    colors: {
-      cblue:'rgb(0,140,255)',
-
-    }
   },
   plugins: [],
 };
