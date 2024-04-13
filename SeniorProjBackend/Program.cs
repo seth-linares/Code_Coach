@@ -4,7 +4,7 @@ using SeniorProjBackend.Encryption;
 
 /*
  * Start SQL Server container:
- * docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=Password123!!" -e "MSSQL_PID=Express" -p 1433:1433 --name sql1 -d mcr.microsoft.com/mssql/server:2019-latest
+ * docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=Password123!!" -p 1433:1433 --name sql1 -d mcr.microsoft.com/mssql/server:2019-latest
  * Add via SQL Server Object Explorer in Visual Studio:
  * for name use localhost, [PORT] (1433 is default)
  * for authentication use SQL Server Authentication
