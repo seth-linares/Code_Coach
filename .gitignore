@@ -3,3 +3,8 @@
 SeniorProjBackend/appsettings.json
 SeniorProjBackend/[Oo]bj
 SeniorProjBackend/[Bb]in
+/.vs
+/SeniorProjBackend/Properties
+SeniorProjBackend/Properties/serviceDependencies.local.json.user
+SeniorProjBackend/Properties/serviceDependencies.local.json
+SeniorProjBackend/Properties/serviceDependencies.json
