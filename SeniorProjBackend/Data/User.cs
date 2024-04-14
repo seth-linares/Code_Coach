@@ -34,7 +34,6 @@
         public DateTime RegistrationDate { get; set; }
         public DateTime LastActiveDate { get; set; }
         public string Rank { get; set; } 
-        public string RankIconURL { get; set; } // For icons we need to have a default url for each in the fluent api
         public int ActiveStreak { get; set; }
 
         // Navigation properties

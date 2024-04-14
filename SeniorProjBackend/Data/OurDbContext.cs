@@ -535,11 +535,6 @@ namespace SeniorProjBackend.Data
                 .HasDefaultValue("Newbie")
                 .IsRequired();
             modelBuilder.Entity<User>()
-                .Property(u => u.RankIconURL)
-                .HasColumnType("varchar(255)")
-                .HasDefaultValue("path/to/default/rank-icon.jpg")
-                .IsRequired();
-            modelBuilder.Entity<User>()
                 .Property(u => u.ActiveStreak)
                 .HasColumnType("int")
                 .HasDefaultValue(0)
