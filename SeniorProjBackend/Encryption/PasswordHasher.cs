@@ -20,7 +20,7 @@ public class PasswordHasher
             password: password,
             salt: salt,
             prf: KeyDerivationPrf.HMACSHA256,
-            iterationCount: 100000,
+            iterationCount: iterations,
             numBytesRequested: 256 / 8));
 
         // return the salt and the hash
