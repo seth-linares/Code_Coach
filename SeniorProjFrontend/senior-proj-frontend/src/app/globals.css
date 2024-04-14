@@ -41,3 +41,8 @@ Sign Up and Login Button Logic
     0 0 12px rgb(0, 140, 255),
     0 0 25px rgb(0, 140, 255);
 }
+
+@keyframes fall {
+    0% { top: 0; }
+    100% { top: 100vh; }
+}

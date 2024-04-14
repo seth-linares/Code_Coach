@@ -1,14 +1,37 @@
 "use client";
 
-import React, { useRef } from 'react'
+import React, {useRef, useState} from 'react'
 import { Parallax, ParallaxLayer, IParallax } from '@react-spring/parallax'
+import { FaCode } from 'react-icons/fa6'
 
 const url = (name: string, wrap = false) =>
     `${wrap ? 'url(' : ''}https://awv3node-homepage.surge.sh/build/assets/${name}.svg${wrap ? ')' : ''}`
 
+class RandomIcon extends React.Component<{ Icon: any, color?: string }> {
+    render() {
+        let {Icon, color} = this.props;
+        const left = Math.random() * window.innerWidth;
+
+        return (
+            <div style={{
+                position: 'absolute',
+                top: 0,
+                left,
+                animation: 'fall 5s linear infinite',
+                animationDelay: `${Math.random() * 5}s`
+            }}>
+                <Icon size={30} color={color}/>
+            </div>
+        );
+    }
+}
+
 
 const Hero = () => {
-    const parallax = useRef<IParallax>(null!)
+    const parallax = useRef<IParallax>(null!) // parallax element
+
+    const icons = Array.from({ length: 50 }).map((_, i) => <RandomIcon key={i} Icon={FaCode} color="gray" />);
+
     return (
         <div style={{ width: '100%', height: '100vh', overflow: 'hidden', background: '#253237' }}>
             <Parallax ref={parallax} pages={3}>
@@ -20,10 +43,11 @@ const Hero = () => {
                     speed={0}
                     factor={3}
                     style={{
-                        backgroundImage: url('stars', true),
                         backgroundSize: 'cover',
                     }}
-                />
+                >
+                    {icons}
+                </ParallaxLayer>
 
                 <ParallaxLayer offset={1.3} speed={-0.3} style={{ pointerEvents: 'none' }}>
                     <img src={url('satellite4')} style={{ width: '15%', marginLeft: '70%' }}  alt="satellite"/>
