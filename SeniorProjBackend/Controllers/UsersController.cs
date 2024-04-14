@@ -171,6 +171,8 @@ namespace SeniorProjBackend.Controllers
                 return Unauthorized("Invalid username or password.");
             }
 
+            user.LastActiveDate =  DateTime.UtcNow;
+
             // generate a JWT
             var token = _tokenService.GenerateToken(user);
 
