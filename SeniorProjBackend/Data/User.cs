@@ -20,6 +20,8 @@
             *   `ActiveStreak` (INT, optional): Number of consecutive days the user has been active.
         */
 
+        // delete either Rank or RankIconURL
+
         public int UserID { get; set; }
         public string Username { get; set; }
         public string PasswordHash { get; set; }
