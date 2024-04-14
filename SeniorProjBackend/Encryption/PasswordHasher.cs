@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 public class PasswordHasher
 {
 
-    private const int iterations = 100000;
+    private const int ITERATIONS = 100000;
     public string HashPassword(string password)
     {
         // generate a 128-bit salt using a secure PRNG
@@ -20,11 +20,11 @@ public class PasswordHasher
             password: password,
             salt: salt,
             prf: KeyDerivationPrf.HMACSHA256,
-            iterationCount: iterations,
+            iterationCount: ITERATIONS,
             numBytesRequested: 256 / 8));
 
         // return the salt and the hash
-        return $"{iterations}.{Convert.ToBase64String(salt)}.{hashed}";
+        return $"{ITERATIONS}.{Convert.ToBase64String(salt)}.{hashed}";
     }
 
     public bool VerifyPassword(string hashedPassword, string providedPassword)
