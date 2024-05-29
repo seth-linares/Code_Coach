@@ -5,7 +5,7 @@ import './App.css';
 function App() {
   return (
     <div className="App">
-      <h1 className="text-3xl font-bold underline">
+      <h1 className="text-3xl font-bold underline text-orange-300">
       Hello world!
       </h1>
       <header className="App-header">
