@@ -5,6 +5,7 @@ import './App.css';
 import HomePage from './pages/HomePage';
 import LoginPage from "./pages/LoginPage";
 import HelpPage from "./pages/HelpPage";
+import ResourcesPage from "./pages/ResourcesPage";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path={"/help"} element={<HelpPage />} />
+                <Route path={"/resources"} element={<ResourcesPage />} />
             </Routes>
         </Router>
       <h1 className="text-3xl font-bold underline text-orange-300">
