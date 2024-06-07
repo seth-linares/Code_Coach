@@ -15,10 +15,23 @@ import ResourcesPage from "./pages/10_ResourcesPage";
 import SettingsPage from "./pages/11_SettingsPage";
 
 
+
+
 function App() {
   return (
 
     <div className="App">
+
+        {/*
+
+        So far we know we need dynamic id's for the problems (/problems/:id)
+
+        I believe we can use JWT tokens to handle loading which profile needs to be loaded to a user
+        JWT tokens should store the user info so that would suffice
+
+
+        */}
+
         <Router>
             <Routes>
                 <Route path="/" element={<HomePage />} />
