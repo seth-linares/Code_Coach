@@ -1,15 +1,19 @@
 import React from "react";
-import Link from "react-router-dom";
+import {Link} from "react-router-dom"; // named export, so we use {}
 
 function HomePage() {
 
         return (
             <div>
-                Home Page
+                <p>Home Page</p>
+
+                <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+                    <Link className="navbar-brand" to="/login">Login</Link>
+                </nav>
             </div>
+
         )
 }
-
 
 
 // this says that when you do "import [obj] from [file];"

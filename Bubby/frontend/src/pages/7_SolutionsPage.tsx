@@ -1,7 +1,7 @@
 import React from "react";
 
 
-function HistoryPage() {
+function SolutionsPage() {
     return(
         <div>
             Attempt History Page
@@ -9,4 +9,4 @@ function HistoryPage() {
     )
 }
 
-export default HistoryPage;
+export default SolutionsPage;

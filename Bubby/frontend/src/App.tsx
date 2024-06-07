@@ -8,7 +8,7 @@ import RegistrationPage from "./pages/3_RegistrationPage";
 import ProfilePage from "./pages/4_ProfilePage";
 import ProblemsPage from "./pages/5_ProblemsPage";
 import CodingPage from "./pages/6_CodingPage";
-import HistoryPage from "./pages/7_HistoryPage";
+import SolutionsPage from "./pages/7_SolutionsPage";
 import MfaPage from "./pages/8_MfaPage";
 import HelpPage from "./pages/9_HelpPage";
 import ResourcesPage from "./pages/10_ResourcesPage";
@@ -29,6 +29,13 @@ function App() {
         I believe we can use JWT tokens to handle loading which profile needs to be loaded to a user
         JWT tokens should store the user info so that would suffice
 
+        We MIGHT need to use id's for solutions (/solutions/:id) but it depends on how loading that info works
+        Code Wars just does this:
+            - Finished solutions: https://www.codewars.com/users/cat-coding/completed_solutions
+            - Unfinished solutions: https://www.codewars.com/users/cat-coding/unfinished_solutions
+            - Obsolete solutions: https://www.codewars.com/users/cat-coding/obsolete_solutions
+
+        Seems like the approach will be using 1 Solutions page and then use tabs to traverse rather than 3 links
 
         */}
 
@@ -41,7 +48,7 @@ function App() {
                 <Route path={"/problems"} element={<ProblemsPage />} />
                 <Route path={"/problems/:id"} element={<CodingPage />} />
                 <Route path={"/setup-2fa"} element={<MfaPage />} />
-                <Route path={"/history"} element={<HistoryPage />} />
+                <Route path={"/solutions"} element={<SolutionsPage />} />
                 <Route path={"/help"} element={<HelpPage />} />
                 <Route path={"/resources"} element={<ResourcesPage />} />
                 <Route path={"/settings"} element={<SettingsPage />} />
