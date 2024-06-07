@@ -5,7 +5,7 @@ import App from "../App";
 function LoginPage() {
     return(
         <div>
-
+            Login Page
         </div>
     )
 }
