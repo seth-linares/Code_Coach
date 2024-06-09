@@ -14,7 +14,7 @@ using SeniorProjBackend.Encryption;
  * SEEMS BROKEN FOR CONTAINERS FOR ME (SETH) AT LEAST SO USE THE ACTUAL DB FROM JAREDS SERVER
  * Connection string is called JaredConnection in the appsettings.development.json file
  * The JaredConnectionVS connection string is from me using VS to add a connected service to the database
- * 
+ *  
  */
 
 
@@ -24,7 +24,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<ITokenService, TokenService>();
 
 builder.Services.AddDbContext<OurDbContext>(options =>
-    options.UseSqlServer(
+    options.UseNpgsql(
         builder.Configuration.GetConnectionString("JamesConnection"),
         sqlOptions => sqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null)
     )

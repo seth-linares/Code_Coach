@@ -64,20 +64,18 @@ namespace SeniorProjBackend.Data
                 .ValueGeneratedOnAdd(); // should auto increment 
             modelBuilder.Entity<AIConversation>()
                 .Property(c => c.Timestamp)
-                .HasColumnType("datetime2") // should be datetime2
-                .HasDefaultValueSql("GETDATE()") // should default to current date and time. Will need to modify timestamp each time we change content
+                .HasColumnType("timestamp") // should be timestamp
+                .HasDefaultValueSql("NOW()") // should default to current date and time. Will need to modify timestamp each time we change content
                 .IsRequired();
             modelBuilder.Entity<AIConversation>()
                 .Property(c => c.ConversationContent)
-                .HasColumnType("nvarchar(max)")
+                .HasColumnType("text")
                 .IsRequired();
             modelBuilder.Entity<AIConversation>()
                 .Property(c => c.IsCompleted)
-                .HasColumnType("bit")
+                .HasColumnType("boolean")
                 .HasDefaultValue(false)
                 .IsRequired();
-
-
 
 
 
@@ -114,12 +112,12 @@ namespace SeniorProjBackend.Data
                 .HasColumnType("varchar(255)");
             modelBuilder.Entity<APIKey>()
                 .Property(a => a.CreatedAt)
-                .HasColumnType("datetime2")
-                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("timestamp")
+                .HasDefaultValueSql("NOW()")
                 .IsRequired();
             modelBuilder.Entity<APIKey>()
                 .Property(a => a.ExpiresAt)
-                .HasColumnType("datetime2");
+                .HasColumnType("timestamp");
 
 
 
@@ -149,12 +147,12 @@ namespace SeniorProjBackend.Data
                 .IsRequired();
             modelBuilder.Entity<AuditLog>()
                 .Property(a => a.Details)
-                .HasColumnType("nvarchar(max)")
+                .HasColumnType("text")
                 .IsRequired();
             modelBuilder.Entity<AuditLog>()
                 .Property(a => a.Timestamp)
-                .HasColumnType("datetime2")
-                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("timestamp")
+                .HasDefaultValueSql("NOW()")
                 .IsRequired();
 
 
@@ -220,12 +218,12 @@ namespace SeniorProjBackend.Data
                 .ValueGeneratedOnAdd();
             modelBuilder.Entity<Feedback>()
                 .Property(f => f.FeedbackText)
-                .HasColumnType("nvarchar(max)")
+                .HasColumnType("text")
                 .IsRequired();
             modelBuilder.Entity<Feedback>()
                 .Property(f => f.SubmissionTime)
-                .HasColumnType("datetime2")
-                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("timestamp")
+                .HasDefaultValueSql("NOW()")
                 .IsRequired();
 
 
@@ -310,29 +308,29 @@ namespace SeniorProjBackend.Data
                 .ValueGeneratedOnAdd();
             modelBuilder.Entity<Problem>()
                 .Property(p => p.Title)
-                .HasColumnType("nvarchar(250)")
+                .HasColumnType("varchar(250)")
                 .IsRequired();
             modelBuilder.Entity<Problem>()
                 .Property(p => p.Description)
-                .HasColumnType("nvarchar(max)")
+                .HasColumnType("text")
                 .IsRequired();
             modelBuilder.Entity<Problem>()
                 .Property(p => p.DifficultyScore)
-                .HasColumnType("int")
+                .HasColumnType("integer")
                 .IsRequired();
             modelBuilder.Entity<Problem>()
                 .Property(p => p.IsActive)
-                .HasColumnType("bit")
+                .HasColumnType("boolean")
                 .HasDefaultValue(true)
                 .IsRequired();
             modelBuilder.Entity<Problem>()
                 .Property(p => p.LastModifiedDate)
-                .HasColumnType("datetime2")
-                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("timestamp")
+                .HasDefaultValueSql("NOW()")
                 .IsRequired();
             modelBuilder.Entity<Problem>()
                 .Property(p => p.TestCodeFileName)
-                .HasColumnType("nvarchar(250)")
+                .HasColumnType("varchar(250)")
                 .IsRequired();
             
 
@@ -422,8 +420,8 @@ namespace SeniorProjBackend.Data
                 .IsRequired();
             modelBuilder.Entity<RecoveryCode>()
                 .Property(rc => rc.CreationDate)
-                .HasColumnType("datetime2")
-                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("timestamp")
+                .HasDefaultValueSql("NOW()")
                 .IsRequired();
 
 
@@ -500,7 +498,7 @@ namespace SeniorProjBackend.Data
                 .IsRequired();
             modelBuilder.Entity<User>()
                 .Property(u => u.TwoFactorEnabled)
-                .HasColumnType("bit")
+                .HasColumnType("boolean")
                 .HasDefaultValue(false)
                 .IsRequired();
             modelBuilder.Entity<User>()
@@ -508,12 +506,12 @@ namespace SeniorProjBackend.Data
                 .HasColumnType("varchar(255)"); // encrypted secret key for 2FA; nullable
             modelBuilder.Entity<User>()
                 .Property(u => u.TotalScore)
-                .HasColumnType("int")
+                .HasColumnType("integer")
                 .HasDefaultValue(0)
                 .IsRequired();
             modelBuilder.Entity<User>()
                 .Property(u => u.Bio)
-                .HasColumnType("nvarchar(max)"); // might remove since we likely won't do community features
+                .HasColumnType("text"); // might remove since we likely won't do community features
             modelBuilder.Entity<User>()
                 .Property(u => u.ProfilePictureURL)
                 .HasColumnType("varchar(255)")
@@ -521,13 +519,13 @@ namespace SeniorProjBackend.Data
                 .IsRequired();
             modelBuilder.Entity<User>()
                 .Property(u => u.RegistrationDate)
-                .HasColumnType("datetime2")
-                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("timestamp")
+                .HasDefaultValueSql("NOW()")
                 .IsRequired();
             modelBuilder.Entity<User>()
                 .Property(u => u.LastActiveDate)
-                .HasColumnType("datetime2")
-                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("timestamp")
+                .HasDefaultValueSql("NOW()")
                 .IsRequired();
             modelBuilder.Entity<User>()
                 .Property(u => u.Rank)
@@ -615,27 +613,27 @@ namespace SeniorProjBackend.Data
                 .ValueGeneratedOnAdd();
             modelBuilder.Entity<UserSubmission>()
                 .Property(us => us.SubmittedCode)
-                .HasColumnType("nvarchar(max)")
+                .HasColumnType("text")
                 .IsRequired();
             modelBuilder.Entity<UserSubmission>()
                 .Property(us => us.SubmissionTime)
-                .HasColumnType("datetime2")
-                .HasDefaultValueSql("GETDATE()")
+                .HasColumnType("timestamp")
+                .HasDefaultValueSql("NOW()")
                 .IsRequired();
             modelBuilder.Entity<UserSubmission>()
                 .Property(us => us.IsSuccessful)
-                .HasColumnType("bit")
+                .HasColumnType("boolean")
                 .IsRequired();
             modelBuilder.Entity<UserSubmission>()
                 .Property(us => us.ScoreAwarded) // This might belong in the Problems table, not sure!!!
-                .HasColumnType("int")
+                .HasColumnType("integer")
                 .IsRequired();
             modelBuilder.Entity<UserSubmission>()
                 .Property(us => us.ExecutionTime)
-                .HasColumnType("int");
+                .HasColumnType("integer");
             modelBuilder.Entity<UserSubmission>()
                 .Property(us => us.MemoryUsage)
-                .HasColumnType("int");
+                .HasColumnType("integer");
 
         }
 
