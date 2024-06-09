@@ -4,7 +4,7 @@ import Link from "react-router-dom";
 function HelpPage() {
     return(
         <div>
-
+            Help/FAQ Page
         </div>
     )
 }
