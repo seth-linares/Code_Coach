@@ -4,8 +4,9 @@ import Link from "next/link";
 export default function Home() {
     return (
         <main className="flex min-h-screen flex-col items-center justify-between p-24">
-            <header>Join Bubby!</header>
-            <Link href="/">Back to Real Home!</Link>
+            <Link href="/" className={"btn font-bold text-xl"}>Home!</Link>
+            <h1>Join Bubby!</h1>
+
         </main>
     );
 }
