@@ -2,14 +2,14 @@
 import Link from 'next/link';
 
 export const Navbar = () => (
-    <nav className="fixed z-50 w-full bg-dark dark:bg-gray-700 border-b border-gray-500 h-14 flex items-center">
+    <nav className="fixed z-50 w-full bg-base-100 border-b border-gray-500 h-14 flex items-center">
         <div className="container mx-auto px-4 flex justify-between items-center">
             <Link href="/" className="btn btn-ghost normal-case text-xl">
-                <span className="font-bold text-3xl tracking-tight text-primary hover:text-secondary transition-colors duration-300">
+                <span className="font-bold text-4xl tracking-tight text-primary hover:text-secondary transition-colors duration-300">
                     Code<span className="text-gray-400">Coach</span>
                 </span>
             </Link>
-            <ul className="menu menu-horizontal text-2xl space-x-2">
+            <ul className="menu menu-horizontal space-x-2">
                 <li><Link href={"/"} className="btn btn-outline btn-primary hover:bg-primary hover:text-white">Home</Link></li>
                 <li><Link href={"/login"} className="btn btn-outline btn-secondary hover:bg-secondary hover:text-white">Login/Register</Link></li>
                 <li><Link href={"/help"} className="btn btn-outline btn-accent hover:bg-accent hover:text-white">Help/FAQ</Link></li>
