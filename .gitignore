@@ -10,3 +10,5 @@ SeniorProjBackend/Properties/serviceDependencies.local.json
 SeniorProjBackend/Properties/serviceDependencies.json
 /Bubby/frontend/.idea
 /RealBubbyFrontend/.idea
+RealBubbyFrontend/real_cool_frontend/.idea
+RealBubbyFrontend/real_cool_frontend/pnpm-lock.yaml
