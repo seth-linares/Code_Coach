@@ -1,6 +1,34 @@
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using SeniorProjBackend.Data;
 using SeniorProjBackend.Encryption;
+
+String connection_string = "Host=192.168.2.139;Port=5432;Database=CodeCoach;Username=postgres;Password=Password123!!";
+
+using (var conn = new NpgsqlConnection(connection_string))
+{
+    try
+    {
+        conn.Open();
+        Console.WriteLine($"\n\nConnection successfully estabilshed!");
+        using (var cmd = new NpgsqlCommand("SELECT version()", conn))
+        using (var reader = cmd.ExecuteReader())
+        {
+            while (reader.Read())
+            {
+                Console.WriteLine($"Reader getting string: {reader.GetString(0)}\n\n");
+            }
+        }
+
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"\n\nException message: {ex.Message}\n\n");
+    }
+
+
+}
+
 
 var builder = WebApplication.CreateBuilder(args);
 
