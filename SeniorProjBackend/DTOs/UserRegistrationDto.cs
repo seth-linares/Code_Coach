@@ -21,7 +21,5 @@ namespace SeniorProjBackend.DTOs
         [EmailAddress(ErrorMessage = "Invalid Email Address.")]
         public string EmailAddress { get; set; }
 
-        // Might add terms of service agreement in the future
-
     }
 }
