@@ -206,9 +206,6 @@ namespace SeniorProjBackend.Controllers
             await _context.SaveChangesAsync();
 
 
-
-
-
             // generate a JWT
             var token = _tokenService.GenerateToken(user);
 
