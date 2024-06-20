@@ -43,7 +43,7 @@ export function Register() {
     };
 
     return (
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 justify-center items-center gap-8">
             <form onSubmit={handleSubmit} className="form bg-base-200 p-6 my-10 rounded-lg shadow-lg max-w-md mx-auto">
                 <h2 className="text-2xl font-bold mb-6 text-center">Register</h2>
 
