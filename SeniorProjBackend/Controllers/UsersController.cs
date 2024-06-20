@@ -17,9 +17,9 @@ namespace SeniorProjBackend.Controllers
         private readonly ITokenService _tokenService;
         private readonly OurDbContext _context;
         private readonly ILogger<UsersController> _logger;
-        private readonly PasswordHasher<User> _passwordHasher;
+        private readonly IPasswordHasher<User> _passwordHasher;
 
-        public UsersController(OurDbContext context, ITokenService tokenService, ILogger<UsersController> logger, PasswordHasher<User> passwordHasher)
+        public UsersController(OurDbContext context, ITokenService tokenService, ILogger<UsersController> logger, IPasswordHasher<User> passwordHasher)
         {
             _context = context;
             _tokenService=tokenService;
@@ -48,6 +48,21 @@ namespace SeniorProjBackend.Controllers
 
             return user;
         }
+
+        // GET: api/Users/username/{username}
+        [HttpGet("username/{username}")]
+        public async Task<ActionResult<User>> GetUserByUsername(string username)
+        {
+            var user = await _context.Users.SingleOrDefaultAsync(u => u.Username == username);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return user;
+        }
+
 
         // PUT: api/Users/5
         [HttpPut("{id}")]
@@ -86,7 +101,7 @@ namespace SeniorProjBackend.Controllers
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetUser", new { id = user.UserID }, user);
+            return CreatedAtAction(nameof(GetUserById), new { id = user.UserID }, user);
         }
 
         // DELETE: api/Users/5
