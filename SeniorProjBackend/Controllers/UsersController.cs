@@ -10,6 +10,7 @@ using SeniorProjBackend.Data;
 using SeniorProjBackend.DTOs;
 using SeniorProjBackend.Encryption;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 
 
 namespace SeniorProjBackend.Controllers
@@ -21,10 +22,10 @@ namespace SeniorProjBackend.Controllers
     {
         private readonly ITokenService _tokenService;
         private readonly OurDbContext _context;
-        private readonly ILogger _logger;
+        private readonly ILogger<UsersController> _logger;
         private readonly PasswordHasher<User> _passwordHasher;
 
-        public UsersController(OurDbContext context, ITokenService tokenService, ILogger logger, PasswordHasher<User> passwordHasher)
+        public UsersController(OurDbContext context, ITokenService tokenService, ILogger<UsersController> logger, PasswordHasher<User> passwordHasher)
         {
             _context = context;
             _tokenService=tokenService;
@@ -120,33 +121,31 @@ namespace SeniorProjBackend.Controllers
         [HttpPost("Register")]
         public async Task<ActionResult<string>> RegisterUser(UserRegistrationDto userDto)
         {
-            // check if the username is already taken
-            bool userExists = await _context.Users.AnyAsync(u => u.Username == userDto.Username);
-            if (userExists)
-            {
-                return BadRequest(new { message = "Username is already taken." });
-            }
+            var existingUser = await _context.Users
+                .Where(u => u.Username == userDto.Username || u.EmailAddress == userDto.EmailAddress)
+                .FirstOrDefaultAsync();
 
-            // check if the email address is already taken
-            bool emailExists = await _context.Users.AnyAsync(u => u.EmailAddress == userDto.EmailAddress);
-            if (emailExists)
+            if (existingUser != null)
             {
-                return BadRequest(new { message = "Email Address is already taken." });
+                if (existingUser.Username == userDto.Username)
+                {
+                    return BadRequest(new { message = "Username is already taken." });
+                }
+                else if(existingUser.EmailAddress == userDto.EmailAddress)
+                {
+                    return BadRequest(new { message = "Email Address is already taken." });
+                }
             }
 
             // create a new User entity
             var newUser = new User
             {
                 Username = userDto.Username,
-                PasswordHash = "temp_pass", // store the hashed password
                 EmailAddress = userDto.EmailAddress
             };
 
             // hash the password
-
-            var hashedPassword = _passwordHasher.HashPassword(newUser, userDto.Password);
-
-            newUser.PasswordHash = hashedPassword;
+            newUser.PasswordHash = _passwordHasher.HashPassword(newUser, userDto.Password);
 
 
             await using var transaction = await _context.Database.BeginTransactionAsync();
@@ -160,6 +159,7 @@ namespace SeniorProjBackend.Controllers
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
+                _logger.LogError(ex, "An error occurred while creating the user.");
                 return StatusCode(500, new { message = $"An error occured while creating the user: {ex.Message}" });
             }
 
