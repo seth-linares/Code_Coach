@@ -3,12 +3,14 @@ using SeniorProjBackend.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Security.Cryptography;
 
 namespace SeniorProjBackend.Encryption
 {
     public interface ITokenService
     {
         string GenerateToken(User user);
+        static string GenerateSecureKey() => "DEFAULT GENERATED";
     }
 
     public class TokenService : ITokenService
@@ -20,9 +22,27 @@ namespace SeniorProjBackend.Encryption
             _configuration = configuration;
         }
 
+        public static string GenerateSecureKey()
+        {
+            byte[] randomBytes = new byte[32]; // 256 for HMAC SHA-256
+            RandomNumberGenerator.Fill(randomBytes);
+            string byteString = Encoding.UTF8.GetString(randomBytes);
+
+            return byteString;
+        }
+
         public string GenerateToken(User user)
         {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["EncryptionKeys:JwtKey"]));
+            var potential_key = TokenService.GenerateSecureKey();
+            string key = _configuration["EncryptionKeys:JwtKey"] ?? potential_key;
+            
+            if(key == potential_key)
+                Console.WriteLine($"New Key generated: {potential_key}");
+            else 
+                Console.WriteLine($"Key From File: {key}");
+            
+            
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
@@ -34,7 +54,7 @@ namespace SeniorProjBackend.Encryption
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.Now.AddHours(2),
+                Expires = DateTime.Now.AddHours(20), // 20 hours of authentication
                 SigningCredentials = credentials
             };
 
