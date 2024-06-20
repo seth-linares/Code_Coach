@@ -1,56 +1,83 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
+using Microsoft.IdentityModel.Tokens;
 using SeniorProjBackend.Data;
 using SeniorProjBackend.Encryption;
-
-String connection_string = "Host=192.168.2.139;Port=5432;Database=CodeCoach;Username=postgres;Password=Password123!!";
-
-using (var conn = new NpgsqlConnection(connection_string))
-{
-    try
-    {
-        conn.Open();
-        Console.WriteLine($"\n\nConnection successfully estabilshed!");
-        using (var cmd = new NpgsqlCommand("SELECT version()", conn))
-        using (var reader = cmd.ExecuteReader())
-        {
-            while (reader.Read())
-            {
-                Console.WriteLine($"Reader getting string: {reader.GetString(0)}\n\n");
-            }
-        }
-
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"\n\nException message: {ex.Message}\n\n");
-    }
+//using Npgsql;
 
 
-}
+
+//Console.WriteLine($"Key to use: {TokenService.GenerateSecureKey()}\n\n");
+
+//String connection_string = "Host=192.168.2.139;Port=5432;Database=CodeCoach;Username=postgres;Password=Password123!!";
+
+//using (var conn = new NpgsqlConnection(connection_string))
+//{
+//    try
+//    {
+//        conn.Open();
+//        Console.WriteLine($"\n\nConnection successfully estabilshed!");
+//        using (var cmd = new NpgsqlCommand("SELECT version()", conn))
+//        using (var reader = cmd.ExecuteReader())
+//        {
+//            while (reader.Read())
+//            {
+//                Console.WriteLine($"Reader getting string: {reader.GetString(0)}\n\n");
+//            }
+//        }
+
+//    }
+//    catch (Exception ex)
+//    {
+//        Console.WriteLine($"\n\nException message: {ex.Message}\n\n");
+//    }
+
+
+//}
 
 
 var builder = WebApplication.CreateBuilder(args);
 
-
+// Configure services
 builder.Services.AddDbContext<OurDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("RealConnection"))
 );
 
-
-Console.WriteLine($"\n\nSecure JWT Key: {TokenService.GenerateSecureKey()}\n\n");
-
-// Add services to the container.
-
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddLogging();
+
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Configure JWT Authentication
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(builder.Configuration["Jwt:Key"]))
+    };
+});
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -59,9 +86,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
 
 try
 {
