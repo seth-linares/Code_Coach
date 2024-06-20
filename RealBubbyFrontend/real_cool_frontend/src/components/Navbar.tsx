@@ -4,7 +4,7 @@ import Link from 'next/link';
 export const Navbar = () => (
     <nav className="fixed z-50 w-full bg-base-100 border-b border-gray-500 h-14 flex items-center">
         <div className="container mx-auto px-4 flex justify-between items-center">
-            <Link href="/" className="btn btn-ghost normal-case text-xl">
+            <Link href="/real_cool_frontend/public" className="btn btn-ghost normal-case text-xl">
                 <span className="font-bold text-4xl tracking-tight text-primary hover:text-secondary transition-colors duration-300">
                     Code<span className="text-neutral-content">Coach</span>
                 </span>
