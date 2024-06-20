@@ -4,6 +4,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Security.Cryptography;
+using System.IO;
+
 
 namespace SeniorProjBackend.Encryption
 {
@@ -26,15 +28,15 @@ namespace SeniorProjBackend.Encryption
         {
             byte[] randomBytes = new byte[32]; // 256 for HMAC SHA-256
             RandomNumberGenerator.Fill(randomBytes);
-            string byteString = Encoding.UTF8.GetString(randomBytes);
+            string byteString = Convert.ToBase64String(randomBytes);
 
             return byteString;
         }
 
         public string GenerateToken(User user)
         {
-            var potential_key = TokenService.GenerateSecureKey();
-            string key = _configuration["EncryptionKeys:JwtKey"] ?? potential_key;
+            var potential_key = GenerateSecureKey();
+            string key = _configuration["Jwt:Key"] ?? potential_key;
             
             if(key == potential_key)
                 Console.WriteLine($"New Key generated: {potential_key}");
@@ -42,7 +44,7 @@ namespace SeniorProjBackend.Encryption
                 Console.WriteLine($"Key From File: {key}");
             
             
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+            var securityKey = new SymmetricSecurityKey(Convert.FromBase64String(key));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
