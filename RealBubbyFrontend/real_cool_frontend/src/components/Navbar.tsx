@@ -6,7 +6,7 @@ export const Navbar = () => (
         <div className="container mx-auto px-4 flex justify-between items-center">
             <Link href="/" className="btn btn-ghost normal-case text-xl">
                 <span className="font-bold text-4xl tracking-tight text-primary hover:text-secondary transition-colors duration-300">
-                    Code<span className="text-gray-400">Coach</span>
+                    Code<span className="text-neutral-content">Coach</span>
                 </span>
             </Link>
             <ul className="menu menu-horizontal space-x-2">
