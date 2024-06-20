@@ -13,8 +13,8 @@ export default function Home() {
       <Navbar/>
       <HeroSection/>
       <FeaturesSection/>
-      <HowItWorksSection/>
-      {/*<Footer/>*/}
+      <HowItWorksSection/> {/* Client component */}
+      <Footer/>
     </main>
   );
 }
