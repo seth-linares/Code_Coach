@@ -1,14 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
-import {Register} from '@/components/Register';
-import {Footer} from '@/components/Footer';
+import {Register} from '@/components/join/Register';
+import { Footer } from "@/components/common/Footer";
 
-export default function Home() {
+export default function JoinPage() {
     return (
-        <main>
-            <Register/>
-            {/*<Footer/>*/}
-        </main>
-
+        <div className="min-h-screen flex flex-col">
+            <Register/> {/* Client component */}
+            <Footer/>
+        </div>
     );
 }

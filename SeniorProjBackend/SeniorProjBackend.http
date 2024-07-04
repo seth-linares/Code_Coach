@@ -1,6 +1,0 @@
-@SeniorProjBackend_HostAddress = http://localhost:5137
-
-GET {{SeniorProjBackend_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

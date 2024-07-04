@@ -1,11 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import {Navbar} from "@/components/Navbar";
-import {HeroSection} from "@/components/HeroSection";
-import {FeaturesSection} from "@/components/FeaturesSection";
-import {Footer} from "@/components/Footer";
-import {HowItWorksSection} from "@/components/HowItWorksSection";
+import {Navbar} from "@/components/home/Navbar";
+import {HeroSection} from "@/components/home/HeroSection";
+import {FeaturesSection} from "@/components/home/FeaturesSection";
+import {Footer} from "@/components/common/Footer";
+import {HowItWorksSection} from "@/components/home/HowItWorksSection";
 
 export default function Home() {
   return (
