@@ -299,6 +299,9 @@ namespace SeniorProjBackend.Migrations
 
                     b.HasKey("RecoveryCodeID");
 
+                    b.HasIndex("Code")
+                        .IsUnique();
+
                     b.HasIndex("UserID");
 
                     b.ToTable("RecoveryCodes");
@@ -317,9 +320,6 @@ namespace SeniorProjBackend.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(0);
 
-                    b.Property<string>("Bio")
-                        .HasColumnType("text");
-
                     b.Property<string>("EmailAddress")
                         .IsRequired()
                         .HasColumnType("varchar(255)");
@@ -337,7 +337,7 @@ namespace SeniorProjBackend.Migrations
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("varchar(255)")
-                        .HasDefaultValue("path/to/default/profile-picture.jpg");
+                        .HasDefaultValue("https://cdn.pfps.gg/pfps/9150-cat-25.png");
 
                     b.Property<string>("Rank")
                         .IsRequired()

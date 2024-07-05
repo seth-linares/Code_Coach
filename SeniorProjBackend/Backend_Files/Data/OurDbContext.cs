@@ -515,9 +515,6 @@ namespace SeniorProjBackend.Data
                 .HasDefaultValue(0)
                 .IsRequired();
             modelBuilder.Entity<User>()
-                .Property(u => u.Bio)
-                .HasColumnType("text"); // might remove since we likely won't do community features
-            modelBuilder.Entity<User>()
                 .Property(u => u.ProfilePictureURL)
                 .HasColumnType("varchar(255)")
                 .HasDefaultValue("https://cdn.pfps.gg/pfps/9150-cat-25.png")

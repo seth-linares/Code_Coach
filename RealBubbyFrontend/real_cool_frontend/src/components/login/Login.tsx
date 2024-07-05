@@ -17,7 +17,7 @@ export function Login() {
     });
 
     const [error, setError] = useState<string | null>(null); // General errors
-    const [errors, setErrors] = useState<UnauthorizedError>({}); // Auth errors
+    const [authErrors, setAuthErrors] = useState<Record<string, string[]>>({});
 
     const router = useRouter()
     const pathname = usePathname()
@@ -30,7 +30,7 @@ export function Login() {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
-        setErrors({});
+        setAuthErrors({});
 
         try {
             const response = await axios.post<LoginResponse>('/api/login', formData);

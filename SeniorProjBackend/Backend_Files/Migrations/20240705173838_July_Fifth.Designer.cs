@@ -12,8 +12,8 @@ using SeniorProjBackend.Data;
 namespace SeniorProjBackend.Migrations
 {
     [DbContext(typeof(OurDbContext))]
-    [Migration("20240704162258_July_fourth")]
-    partial class July_fourth
+    [Migration("20240705173838_July_Fifth")]
+    partial class July_Fifth
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -302,6 +302,9 @@ namespace SeniorProjBackend.Migrations
 
                     b.HasKey("RecoveryCodeID");
 
+                    b.HasIndex("Code")
+                        .IsUnique();
+
                     b.HasIndex("UserID");
 
                     b.ToTable("RecoveryCodes");
@@ -320,9 +323,6 @@ namespace SeniorProjBackend.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(0);
 
-                    b.Property<string>("Bio")
-                        .HasColumnType("text");
-
                     b.Property<string>("EmailAddress")
                         .IsRequired()
                         .HasColumnType("varchar(255)");
@@ -340,7 +340,7 @@ namespace SeniorProjBackend.Migrations
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("varchar(255)")
-                        .HasDefaultValue("path/to/default/profile-picture.jpg");
+                        .HasDefaultValue("https://cdn.pfps.gg/pfps/9150-cat-25.png");
 
                     b.Property<string>("Rank")
                         .IsRequired()

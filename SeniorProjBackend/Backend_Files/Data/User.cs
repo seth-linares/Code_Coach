@@ -11,7 +11,6 @@
             *   `TwoFactorEnabled` (Boolean): Indicates if two-factor authentication is enabled.
             *   `SecretKey` (VARCHAR, optional): Encrypted  secret key used for generating 2FA codes. Null or empty if 2FA is not enabled.
             *   `TotalScore` (INT): Accumulated score from problem-solving activities.
-            *   `Bio` (VARCHAR, optional): Short biography or user description.
             *   `ProfilePictureURL` (VARCHAR): URL to the user's profile picture, has default value
             *   `RegistrationDate` (DateTime): Date and time when the user registered.
             *   `LastActiveDate` (DateTime): Date and time when the user was last active.
@@ -29,7 +28,6 @@
         public bool TwoFactorEnabled { get; set; }
         public string? SecretKey { get; set; } // encrypted secret key for 2FA
         public int TotalScore { get; set; }
-        public string? Bio {  get; set; }
         public string ProfilePictureURL { get; set; }
         public DateTime RegistrationDate { get; set; }
         public DateTime LastActiveDate { get; set; }

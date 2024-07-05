@@ -1,4 +1,4 @@
-import axios, { AxiosError } from 'axios';
+import axios, {AxiosError, AxiosInstance} from 'axios';
 
 export interface ApiResponse<T> {
     data?: T;
@@ -11,8 +11,9 @@ interface ErrorResponse {
     errors?: Record<string, string[]>;
 }
 
-const api = axios.create({
+const api: AxiosInstance = axios.create({
     baseURL: 'https://localhost/api',
+    withCredentials: true,
 });
 
 api.interceptors.response.use(
@@ -21,7 +22,7 @@ api.interceptors.response.use(
         const apiError: ApiResponse<any> = {};
 
         if (error.response) {
-            const errorData = error.response.data as ErrorResponse;
+            const errorData: ErrorResponse = error.response.data as ErrorResponse;
 
             if (errorData.errors) {
                 apiError.validationErrors = errorData.errors;

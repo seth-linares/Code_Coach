@@ -6,6 +6,7 @@ using SeniorProjBackend.Encryption;
 using Microsoft.AspNetCore.Identity;
 using Humanizer;
 using NuGet.Protocol;
+using System.Security.Claims;
 
 
 
@@ -66,7 +67,6 @@ namespace SeniorProjBackend.Controllers
             return user;
         }
 
-        // Might want to 
         // PUT: api/Users/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(int id, User user)
@@ -97,18 +97,6 @@ namespace SeniorProjBackend.Controllers
             return NoContent();
         }
 
-        
-        
-        // POST: api/Users -- DONT THINK WE WANT A POST OTHER THAN LOGIN
-        //[HttpPost]
-        //public async Task<ActionResult<User>> PostUser(User user)
-        //{
-        //    _context.Users.Add(user);
-        //    await _context.SaveChangesAsync();
-
-        //    return CreatedAtAction(nameof(GetUserById), new { id = user.UserID }, user);
-        //}
-
 
 
         // DELETE: api/Users/5
@@ -133,7 +121,7 @@ namespace SeniorProjBackend.Controllers
         }
 
 
-
+        // POST: api/Users/Register
         [HttpPost("Register")]
         public async Task<ActionResult<string>> RegisterUser(UserRegistrationDto userDto)
         {
@@ -145,23 +133,16 @@ namespace SeniorProjBackend.Controllers
                 return ValidationProblem(ModelState);
             }
 
+            // new method to check for users!!
+
             var existingUser = await _context.Users
                 .Where(u => u.Username == userDto.Username || u.EmailAddress == userDto.EmailAddress)
                 .FirstOrDefaultAsync();
 
             if (existingUser != null)
             {
-
-                // ModelState.AddModelError(KEY_OF_ERROR, VALUE_OF_ERROR):
-
-                ModelState.AddModelError(
-                    existingUser.Username == userDto.Username ? "Username" : "EmailAddress",
-                    existingUser.Username == userDto.Username ? "Username already exists." : "Email address is already in use."
-                );
-
-        
-
-                return ValidationProblem(ModelState); // REALLY DON'T LIKE THIS RESPONSE TYPE BUT ANNOYING TO CHANGE
+                string errorMessage = userDto.Username == existingUser.Username ? "Username already exists." : "Email address is already in use.";
+                return Conflict(new { message = errorMessage });
             }
 
             // create a new User entity
@@ -183,100 +164,146 @@ namespace SeniorProjBackend.Controllers
                 await transaction.CommitAsync();
             }
 
+            catch (DbUpdateException ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Database error occurred while creating the user");
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "A database error occured while creating the user. Please try again later.",
+                    errorCode = "DB_ERROR",
+                });
+            }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                _logger.LogError(ex, "An error occurred while creating the user.");
-                ModelState.AddModelError("Database", $"An error occurred while creating the user: {ex.Message}");
-                return ValidationProblem(ModelState);
+                _logger.LogError(ex, "Unexpected error occurred while creating the user");
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "An unknown error occured. Please try again later.",
+                    errorCode = "UNEXPECTED_ERROR",
+                });
             }
 
+            var token = _tokenService.GenerateToken(newUser);
 
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddMinutes(10)
+            };
 
-            var token = _tokenService.GenerateToken(newUser); // Use the injected _tokenService
+            Response.Cookies.Append("auth_token", token, cookieOptions);
 
-            //var cookieOptions = new CookieOptions
-            //{
-            //    HttpOnly = true,
-            //    Secure = true, // HTTPS NEEDS TRUE, FALSE FOR DEV
-            //    SameSite = SameSiteMode.None,
-            //    Domain = "localhost",
-            //    Expires = DateTime.UtcNow.AddHours(1)
-            //};
 
             // Return the JWT in the response
-            return CreatedAtAction(nameof(GetUserById), new { id = newUser.UserID }, new { token }); 
+            return CreatedAtAction(nameof(GetUserById), new { id = newUser.UserID }, new { message = "User registered successfully" });
         }
 
         // POST: api/Users/Login
         [HttpPost("Login")]
         public async Task<ActionResult<string>> LoginUser(UserLoginDto userDto)
         {
-            _logger.LogInformation($"\n\n\n\n\nATTEMPTING TO LOG IN USER: {userDto.Username}\n\n\n\n\n");
-
-            if (!ModelState.IsValid)
-            {
-                _logger.LogError("Model State is invalid.");
-                return ValidationProblem(ModelState);
-            }
-
-            // retrieve the user from the database
-            var user = await _context.Users.SingleOrDefaultAsync(u => u.Username == userDto.Username);
-            if (user == null)
-            {
-                _logger.LogWarning($"\n\n\n\nFailed login attempt for invalid username: {userDto.Username}\n\n\n\n");
-
-                ModelState.AddModelError("Unauthorized", "Invalid username or password.");
-
-                return ValidationProblem(ModelState);
-            }
-
-            // verify the password hash
-            var passwordIsValid = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, userDto.Password);
-            if (passwordIsValid == PasswordVerificationResult.Failed)
-            {
-                _logger.LogWarning($"\n\n\n\nWRONG PASSWORD ATTEMPT FOR USER: \nUsername: {user.Username}\n\n\n\n\n");
-
-                ModelState.AddModelError("Unauthorized", "Invalid username or password.");
-
-                return ValidationProblem(ModelState);
-            }
-
-
-            /*
-             * If we know the password used in the Dto was legit but old, we can just
-             * take it from the Dto and then hash it and store the new password
-             */
-            else if (passwordIsValid == PasswordVerificationResult.SuccessRehashNeeded)
-            {
-                _logger.LogInformation($"\n\n\n\nUser (Username: {user.Username}) rehashing password\n\n\n\n");
-                user.PasswordHash = _passwordHasher.HashPassword(user, userDto.Password);
-            }
-
-            user.LastActiveDate =  DateTime.UtcNow;
-
+            _logger.LogInformation("Attempting to log in user: {Username}", userDto.Username);
 
             try
             {
-                await _context.SaveChangesAsync();
-            }
+                var user = await _context.Users.SingleOrDefaultAsync(u => u.Username == userDto.Username);
+                if (user == null)
+                {
+                    _logger.LogWarning("Failed login attempt for invalid username: {Username}", userDto.Username);
+                    return Unauthorized(new { message = "Invalid username or password." });
+                }
 
+                var passwordIsValid = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, userDto.Password);
+                if (passwordIsValid == PasswordVerificationResult.Failed)
+                {
+                    _logger.LogWarning("Wrong password attempt for user: {Username}", user.Username);
+                    return Unauthorized(new { message = "Invalid username or password." });
+                }
+
+                if (passwordIsValid == PasswordVerificationResult.SuccessRehashNeeded)
+                {
+                    _logger.LogInformation("User {Username} rehashing password", user.Username);
+                    user.PasswordHash = _passwordHasher.HashPassword(user, userDto.Password);
+                }
+
+                user.LastActiveDate = DateTime.UtcNow;
+
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateException ex)
+                {
+                    _logger.LogError(ex, "Database error occurred while updating user login information");
+                    return StatusCode(StatusCodes.Status500InternalServerError, new
+                    {
+                        message = "A database error has occurred. Please try again later.",
+                        errorCode = "DB_ERROR"
+                    });
+                }
+
+                var token = _tokenService.GenerateToken(user);
+
+                var cookieOptions = new CookieOptions
+                {
+                    Secure = true,
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.None,
+                    Expires = DateTime.UtcNow.AddMinutes(10),
+                };
+
+                Response.Cookies.Append("auth_token", token, cookieOptions);
+
+                _logger.LogInformation("User {Username} has been logged in", user.Username);
+                return Ok(new { message = "Logged in successfully" });
+            }
             catch (Exception ex)
             {
-                _logger.LogError($"An error occurred while updating user login information: {ex}");
-                ModelState.AddModelError("Database", "An error occurred during login. Please try again.");
-                return ValidationProblem(ModelState);
+                _logger.LogError(ex, "Unexpected error during login");
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "An unexpected error has occurred. Please try again later.",
+                    errorCode = "UNEXPECTED_ERROR"
+                });
+            }
+        }
+
+        // POST: /api/Users/Logout
+        [HttpPost("Logout")]
+        public IActionResult Logout()
+        {
+            Response.Cookies.Delete("auth_token"); // need to delete the cookie to have an actual logout
+            return Ok(new { message = "Logged out successfully" });
+        }
+
+
+  
+        // GET: /api/Users/CheckSession
+        [HttpGet("CheckSession")] 
+        public ActionResult CheckSession() // should be useful when loading into pages to check for auth
+        {
+            var token = Request.Cookies["auth_token"];
+
+            if (string.IsNullOrEmpty(token))
+            {
+                return Unauthorized(new { isAuthenticated = false, message = "No authentication token found" });
             }
 
+            var principal = _tokenService.ValidateToken(token);
 
+            if (principal == null)
+            {
+                return Unauthorized(new { isAuthenticated = false, message = "Invalid authentication token" });
+            }
 
+            var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = principal.FindFirst(ClaimTypes.Name)?.Value;
 
-            // generate a JWT
-            var token = _tokenService.GenerateToken(user);
-
-            _logger.LogInformation($"\n\n\n\nUser, {user.Username}, has been logged in.\n\n\n\n");
-            // Return the JWT in the response
-            return Ok(new { token });
+            return Ok(new { isAuthenticated = true, userId, username });
         }
 
 

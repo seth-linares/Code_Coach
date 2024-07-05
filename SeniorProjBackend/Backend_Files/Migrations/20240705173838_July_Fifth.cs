@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace SeniorProjBackend.Migrations
 {
     /// <inheritdoc />
-    public partial class July_fourth : Migration
+    public partial class July_Fifth : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -68,8 +68,7 @@ namespace SeniorProjBackend.Migrations
                     TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     SecretKey = table.Column<string>(type: "varchar(255)", nullable: true),
                     TotalScore = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
-                    Bio = table.Column<string>(type: "text", nullable: true),
-                    ProfilePictureURL = table.Column<string>(type: "varchar(255)", nullable: false, defaultValue: "path/to/default/profile-picture.jpg"),
+                    ProfilePictureURL = table.Column<string>(type: "varchar(255)", nullable: false, defaultValue: "https://cdn.pfps.gg/pfps/9150-cat-25.png"),
                     RegistrationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
                     LastActiveDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
                     Rank = table.Column<string>(type: "varchar(50)", nullable: false, defaultValue: "Newbie"),
@@ -365,6 +364,12 @@ namespace SeniorProjBackend.Migrations
                 name: "IX_ProblemLanguages_ProblemID",
                 table: "ProblemLanguages",
                 column: "ProblemID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RecoveryCodes_Code",
+                table: "RecoveryCodes",
+                column: "Code",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_RecoveryCodes_UserID",

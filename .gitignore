@@ -12,3 +12,7 @@ SeniorProjBackend/Properties/serviceDependencies.json
 /RealBubbyFrontend/.idea
 RealBubbyFrontend/real_cool_frontend/.idea
 RealBubbyFrontend/real_cool_frontend/pnpm-lock.yaml
+/SeniorProjBackend/Backend_Files/bin
+/SeniorProjBackend/Backend_Files/obj
+SeniorProjBackend/Backend_Files/SeniorProjBackend.csproj.user
+SeniorProjBackend/Backend_Files/SeniorProjBackend.csproj

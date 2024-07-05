@@ -10,7 +10,10 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import InputField from '../common/InputField';
 import { useRouter } from "next/navigation";
-import { register, RegisterRequest } from '@/services/authService';
+import {AuthResponse, register, RegisterRequest} from '@/services/authService';
+import {ApiResponse} from "@/services/api";
+import {RegisterResponse} from "@/pages/api/register";
+import {AppRouterInstance} from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 export function Register() {
     const [formData, setFormData] = useState<RegisterRequest>({
@@ -23,9 +26,9 @@ export function Register() {
     const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
     const [success, setSuccess] = useState<string | null>(null);
 
-    const router = useRouter();
+    const router: AppRouterInstance = useRouter();
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
@@ -35,10 +38,9 @@ export function Register() {
         setValidationErrors({});
         setSuccess(null);
 
-        const result = await register(formData);
+        const result: ApiResponse<AuthResponse> = await register(formData);
 
         if (result.data) {
-            console.log(result.data.token);
             setSuccess('Registration successful!');
             router.push('/dashboard');
         } else if (result.validationErrors) {
