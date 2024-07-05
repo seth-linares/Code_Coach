@@ -425,6 +425,11 @@ namespace SeniorProjBackend.Data
                 .IsRequired();
 
 
+            // Unique constraints and indexes
+            modelBuilder.Entity<RecoveryCode>()
+                .HasIndex(rc => rc.Code)
+                .IsUnique();
+
 
 
             // User Table
@@ -515,7 +520,7 @@ namespace SeniorProjBackend.Data
             modelBuilder.Entity<User>()
                 .Property(u => u.ProfilePictureURL)
                 .HasColumnType("varchar(255)")
-                .HasDefaultValue("path/to/default/profile-picture.jpg")
+                .HasDefaultValue("https://cdn.pfps.gg/pfps/9150-cat-25.png")
                 .IsRequired();
             modelBuilder.Entity<User>()
                 .Property(u => u.RegistrationDate)
