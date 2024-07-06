@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Humanizer;
 using NuGet.Protocol;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 
 
@@ -129,7 +130,7 @@ namespace SeniorProjBackend.Controllers
 
             if (!ModelState.IsValid)
             {
-                _logger.LogError("Model State is invalid.");
+                _logger.LogError("\n\n\n\nModel State is invalid.\n\n\n\n");
                 return ValidationProblem(ModelState);
             }
 
@@ -141,8 +142,15 @@ namespace SeniorProjBackend.Controllers
 
             if (existingUser != null)
             {
-                string errorMessage = userDto.Username == existingUser.Username ? "Username already exists." : "Email address is already in use.";
-                return Conflict(new { message = errorMessage });
+                bool sameUsername = userDto.Username == existingUser.Username;
+
+                ModelState.AddModelError(
+                    sameUsername ? "Username" : "EmailAddress",
+                    sameUsername ? "Username already exists." : "Email address is already in use."
+                );
+
+
+                return ValidationProblem(ModelState);
             }
 
             // create a new User entity
@@ -167,7 +175,7 @@ namespace SeniorProjBackend.Controllers
             catch (DbUpdateException ex)
             {
                 await transaction.RollbackAsync();
-                _logger.LogError(ex, "Database error occurred while creating the user");
+                _logger.LogError($"\n\n\n\n{ex}, Database error occurred while creating the user\n\n\n\n");
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
                     message = "A database error occured while creating the user. Please try again later.",
@@ -177,7 +185,7 @@ namespace SeniorProjBackend.Controllers
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                _logger.LogError(ex, "Unexpected error occurred while creating the user");
+                _logger.LogError($"\n\n\n\n{ex}, Unexpected error occurred while creating the user\n\n\n\n");
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
                     message = "An unknown error occured. Please try again later.",
@@ -206,27 +214,27 @@ namespace SeniorProjBackend.Controllers
         [HttpPost("Login")]
         public async Task<ActionResult<string>> LoginUser(UserLoginDto userDto)
         {
-            _logger.LogInformation("Attempting to log in user: {Username}", userDto.Username);
+            _logger.LogInformation($"\n\n\n\nAttempting to log in user: {userDto.Username}\n\n\n\n");
 
             try
             {
                 var user = await _context.Users.SingleOrDefaultAsync(u => u.Username == userDto.Username);
                 if (user == null)
                 {
-                    _logger.LogWarning("Failed login attempt for invalid username: {Username}", userDto.Username);
+                    _logger.LogWarning($"\n\n\n\nFailed login attempt for invalid username: {userDto.Username}\n\n\n\n");
                     return Unauthorized(new { message = "Invalid username or password." });
                 }
 
                 var passwordIsValid = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, userDto.Password);
                 if (passwordIsValid == PasswordVerificationResult.Failed)
                 {
-                    _logger.LogWarning("Wrong password attempt for user: {Username}", user.Username);
+                    _logger.LogWarning($"\n\n\n\nWrong password attempt for user: {user.Username}\n\n\n\n");
                     return Unauthorized(new { message = "Invalid username or password." });
                 }
 
                 if (passwordIsValid == PasswordVerificationResult.SuccessRehashNeeded)
                 {
-                    _logger.LogInformation("User {Username} rehashing password", user.Username);
+                    _logger.LogInformation($"\n\n\n\nUser {user.Username} rehashing password\n\n\n\n");
                     user.PasswordHash = _passwordHasher.HashPassword(user, userDto.Password);
                 }
 
@@ -238,7 +246,7 @@ namespace SeniorProjBackend.Controllers
                 }
                 catch (DbUpdateException ex)
                 {
-                    _logger.LogError(ex, "Database error occurred while updating user login information");
+                    _logger.LogError($"\n\n\n\n{ex}, Database error occurred while updating user login information\n\n\n\n");
                     return StatusCode(StatusCodes.Status500InternalServerError, new
                     {
                         message = "A database error has occurred. Please try again later.",
@@ -258,12 +266,12 @@ namespace SeniorProjBackend.Controllers
 
                 Response.Cookies.Append("auth_token", token, cookieOptions);
 
-                _logger.LogInformation("User {Username} has been logged in", user.Username);
+                _logger.LogDebug($"\n\n\n\nUser {user.Username} has been logged in\n\n\n\n");
                 return Ok(new { message = "Logged in successfully" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error during login");
+                _logger.LogError($"\n\n\n\n{ex}, Unexpected error during login\n\n\n\n");
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
                     message = "An unexpected error has occurred. Please try again later.",
@@ -281,29 +289,37 @@ namespace SeniorProjBackend.Controllers
         }
 
 
-  
+
         // GET: /api/Users/CheckSession
-        [HttpGet("CheckSession")] 
-        public ActionResult CheckSession() // should be useful when loading into pages to check for auth
+        [Authorize]
+        [HttpGet("CheckSession")]
+        public ActionResult CheckSession()
         {
-            var token = Request.Cookies["auth_token"];
+            var authCookie = Request.Cookies["auth_token"];
+            _logger.LogInformation($"\n\n\n\nauthCookie: {authCookie}\n");
 
-            if (string.IsNullOrEmpty(token))
+            foreach(string header in Request.Headers.Keys)
             {
-                return Unauthorized(new { isAuthenticated = false, message = "No authentication token found" });
+                _logger.LogInformation($"\n\n\n\nHeader: {header}\n\n\n\n");
             }
 
-            var principal = _tokenService.ValidateToken(token);
-
-            if (principal == null)
+            var diagnosticInfo = new
             {
-                return Unauthorized(new { isAuthenticated = false, message = "Invalid authentication token" });
+                HasAuthCookie = !string.IsNullOrEmpty(authCookie),
+                IsAuthenticated = User.Identity?.IsAuthenticated ?? false,
+                Claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList()
+            };
+
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var username = User.FindFirstValue(ClaimTypes.Name);
+                return Ok(new { isAuthenticated = true, userId, username, diagnosticInfo });
             }
-
-            var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var username = principal.FindFirst(ClaimTypes.Name)?.Value;
-
-            return Ok(new { isAuthenticated = true, userId, username });
+            else
+            {
+                return Ok(new { isAuthenticated = false, message = "No valid authentication token found", diagnosticInfo });
+            }
         }
 
 
