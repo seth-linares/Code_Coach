@@ -5,7 +5,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SeniorProjBackend.Data;
 using SeniorProjBackend.Encryption;
-using System.Text;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 
 // This console write will appear in the Docker logs
 Console.WriteLine("Starting SeniorProjBackend\n\n\n\n");
@@ -66,7 +67,7 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidAudience = "http://seniorprojbackend:8080",
         ValidateLifetime = true,
-        ClockSkew = TimeSpan.FromSeconds(5)
+        ClockSkew = TimeSpan.Zero,
     };
 
     options.Events = new JwtBearerEvents
@@ -81,11 +82,22 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+
 // Configure Kestrel
 builder.WebHost.UseKestrel(options =>
 {
     options.AddServerHeader = false;
 });
+
+
+// Rate limiting
+builder.Services.AddRateLimiter(options =>
+{
+
+}
+    
+);
+
 
 var app = builder.Build();
 

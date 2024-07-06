@@ -291,7 +291,6 @@ namespace SeniorProjBackend.Controllers
 
 
         // GET: /api/Users/CheckSession
-        [Authorize]
         [HttpGet("CheckSession")]
         public ActionResult CheckSession()
         {
