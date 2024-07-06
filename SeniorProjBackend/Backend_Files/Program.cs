@@ -8,7 +8,7 @@ using SeniorProjBackend.Encryption;
 using System.Text;
 
 // This console write will appear in the Docker logs
-Console.WriteLine("Starting SeniorProjBackend");
+Console.WriteLine("Starting SeniorProjBackend\n\n\n\n");
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<OurDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("RealConnection");
-    Console.WriteLine($"Using connection string: {connectionString}");
+    Console.WriteLine($"\n\n\n\nUsing connection string: {connectionString}\n\n\n\n");
     options.UseNpgsql(connectionString);
 });
 
@@ -39,12 +39,13 @@ builder.Services.AddSwaggerGen(c =>
 // Configure CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAllOrigins",
+    options.AddPolicy("AllowSpecificOrigin",
         builder =>
         {
-            builder.AllowAnyOrigin()
+            builder.WithOrigins("http://frontend:3000")
                    .AllowAnyMethod()
-                   .AllowAnyHeader();
+                   .AllowAnyHeader()
+                   .AllowCredentials();
         });
 });
 
@@ -58,13 +59,14 @@ builder.Services.AddAuthentication(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key is not configured.")))
+        IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(builder.Configuration["Jwt:Key"])),
+        ValidateIssuer = true,
+        ValidIssuer = "http://seniorprojbackend:8080",
+        ValidateAudience = true,
+        ValidAudience = "http://seniorprojbackend:8080",
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.FromSeconds(5)
     };
 
     options.Events = new JwtBearerEvents
@@ -120,4 +122,4 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-Console.WriteLine("SeniorProjBackend has started");
+Console.WriteLine("\n\n\n\nSeniorProjBackend has started\n\n\n\n");
