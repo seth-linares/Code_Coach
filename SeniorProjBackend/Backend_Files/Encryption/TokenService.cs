@@ -17,23 +17,31 @@ namespace SeniorProjBackend.Encryption
     public class TokenService : ITokenService
     {
         private readonly IConfiguration _configuration;
+        private readonly ILogger<TokenService> _logger;
         private readonly string _key;
 
-        public TokenService(IConfiguration configuration)
+        public TokenService(IConfiguration configuration, ILogger<TokenService> logger)
         {
             _configuration = configuration;
-            _key = _configuration["Jwt:Key"] ?? GenerateSecureKey();
+            _logger = logger;
 
-            if (_key == GenerateSecureKey())
-                Console.WriteLine($"New Key generated: {_key}");
+            _key = _configuration["Jwt:Key"];
+            if (string.IsNullOrEmpty(_key))
+            {
+                _key = GenerateSecureKey();
+                _logger.LogWarning("JWT Key not found in configuration. Generated new key.");
+            }
             else
-                Console.WriteLine("Using key from configuration");
+            {
+                _logger.LogInformation("Using JWT Key from configuration.");
+            }
         }
 
         public static string GenerateSecureKey()
         {
             byte[] randomBytes = new byte[32]; // 256 bits for HMAC SHA-256
             RandomNumberGenerator.Fill(randomBytes);
+
             return Convert.ToBase64String(randomBytes);
         }
 
@@ -56,6 +64,8 @@ namespace SeniorProjBackend.Encryption
                 signingCredentials: credentials
             );
 
+            _logger.LogInformation($"\n\n\n\nToken: {token}\n\n\n\n");
+
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
@@ -67,11 +77,14 @@ namespace SeniorProjBackend.Encryption
             try
             {
                 ClaimsPrincipal principal = tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
+
+                _logger.LogInformation("\n\n\n\nReturning principal\n\n\n\n");
                 return principal;
             }
             catch
             {
                 // If token validation fails, return null
+                _logger.LogError("\n\n\n\nValidation failed\n\n\n\n");
                 return null;
             }
         }
@@ -87,7 +100,7 @@ namespace SeniorProjBackend.Encryption
                 ValidateAudience = true,
                 ValidAudience = _configuration["Jwt:Audience"],
                 ValidateLifetime = true,
-                ClockSkew = TimeSpan.Zero
+                ClockSkew = TimeSpan.FromSeconds(2),
             };
         }
     }
