@@ -19,7 +19,7 @@
             *   `PreferenceValue` (VARCHAR) holds the value of the preference (e.g., "en" for English language, "dark" for dark theme, "true" for enabling notifications, etc.)
          */
         public int UserPreferenceID { get; set; }
-        public int UserID { get; set; } // Foreign Key; Users.UserID
+        public int UserId { get; set; } // Foreign Key; Users.UserId
         public PreferenceKey PreferenceKey { get; set; } 
         public string PreferenceValue { get; set; } 
 

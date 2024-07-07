@@ -47,7 +47,7 @@ namespace SeniorProjBackend.Data
             modelBuilder.Entity<AIConversation>()
                 .HasOne(c => c.User)
                 .WithMany(u => u.AIConversations) // Users navigation property
-                .HasForeignKey(c => c.UserID)
+                .HasForeignKey(c => c.UserId)
                 .IsRequired() // Required to have a user
                 .OnDelete(DeleteBehavior.Cascade); // Set Cascade for now but also could become ClientCascade 
 
@@ -91,7 +91,7 @@ namespace SeniorProjBackend.Data
             modelBuilder.Entity<APIKey>()
                 .HasOne(a => a.User)
                 .WithMany(u => u.APIKeys)
-                .HasForeignKey(a => a.UserID)
+                .HasForeignKey(a => a.UserId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
 
@@ -133,8 +133,8 @@ namespace SeniorProjBackend.Data
             modelBuilder.Entity<AuditLog>()
                 .HasOne(a => a.User)
                 .WithMany(u => u.AuditLogs)
-                .HasForeignKey(a => a.UserID)
-                .OnDelete(DeleteBehavior.SetNull); // If a User is deleted, the UserID in the AuditLog table is set to null
+                .HasForeignKey(a => a.UserId)
+                .OnDelete(DeleteBehavior.SetNull); // If a User is deleted, the UserId in the AuditLog table is set to null
 
             // Properties
             modelBuilder.Entity<AuditLog>()
@@ -199,7 +199,7 @@ namespace SeniorProjBackend.Data
             modelBuilder.Entity<Feedback>()
                 .HasOne(f => f.User)
                 .WithMany(u => u.Feedbacks)
-                .HasForeignKey(f => f.UserID)
+                .HasForeignKey(f => f.UserId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade); // if a User is deleted, all associated Feedbacks are also deleted
 
@@ -406,7 +406,7 @@ namespace SeniorProjBackend.Data
             modelBuilder.Entity<RecoveryCode>()
                 .HasOne(rc => rc.User)
                 .WithMany(u => u.RecoveryCodes)
-                .HasForeignKey(rc => rc.UserID)
+                .HasForeignKey(rc => rc.UserId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated RecoveryCodes are also deleted
 
@@ -433,126 +433,81 @@ namespace SeniorProjBackend.Data
 
 
             // User Table
-            modelBuilder.Entity<User>()
-                .HasKey(u => u.UserID);
+            modelBuilder.Entity<User>(b =>
+            {
+                // The base configuration from IdentityUser is automatically applied
 
-            // One-to-many relationship between User and AIConversation
-            modelBuilder.Entity<User>()
-                .HasMany(u => u.AIConversations)
-                .WithOne(ai => ai.User)
-                .HasForeignKey(ai => ai.UserID)
-                .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated AIConversations are also deleted
+                // Configure custom properties
+                b.Property(u => u.TotalScore)
+                    .HasColumnType("integer")
+                    .HasDefaultValue(0)
+                    .IsRequired();
 
-            // One-to-many relationship between User and APIKey
-            modelBuilder.Entity<User>()
-                .HasMany(u => u.APIKeys)
-                .WithOne(a => a.User)
-                .HasForeignKey(a => a.UserID)
-                .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated APIKeys are also deleted
+                b.Property(u => u.ProfilePictureURL)
+                    .HasColumnType("varchar(255)")
+                    .HasDefaultValue("https://cdn.pfps.gg/pfps/9150-cat-25.png")
+                    .IsRequired();
 
-            // One-to-many relationship between User and Feedback
-            modelBuilder.Entity<User>()
-                .HasMany(u => u.Feedbacks)
-                .WithOne(f => f.User)
-                .HasForeignKey(f => f.UserID)
-                .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated Feedbacks are also deleted
+                b.Property(u => u.RegistrationDate)
+                    .HasColumnType("timestamp with time zone")
+                    .HasDefaultValueSql("NOW()")
+                    .IsRequired();
 
-            // One-to-many relationship between User and RecoveryCode
-            modelBuilder.Entity<User>()
-                .HasMany(u => u.RecoveryCodes)
-                .WithOne(rc => rc.User)
-                .HasForeignKey(rc => rc.UserID)
-                .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated RecoveryCodes are also deleted
+                b.Property(u => u.LastActiveDate)
+                    .HasColumnType("timestamp with time zone")
+                    .HasDefaultValueSql("NOW()")
+                    .IsRequired();
 
-            // One-to-many relationship between User and UserPreference
-            modelBuilder.Entity<User>()
-                .HasMany(u => u.UserPreferences)
-                .WithOne(up => up.User)
-                .HasForeignKey(up => up.UserID)
-                .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated UserPreferences are also deleted
+                b.Property(u => u.Rank)
+                    .HasColumnType("varchar(50)")
+                    .HasDefaultValue("Newbie")
+                    .IsRequired();
 
-            // One-to-many relationship between User and AuditLog
-            modelBuilder.Entity<User>()
-                .HasMany(u => u.AuditLogs)
-                .WithOne(al => al.User)
-                .HasForeignKey(al => al.UserID)
-                .OnDelete(DeleteBehavior.SetNull); // If a User is deleted, the UserID in the AuditLog table is set to null
+                b.Property(u => u.ActiveStreak)
+                    .HasColumnType("integer")
+                    .HasDefaultValue(0)
+                    .IsRequired();
 
-            // One-to-many relationship between User and UserSubmission
-            modelBuilder.Entity<User>()
-                .HasMany(u => u.UserSubmissions)
-                .WithOne(us => us.User)
-                .HasForeignKey(us => us.UserID)
-                .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated UserSubmissions are also deleted
+                // Configure relationships
+                b.HasMany(u => u.AIConversations)
+                    .WithOne(ai => ai.User)
+                    .HasForeignKey(ai => ai.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
-            // Properties
-            modelBuilder.Entity<User>()
-                .Property(u => u.UserID)
-                .ValueGeneratedOnAdd();
-            modelBuilder.Entity<User>()
-                .Property(u => u.Username)
-                .HasColumnType("varchar(50)")
-                .IsRequired();
-            modelBuilder.Entity<User>()
-                .Property(u => u.PasswordHash)
-                .HasColumnType("varchar(255)")
-                .IsRequired();
-            modelBuilder.Entity<User>()
-                .Property(u => u.EmailAddress)
-                .HasColumnType("varchar(255)")
-                .IsRequired();
-            modelBuilder.Entity<User>()
-                .Property(u => u.TwoFactorEnabled)
-                .HasColumnType("boolean")
-                .HasDefaultValue(false)
-                .IsRequired();
-            modelBuilder.Entity<User>()
-                .Property(u => u.SecretKey)
-                .HasColumnType("varchar(255)"); // encrypted secret key for 2FA; nullable
-            modelBuilder.Entity<User>()
-                .Property(u => u.TotalScore)
-                .HasColumnType("integer")
-                .HasDefaultValue(0)
-                .IsRequired();
-            modelBuilder.Entity<User>()
-                .Property(u => u.ProfilePictureURL)
-                .HasColumnType("varchar(255)")
-                .HasDefaultValue("https://cdn.pfps.gg/pfps/9150-cat-25.png")
-                .IsRequired();
-            modelBuilder.Entity<User>()
-                .Property(u => u.RegistrationDate)
-                .HasColumnType("timestamp with time zone")
-                .HasDefaultValueSql("NOW()")
-                .IsRequired();
-            modelBuilder.Entity<User>()
-                .Property(u => u.LastActiveDate)
-                .HasColumnType("timestamp with time zone")
-                .HasDefaultValueSql("NOW()")
-                .IsRequired();
-            modelBuilder.Entity<User>()
-                .Property(u => u.Rank)
-                .HasColumnType("varchar(50)")
-                .HasDefaultValue("Newbie")
-                .IsRequired();
-            modelBuilder.Entity<User>()
-                .Property(u => u.ActiveStreak)
-                .HasColumnType("int")
-                .HasDefaultValue(0)
-                .IsRequired();
+                b.HasMany(u => u.APIKeys)
+                    .WithOne(a => a.User)
+                    .HasForeignKey(a => a.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
-            // Unique constraints and indexes
+                b.HasMany(u => u.Feedbacks)
+                    .WithOne(f => f.User)
+                    .HasForeignKey(f => f.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<User>()
-                .HasIndex(u => u.Username)
-                .IsUnique();
+                b.HasMany(u => u.RecoveryCodes)
+                    .WithOne(rc => rc.User)
+                    .HasForeignKey(rc => rc.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<User>()
-                .HasIndex(u => u.EmailAddress)
-                .IsUnique();
+                b.HasMany(u => u.UserPreferences)
+                    .WithOne(up => up.User)
+                    .HasForeignKey(up => up.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                b.HasMany(u => u.AuditLogs)
+                    .WithOne(al => al.User)
+                    .HasForeignKey(al => al.UserId)
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                b.HasMany(u => u.UserSubmissions)
+                    .WithOne(us => us.User)
+                    .HasForeignKey(us => us.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
 
 
 
-            
+
             // UserPreference Table
             modelBuilder.Entity<UserPreference>()
                 .HasKey(up => up.UserPreferenceID);
@@ -561,7 +516,7 @@ namespace SeniorProjBackend.Data
             modelBuilder.Entity<UserPreference>()
                 .HasOne(up => up.User)
                 .WithMany(u => u.UserPreferences)
-                .HasForeignKey(up => up.UserID)
+                .HasForeignKey(up => up.UserId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated UserPreferences are also deleted
 
@@ -589,7 +544,7 @@ namespace SeniorProjBackend.Data
             modelBuilder.Entity<UserSubmission>()
                 .HasOne(us => us.User)
                 .WithMany(u => u.UserSubmissions)
-                .HasForeignKey(us => us.UserID)
+                .HasForeignKey(us => us.UserId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated UserSubmissions are also deleted
 

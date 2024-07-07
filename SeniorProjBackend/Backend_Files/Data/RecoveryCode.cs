@@ -11,7 +11,7 @@
             *   `CreationDate` (DateTime): The date and time when the recovery code was generated.
         */
         public int RecoveryCodeID { get; set; }
-        public int UserID { get; set; } // Foreign Key; Users.UserID
+        public int UserId { get; set; } // Foreign Key; Users.UserId
         public string Code { get; set; } // needs to be hashed
         public DateTime CreationDate { get; set; }
 

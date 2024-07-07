@@ -16,7 +16,7 @@
         */
 
         public int APIKeyID { get; set; }
-        public int UserID { get; set; } // Foreign Key; Users.UserID
+        public int UserId { get; set; } // Foreign Key; Users.UserId
         public string KeyType { get; set; }
         public string KeyValue { get; set; }
         public string? Permissions { get; set; }

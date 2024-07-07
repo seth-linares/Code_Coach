@@ -36,7 +36,7 @@
         */
 
         public int AuditLogID { get; set; }
-        public int? UserID { get; set; } // Foreign Key; Users.UserID
+        public int UserId { get; set; } // Foreign Key; Users.UserId
         public EventType EventType { get; set; }
         public string Details { get; set; } // Varchar Max
         public DateTime Timestamp { get; set; }

@@ -12,7 +12,7 @@
             *   `SubmissionTime` (DateTime).
         */
         public int FeedbackID { get; set; }
-        public int UserID { get; set; } // Foreign Key; Users.UserID
+        public int UserId { get; set; } // Foreign Key; Users.UserId
         public int? ProblemID { get; set; } // Foreign Key; Problems.ProblemID
         public string FeedbackText { get; set; } // Varchar Max
         public DateTime SubmissionTime { get; set; }

@@ -17,7 +17,7 @@
         *   `LanguageID` (INT, Foreign Key, references `Languages.LanguageID`): Programming language used in the submission.
         */
         public int SubmissionID { get; set; }
-        public int UserID { get; set; } // Foreign Key; Users.UserID
+        public int UserId { get; set; } // Foreign Key; Users.UserId
         public int ProblemID { get; set; } // Foreign Key; Problems.ProblemID
         public int LanguageID { get; set; } // Foreign Key; Languages.LanguageID
         public string SubmittedCode { get; set; } // Varchar Max
