@@ -1,11 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+
 
 namespace SeniorProjBackend.Data
 {
-    public class OurDbContext : DbContext 
+    public class OurDbContext : IdentityDbContext<User, IdentityRole<int>, int>
     {
         // DbSet for each table
-        
+
         public DbSet<AIConversation> AIConversations { get; set; }
         public DbSet<APIKey> APIKeys { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
@@ -16,7 +19,6 @@ namespace SeniorProjBackend.Data
         public DbSet<ProblemCategory> ProblemCategories { get; set; }
         public DbSet<ProblemLanguage> ProblemLanguages { get; set; }
         public DbSet<RecoveryCode> RecoveryCodes { get; set; }
-        public DbSet<User> Users { get; set; }
         public DbSet<UserPreference> UserPreferences { get; set; }
         public DbSet<UserSubmission> UserSubmissions { get; set; }
 
