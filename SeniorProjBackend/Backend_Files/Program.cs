@@ -94,10 +94,19 @@ builder.WebHost.UseKestrel(options =>
 // Rate limiting
 builder.Services.AddRateLimiter(options =>
 {
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.User.Identity?.Name ?? context.Request.Headers.Host.ToString(),
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 100,
+                QueueLimit = 0,
+                Window = TimeSpan.FromMinutes(1)
+            }));
 
-}
-    
-);
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
 
 
 var app = builder.Build();
@@ -130,6 +139,7 @@ else
 app.UseCors("AllowSpecificOrigin");
 
 app.UseAuthentication();
+app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapControllers();
