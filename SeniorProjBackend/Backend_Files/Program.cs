@@ -127,7 +127,7 @@ else
 // HTTPS redirection is removed as we're using Nginx for SSL termination
 // app.UseHttpsRedirection();
 
-app.UseCors("AllowAllOrigins");
+app.UseCors("AllowSpecificOrigin");
 
 app.UseAuthentication();
 app.UseAuthorization();
