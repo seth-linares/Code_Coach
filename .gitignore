@@ -19,3 +19,4 @@ SeniorProjBackend/Backend_Files/SeniorProjBackend.csproj
 SeniorProjBackend/Backend_Files/obj/Debug/net8.0/SeniorProjBackend.AssemblyInfo.cs
 SeniorProjBackend/Backend_Files/obj/Debug/net8.0/SeniorProjBackend.AssemblyInfoInputs.cache
 /SeniorProjBackend/Backend_Files/obj
+/SeniorProjBackend/Backend_Files/Migrations
