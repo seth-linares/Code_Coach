@@ -52,7 +52,7 @@ namespace SeniorProjBackend.Encryption
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Name, user.Username)
             };
 

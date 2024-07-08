@@ -1,11 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 
 namespace SeniorProjBackend.Data
 {
-    public class OurDbContext : IdentityDbContext<User, IdentityRole<int>, int>
+    public class OurDbContext : DbContext
     {
         // DbSet for each table
 
@@ -21,6 +19,7 @@ namespace SeniorProjBackend.Data
         public DbSet<RecoveryCode> RecoveryCodes { get; set; }
         public DbSet<UserPreference> UserPreferences { get; set; }
         public DbSet<UserSubmission> UserSubmissions { get; set; }
+        public DbSet<User> Users { get; set; }
 
         /*
          * Constructor for OurDbContext. The options parameter is passed to the base class constructor.
@@ -435,77 +434,133 @@ namespace SeniorProjBackend.Data
 
 
             // User Table
-            modelBuilder.Entity<User>(b =>
-            {
-                // The base configuration from IdentityUser is automatically applied
+            modelBuilder.Entity<User>()
+                .HasKey(u => u.UserId);
 
-                // Configure custom properties
-                b.Property(u => u.TotalScore)
-                    .HasColumnType("integer")
-                    .HasDefaultValue(0)
-                    .IsRequired();
+            // One-to-many relationship between User and AIConversation
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.AIConversations)
+                .WithOne(ai => ai.User)
+                .HasForeignKey(ai => ai.UserId)
+                .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated AIConversations are also deleted
 
-                b.Property(u => u.ProfilePictureURL)
-                    .HasColumnType("varchar(255)")
-                    .HasDefaultValue("https://cdn.pfps.gg/pfps/9150-cat-25.png")
-                    .IsRequired();
+            // One-to-many relationship between User and APIKey
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.APIKeys)
+                .WithOne(a => a.User)
+                .HasForeignKey(a => a.UserId)
+                .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated APIKeys are also deleted
 
-                b.Property(u => u.RegistrationDate)
-                    .HasColumnType("timestamp with time zone")
-                    .HasDefaultValueSql("NOW()")
-                    .IsRequired();
+            // One-to-many relationship between User and Feedback
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.Feedbacks)
+                .WithOne(f => f.User)
+                .HasForeignKey(f => f.UserId)
+                .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated Feedbacks are also deleted
 
-                b.Property(u => u.LastActiveDate)
-                    .HasColumnType("timestamp with time zone")
-                    .HasDefaultValueSql("NOW()")
-                    .IsRequired();
+            // One-to-many relationship between User and RecoveryCode
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.RecoveryCodes)
+                .WithOne(rc => rc.User)
+                .HasForeignKey(rc => rc.UserId)
+                .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated RecoveryCodes are also deleted
 
-                b.Property(u => u.Rank)
-                    .HasColumnType("varchar(50)")
-                    .HasDefaultValue("Newbie")
-                    .IsRequired();
+            // One-to-many relationship between User and UserPreference
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.UserPreferences)
+                .WithOne(up => up.User)
+                .HasForeignKey(up => up.UserId)
+                .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated UserPreferences are also deleted
 
-                b.Property(u => u.ActiveStreak)
-                    .HasColumnType("integer")
-                    .HasDefaultValue(0)
-                    .IsRequired();
+            // One-to-many relationship between User and AuditLog
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.AuditLogs)
+                .WithOne(al => al.User)
+                .HasForeignKey(al => al.UserId)
+                .OnDelete(DeleteBehavior.SetNull); // If a User is deleted, the UserID in the AuditLog table is set to null
 
-                // Configure relationships
-                b.HasMany(u => u.AIConversations)
-                    .WithOne(ai => ai.User)
-                    .HasForeignKey(ai => ai.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
+            // One-to-many relationship between User and UserSubmission
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.UserSubmissions)
+                .WithOne(us => us.User)
+                .HasForeignKey(us => us.UserId)
+                .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated UserSubmissions are also deleted
 
-                b.HasMany(u => u.APIKeys)
-                    .WithOne(a => a.User)
-                    .HasForeignKey(a => a.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
+            // Properties
+            modelBuilder.Entity<User>()
+                .Property(u => u.UserId)
+                .ValueGeneratedOnAdd();
 
-                b.HasMany(u => u.Feedbacks)
-                    .WithOne(f => f.User)
-                    .HasForeignKey(f => f.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<User>()
+                .Property(u => u.Username)
+                .HasColumnType("varchar(50)")
+                .IsRequired();
 
-                b.HasMany(u => u.RecoveryCodes)
-                    .WithOne(rc => rc.User)
-                    .HasForeignKey(rc => rc.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<User>()
+                .Property(u => u.PasswordHash)
+                .HasColumnType("varchar(255)")
+                .IsRequired();
 
-                b.HasMany(u => u.UserPreferences)
-                    .WithOne(up => up.User)
-                    .HasForeignKey(up => up.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<User>()
+                .Property(u => u.EmailAddress)
+                .HasColumnType("varchar(255)")
+                .IsRequired();
 
-                b.HasMany(u => u.AuditLogs)
-                    .WithOne(al => al.User)
-                    .HasForeignKey(al => al.UserId)
-                    .OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<User>()
+                .Property(u => u.TwoFactorEnabled)
+                .HasColumnType("boolean")
+                .HasDefaultValue(false)
+                .IsRequired();
 
-                b.HasMany(u => u.UserSubmissions)
-                    .WithOne(us => us.User)
-                    .HasForeignKey(us => us.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
-            });
+            modelBuilder.Entity<User>()
+                .Property(u => u.SecretKey)
+                .HasColumnType("varchar(255)"); // encrypted secret key for 2FA; nullable
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.TotalScore)
+                .HasColumnType("integer")
+                .HasDefaultValue(0)
+                .IsRequired();
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.ProfilePictureURL)
+                .HasColumnType("varchar(255)")
+                .HasDefaultValue("https://cdn.pfps.gg/pfps/9150-cat-25.png")
+                .IsRequired();
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.RegistrationDate)
+                .HasColumnType("timestamp with time zone")
+                .HasDefaultValueSql("NOW()")
+                .IsRequired();
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.LastActiveDate)
+                .HasColumnType("timestamp with time zone")
+                .HasDefaultValueSql("NOW()")
+                .IsRequired();
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.Rank)
+                .HasColumnType("varchar(50)")
+                .HasDefaultValue("Newbie")
+                .IsRequired();
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.ActiveStreak)
+                .HasColumnType("int")
+                .HasDefaultValue(0)
+                .IsRequired();
+
+            // Unique constraints and indexes
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Username)
+                .IsUnique();
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.EmailAddress)
+                .IsUnique();
+
 
 
 

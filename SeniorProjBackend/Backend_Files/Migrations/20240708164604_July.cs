@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace SeniorProjBackend.Migrations
 {
     /// <inheritdoc />
-    public partial class July_Fifth : Migration
+    public partial class July : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -60,7 +60,7 @@ namespace SeniorProjBackend.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    UserID = table.Column<int>(type: "integer", nullable: false)
+                    UserId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Username = table.Column<string>(type: "varchar(50)", nullable: false),
                     PasswordHash = table.Column<string>(type: "varchar(255)", nullable: false),
@@ -76,7 +76,7 @@ namespace SeniorProjBackend.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.UserID);
+                    table.PrimaryKey("PK_Users", x => x.UserId);
                 });
 
             migrationBuilder.CreateTable(
@@ -137,7 +137,7 @@ namespace SeniorProjBackend.Migrations
                 {
                     ConversationID = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserID = table.Column<int>(type: "integer", nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
                     ProblemID = table.Column<int>(type: "integer", nullable: true),
                     Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
                     ConversationContent = table.Column<string>(type: "text", nullable: false),
@@ -153,10 +153,10 @@ namespace SeniorProjBackend.Migrations
                         principalColumn: "ProblemID",
                         onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
-                        name: "FK_AIConversations_Users_UserID",
-                        column: x => x.UserID,
+                        name: "FK_AIConversations_Users_UserId",
+                        column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "UserID",
+                        principalColumn: "UserId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -166,7 +166,7 @@ namespace SeniorProjBackend.Migrations
                 {
                     APIKeyID = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserID = table.Column<int>(type: "integer", nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
                     KeyType = table.Column<string>(type: "varchar(50)", nullable: false),
                     KeyValue = table.Column<string>(type: "varchar(255)", nullable: false),
                     Permissions = table.Column<string>(type: "varchar(255)", nullable: true),
@@ -177,10 +177,10 @@ namespace SeniorProjBackend.Migrations
                 {
                     table.PrimaryKey("PK_APIKeys", x => x.APIKeyID);
                     table.ForeignKey(
-                        name: "FK_APIKeys_Users_UserID",
-                        column: x => x.UserID,
+                        name: "FK_APIKeys_Users_UserId",
+                        column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "UserID",
+                        principalColumn: "UserId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -190,7 +190,7 @@ namespace SeniorProjBackend.Migrations
                 {
                     AuditLogID = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserID = table.Column<int>(type: "integer", nullable: true),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
                     EventType = table.Column<string>(type: "varchar(50)", nullable: false),
                     Details = table.Column<string>(type: "text", nullable: false),
                     Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()")
@@ -199,10 +199,10 @@ namespace SeniorProjBackend.Migrations
                 {
                     table.PrimaryKey("PK_AuditLogs", x => x.AuditLogID);
                     table.ForeignKey(
-                        name: "FK_AuditLogs_Users_UserID",
-                        column: x => x.UserID,
+                        name: "FK_AuditLogs_Users_UserId",
+                        column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "UserID",
+                        principalColumn: "UserId",
                         onDelete: ReferentialAction.SetNull);
                 });
 
@@ -212,7 +212,7 @@ namespace SeniorProjBackend.Migrations
                 {
                     FeedbackID = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserID = table.Column<int>(type: "integer", nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
                     ProblemID = table.Column<int>(type: "integer", nullable: true),
                     FeedbackText = table.Column<string>(type: "text", nullable: false),
                     SubmissionTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()")
@@ -227,10 +227,10 @@ namespace SeniorProjBackend.Migrations
                         principalColumn: "ProblemID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Feedbacks_Users_UserID",
-                        column: x => x.UserID,
+                        name: "FK_Feedbacks_Users_UserId",
+                        column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "UserID",
+                        principalColumn: "UserId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -240,7 +240,7 @@ namespace SeniorProjBackend.Migrations
                 {
                     RecoveryCodeID = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserID = table.Column<int>(type: "integer", nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
                     Code = table.Column<string>(type: "varchar(255)", nullable: false),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()")
                 },
@@ -248,10 +248,10 @@ namespace SeniorProjBackend.Migrations
                 {
                     table.PrimaryKey("PK_RecoveryCodes", x => x.RecoveryCodeID);
                     table.ForeignKey(
-                        name: "FK_RecoveryCodes_Users_UserID",
-                        column: x => x.UserID,
+                        name: "FK_RecoveryCodes_Users_UserId",
+                        column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "UserID",
+                        principalColumn: "UserId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -261,7 +261,7 @@ namespace SeniorProjBackend.Migrations
                 {
                     UserPreferenceID = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserID = table.Column<int>(type: "integer", nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
                     PreferenceKey = table.Column<string>(type: "varchar(50)", nullable: false),
                     PreferenceValue = table.Column<string>(type: "varchar(255)", nullable: false)
                 },
@@ -269,10 +269,10 @@ namespace SeniorProjBackend.Migrations
                 {
                     table.PrimaryKey("PK_UserPreferences", x => x.UserPreferenceID);
                     table.ForeignKey(
-                        name: "FK_UserPreferences_Users_UserID",
-                        column: x => x.UserID,
+                        name: "FK_UserPreferences_Users_UserId",
+                        column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "UserID",
+                        principalColumn: "UserId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -282,7 +282,7 @@ namespace SeniorProjBackend.Migrations
                 {
                     SubmissionID = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserID = table.Column<int>(type: "integer", nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
                     ProblemID = table.Column<int>(type: "integer", nullable: false),
                     LanguageID = table.Column<int>(type: "integer", nullable: false),
                     SubmittedCode = table.Column<string>(type: "text", nullable: false),
@@ -308,10 +308,10 @@ namespace SeniorProjBackend.Migrations
                         principalColumn: "ProblemID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UserSubmissions_Users_UserID",
-                        column: x => x.UserID,
+                        name: "FK_UserSubmissions_Users_UserId",
+                        column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "UserID",
+                        principalColumn: "UserId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -321,19 +321,19 @@ namespace SeniorProjBackend.Migrations
                 column: "ProblemID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AIConversations_UserID",
+                name: "IX_AIConversations_UserId",
                 table: "AIConversations",
-                column: "UserID");
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_APIKeys_UserID",
+                name: "IX_APIKeys_UserId",
                 table: "APIKeys",
-                column: "UserID");
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AuditLogs_UserID",
+                name: "IX_AuditLogs_UserId",
                 table: "AuditLogs",
-                column: "UserID");
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Feedbacks_ProblemID",
@@ -341,9 +341,9 @@ namespace SeniorProjBackend.Migrations
                 column: "ProblemID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Feedbacks_UserID",
+                name: "IX_Feedbacks_UserId",
                 table: "Feedbacks",
-                column: "UserID");
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProblemCategories_CategoryID",
@@ -372,14 +372,14 @@ namespace SeniorProjBackend.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_RecoveryCodes_UserID",
+                name: "IX_RecoveryCodes_UserId",
                 table: "RecoveryCodes",
-                column: "UserID");
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserPreferences_UserID",
+                name: "IX_UserPreferences_UserId",
                 table: "UserPreferences",
-                column: "UserID");
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_EmailAddress",
@@ -404,9 +404,9 @@ namespace SeniorProjBackend.Migrations
                 column: "ProblemID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserSubmissions_UserID",
+                name: "IX_UserSubmissions_UserId",
                 table: "UserSubmissions",
-                column: "UserID");
+                column: "UserId");
         }
 
         /// <inheritdoc />

@@ -47,14 +47,14 @@ namespace SeniorProjBackend.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("NOW()");
 
-                    b.Property<int>("UserID")
+                    b.Property<int>("UserId")
                         .HasColumnType("integer");
 
                     b.HasKey("ConversationID");
 
                     b.HasIndex("ProblemID");
 
-                    b.HasIndex("UserID");
+                    b.HasIndex("UserId");
 
                     b.ToTable("AIConversations");
                 });
@@ -86,12 +86,12 @@ namespace SeniorProjBackend.Migrations
                     b.Property<string>("Permissions")
                         .HasColumnType("varchar(255)");
 
-                    b.Property<int>("UserID")
+                    b.Property<int>("UserId")
                         .HasColumnType("integer");
 
                     b.HasKey("APIKeyID");
 
-                    b.HasIndex("UserID");
+                    b.HasIndex("UserId");
 
                     b.ToTable("APIKeys");
                 });
@@ -117,12 +117,12 @@ namespace SeniorProjBackend.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("NOW()");
 
-                    b.Property<int?>("UserID")
+                    b.Property<int>("UserId")
                         .HasColumnType("integer");
 
                     b.HasKey("AuditLogID");
 
-                    b.HasIndex("UserID");
+                    b.HasIndex("UserId");
 
                     b.ToTable("AuditLogs");
                 });
@@ -164,14 +164,14 @@ namespace SeniorProjBackend.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("NOW()");
 
-                    b.Property<int>("UserID")
+                    b.Property<int>("UserId")
                         .HasColumnType("integer");
 
                     b.HasKey("FeedbackID");
 
                     b.HasIndex("ProblemID");
 
-                    b.HasIndex("UserID");
+                    b.HasIndex("UserId");
 
                     b.ToTable("Feedbacks");
                 });
@@ -294,7 +294,7 @@ namespace SeniorProjBackend.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("NOW()");
 
-                    b.Property<int>("UserID")
+                    b.Property<int>("UserId")
                         .HasColumnType("integer");
 
                     b.HasKey("RecoveryCodeID");
@@ -302,18 +302,18 @@ namespace SeniorProjBackend.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.HasIndex("UserID");
+                    b.HasIndex("UserId");
 
                     b.ToTable("RecoveryCodes");
                 });
 
             modelBuilder.Entity("SeniorProjBackend.Data.User", b =>
                 {
-                    b.Property<int>("UserID")
+                    b.Property<int>("UserId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("UserID"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("UserId"));
 
                     b.Property<int>("ActiveStreak")
                         .ValueGeneratedOnAdd()
@@ -367,7 +367,7 @@ namespace SeniorProjBackend.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(50)");
 
-                    b.HasKey("UserID");
+                    b.HasKey("UserId");
 
                     b.HasIndex("EmailAddress")
                         .IsUnique();
@@ -394,12 +394,12 @@ namespace SeniorProjBackend.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(255)");
 
-                    b.Property<int>("UserID")
+                    b.Property<int>("UserId")
                         .HasColumnType("integer");
 
                     b.HasKey("UserPreferenceID");
 
-                    b.HasIndex("UserID");
+                    b.HasIndex("UserId");
 
                     b.ToTable("UserPreferences");
                 });
@@ -439,7 +439,7 @@ namespace SeniorProjBackend.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("UserID")
+                    b.Property<int>("UserId")
                         .HasColumnType("integer");
 
                     b.HasKey("SubmissionID");
@@ -448,7 +448,7 @@ namespace SeniorProjBackend.Migrations
 
                     b.HasIndex("ProblemID");
 
-                    b.HasIndex("UserID");
+                    b.HasIndex("UserId");
 
                     b.ToTable("UserSubmissions");
                 });
@@ -462,7 +462,7 @@ namespace SeniorProjBackend.Migrations
 
                     b.HasOne("SeniorProjBackend.Data.User", "User")
                         .WithMany("AIConversations")
-                        .HasForeignKey("UserID")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -475,7 +475,7 @@ namespace SeniorProjBackend.Migrations
                 {
                     b.HasOne("SeniorProjBackend.Data.User", "User")
                         .WithMany("APIKeys")
-                        .HasForeignKey("UserID")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -486,8 +486,9 @@ namespace SeniorProjBackend.Migrations
                 {
                     b.HasOne("SeniorProjBackend.Data.User", "User")
                         .WithMany("AuditLogs")
-                        .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -501,7 +502,7 @@ namespace SeniorProjBackend.Migrations
 
                     b.HasOne("SeniorProjBackend.Data.User", "User")
                         .WithMany("Feedbacks")
-                        .HasForeignKey("UserID")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -552,7 +553,7 @@ namespace SeniorProjBackend.Migrations
                 {
                     b.HasOne("SeniorProjBackend.Data.User", "User")
                         .WithMany("RecoveryCodes")
-                        .HasForeignKey("UserID")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -563,7 +564,7 @@ namespace SeniorProjBackend.Migrations
                 {
                     b.HasOne("SeniorProjBackend.Data.User", "User")
                         .WithMany("UserPreferences")
-                        .HasForeignKey("UserID")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -586,7 +587,7 @@ namespace SeniorProjBackend.Migrations
 
                     b.HasOne("SeniorProjBackend.Data.User", "User")
                         .WithMany("UserSubmissions")
-                        .HasForeignKey("UserID")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

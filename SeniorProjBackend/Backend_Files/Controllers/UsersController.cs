@@ -72,7 +72,7 @@ namespace SeniorProjBackend.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(int id, User user)
         {
-            if (id != user.UserID)
+            if (id != user.UserId)
             {
                 return BadRequest();
             }
@@ -118,7 +118,7 @@ namespace SeniorProjBackend.Controllers
 
         private bool UserExists(int id)
         {
-            return _context.Users.Any(e => e.UserID == id);
+            return _context.Users.Any(e => e.UserId == id);
         }
 
 
@@ -207,7 +207,7 @@ namespace SeniorProjBackend.Controllers
 
 
             // Return the JWT in the response
-            return CreatedAtAction(nameof(GetUserById), new { id = newUser.UserID }, new { message = "User registered successfully" });
+            return CreatedAtAction(nameof(GetUserById), new { id = newUser.UserId }, new { message = "User registered successfully" });
         }
 
         // POST: api/Users/Login

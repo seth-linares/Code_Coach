@@ -1,37 +1,37 @@
-﻿using Microsoft.AspNetCore.Identity;
-
-namespace SeniorProjBackend.Data
+﻿namespace SeniorProjBackend.Data
 {
-    public class User : IdentityUser<int>
+    public class User
     {
-        // Inherited from IdentityUser:
-        // public int Id { get; set; }                     // Replaces UserID
-        // public string UserName { get; set; }            // Replaces Username
-        // public string Email { get; set; }               // Replaces EmailAddress
-        // public bool TwoFactorEnabled { get; set; }      // Already part of IdentityUser
-        // public string PasswordHash { get; set; }        // Handled internally by Identity
+        /*
+         1.  **Users Table**:
+            *   `UserID` (Primary Key, INT): Unique identifier for each user.
+            *   `Username` (VARCHAR): User's chosen username.
+            *   `PasswordHash` (VARCHAR): Hash of the user's password for secure storage.
+            *   `EmailAddress` (VARCHAR): User's email address.
+            *   `TwoFactorEnabled` (Boolean): Indicates if two-factor authentication is enabled.
+            *   `SecretKey` (VARCHAR, optional): Encrypted secret key used for generating 2FA codes. Null or empty if 2FA is not enabled.
+            *   `TotalScore` (INT): Accumulated score from problem-solving activities.
+            *   `ProfilePictureURL` (VARCHAR): URL to the user's profile picture, has default value
+            *   `RegistrationDate` (DateTime): Date and time when the user registered.
+            *   `LastActiveDate` (DateTime): Date and time when the user was last active.
+            *   `Rank` (VARCHAR): User's rank, calculated from `TotalScore`.
+            *   `RankIconURL` (VARCHAR): URL to an icon/image representing the user's rank, has default value
+            *   `ActiveStreak` (INT, optional): Number of consecutive days the user has been active.
+        */
 
-        // Additional fields provided by IdentityUser:
-        // public string PhoneNumber { get; set; }
-        // public bool PhoneNumberConfirmed { get; set; }
-        // public bool EmailConfirmed { get; set; }
-        // public bool LockoutEnabled { get; set; } 
-        // public DateTimeOffset? LockoutEnd { get; set; }
-        // public int AccessFailedCount { get; set; }
-        // public string ConcurrencyStamp { get; set; }
-        // public string NormalizedEmail { get; set; }
-        // public string NormalizedUserName { get; set; }
-        // public string SecurityStamp { get; set; }
 
-        // Custom properties
+        public int UserId { get; set; }
+        public string Username { get; set; }
+        public string PasswordHash { get; set; }
+        public string EmailAddress { get; set; }
+        public bool TwoFactorEnabled { get; set; }
+        public string? SecretKey { get; set; } // encrypted secret key for 2FA
         public int TotalScore { get; set; }
         public string ProfilePictureURL { get; set; }
         public DateTime RegistrationDate { get; set; }
         public DateTime LastActiveDate { get; set; }
         public string Rank { get; set; }
         public int ActiveStreak { get; set; }
-
-        // Removed: SecretKey is now handled internally by Identity for 2FA
 
         // Navigation properties
         public List<AIConversation> AIConversations { get; set; }
