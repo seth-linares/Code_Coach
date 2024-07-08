@@ -262,3 +262,4 @@ C:\Users\sethl\Documents\Github-Work\Senior_Project\SeniorProjBackend\Backend_Fi
 C:\Users\sethl\Documents\Github-Work\Senior_Project\SeniorProjBackend\Backend_Files\bin\Debug\net8.0\Microsoft.Extensions.Identity.Core.dll
 C:\Users\sethl\Documents\Github-Work\Senior_Project\SeniorProjBackend\Backend_Files\bin\Debug\net8.0\Microsoft.Extensions.Identity.Stores.dll
 C:\Users\sethl\Documents\Github-Work\Senior_Project\SeniorProjBackend\Backend_Files\bin\Debug\net8.0\Microsoft.Extensions.Options.dll
+C:\Users\sethl\Documents\Github-Work\Senior_Project\SeniorProjBackend\Backend_Files\bin\Debug\net8.0\RestSharp.dll
