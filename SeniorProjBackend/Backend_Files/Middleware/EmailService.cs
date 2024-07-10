@@ -1,5 +1,9 @@
-﻿using RestSharp;
-public interface IEmailService
+﻿using Microsoft.AspNetCore.Identity.UI.Services;
+using RestSharp;
+using RestSharp.Authenticators;
+using SeniorProjBackend.Data;
+
+public interface IEmailService : IEmailSender
 {
     Task<bool> SendEmailAsync(string to, string subject, string body, string htmlBody = null);
 }
@@ -16,9 +20,17 @@ public class EmailService : IEmailService
         _logger = logger;
 
         var baseUrl = _configuration["Mailgun:BaseUrl"];
-        var apiKey = _configuration["Mailgun:ApiKey"];
-        _client = new RestClient(baseUrl);
-        _client.AddDefaultHeader("Authorization", $"Basic {Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"api:{apiKey}"))}");
+        var ak = _configuration["Mailgun:AK"];
+
+        _logger.LogInformation($"\n\n\n\nInitializing EmailService with base URL: {baseUrl}\n");
+        _logger.LogInformation($"API Key: ... {ak.Substring(Math.Max(0, ak.Length - 4))}\n\n\n\n");
+
+        var options = new RestClientOptions(baseUrl)
+        {
+            Authenticator = new HttpBasicAuthenticator("api", ak)
+        };
+
+        _client = new RestClient(options);
     }
 
     public async Task<bool> SendEmailAsync(string to, string subject, string body, string htmlBody = null)
@@ -31,7 +43,6 @@ public class EmailService : IEmailService
         request.AddParameter("subject", subject);
         request.AddParameter("text", body);
 
-        // Add HTML content if provided
         if (!string.IsNullOrEmpty(htmlBody))
         {
             request.AddParameter("html", htmlBody);
@@ -39,6 +50,10 @@ public class EmailService : IEmailService
 
         try
         {
+            _logger.LogInformation($"Attempting to send email to {to} with subject: {subject}");
+            _logger.LogInformation($"Using domain: {domain}");
+            _logger.LogInformation($"From: {_configuration["Mailgun:From"]}");
+
             var response = await _client.ExecuteAsync(request);
             if (response.IsSuccessful)
             {
@@ -47,7 +62,8 @@ public class EmailService : IEmailService
             }
             else
             {
-                _logger.LogError($"Failed to send email. Status Code: {response.StatusCode}, Error: {response.ErrorMessage}");
+                _logger.LogError($"Failed to send email. Status Code: {response.StatusCode}, Error: {response.ErrorMessage}, Content: {response.Content}");
+                _logger.LogError($"Full Response: {response.Content}");
                 return false;
             }
         }
@@ -56,5 +72,10 @@ public class EmailService : IEmailService
             _logger.LogError(ex, $"An error occurred while sending email to {to}");
             return false;
         }
+    }
+
+    public async Task SendEmailAsync(string email, string subject, string htmlMessage)
+    {
+        await SendEmailAsync(email, subject, htmlMessage, htmlMessage);
     }
 }

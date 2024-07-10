@@ -1,17 +1,52 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SeniorProjBackend.Data;
-using SeniorProjBackend.Encryption;
 using System.Threading.RateLimiting;
-using Microsoft.AspNetCore.RateLimiting;
+using SeniorProjBackend.Middleware;
+
 
 // This console write will appear in the Docker logs
 Console.WriteLine("Starting SeniorProjBackend\n\n\n\n");
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+builder.Services.AddAuthorization();
+builder.Services.AddAuthentication();
+
+
+
+// Add Identity
+builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
+{
+    // Configure Identity options
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequiredLength = 8;
+
+    options.User.RequireUniqueEmail = true;
+
+    options.SignIn.RequireConfirmedEmail = true;
+
+    // Configure lockout
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+})
+.AddEntityFrameworkStores<OurDbContext>()
+.AddDefaultTokenProviders();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+    options.LoginPath = "/api/Users/Login";
+    options.AccessDeniedPath = "/api/Users/AccessDenied";
+    options.SlidingExpiration = true;
+});
 
 // Configure services
 builder.Services.AddDbContext<OurDbContext>(options =>
@@ -21,6 +56,8 @@ builder.Services.AddDbContext<OurDbContext>(options =>
     options.UseNpgsql(connectionString);
 });
 
+
+
 builder.Services.AddControllers();
 builder.Services.AddLogging(logging =>
 {
@@ -28,9 +65,8 @@ builder.Services.AddLogging(logging =>
     logging.AddConsole();
 });
 
-builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
-builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IEmailSender>(sp => sp.GetRequiredService<IEmailService>());
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -51,37 +87,7 @@ builder.Services.AddCors(options =>
         });
 });
 
-// Configure JWT Authentication
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(builder.Configuration["Jwt:Key"])),
-        ValidateIssuer = true,
-        ValidIssuer = "http://seniorprojbackend:8080",
-        ValidateAudience = true,
-        ValidAudience = "http://seniorprojbackend:8080",
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero,
-    };
 
-    options.Events = new JwtBearerEvents
-    {
-        OnMessageReceived = context =>
-        {
-            context.Token = context.Request.Cookies["auth_token"];
-            return Task.CompletedTask;
-        }
-    };
-});
-
-builder.Services.AddAuthorization();
 
 
 // Configure Kestrel
@@ -89,6 +95,9 @@ builder.WebHost.UseKestrel(options =>
 {
     options.AddServerHeader = false;
 });
+
+// Cleanup Unconfirmed User Service
+builder.Services.AddHostedService<UnconfirmedUserCleanupService>();
 
 
 // Rate limiting
@@ -135,6 +144,8 @@ else
 
 // HTTPS redirection is removed as we're using Nginx for SSL termination
 // app.UseHttpsRedirection();
+
+//app.MapIdentityApi<User>();
 
 app.UseCors("AllowSpecificOrigin");
 

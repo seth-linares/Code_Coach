@@ -1,37 +1,33 @@
-﻿namespace SeniorProjBackend.Data
+﻿using Microsoft.AspNetCore.Identity;
+
+namespace SeniorProjBackend.Data
 {
-    public class User
+    public class User : IdentityUser<int>
     {
-        /*
-         1.  **Users Table**:
-            *   `UserID` (Primary Key, INT): Unique identifier for each user.
-            *   `Username` (VARCHAR): User's chosen username.
-            *   `PasswordHash` (VARCHAR): Hash of the user's password for secure storage.
-            *   `EmailAddress` (VARCHAR): User's email address.
-            *   `TwoFactorEnabled` (Boolean): Indicates if two-factor authentication is enabled.
-            *   `SecretKey` (VARCHAR, optional): Encrypted secret key used for generating 2FA codes. Null or empty if 2FA is not enabled.
-            *   `TotalScore` (INT): Accumulated score from problem-solving activities.
-            *   `ProfilePictureURL` (VARCHAR): URL to the user's profile picture, has default value
-            *   `RegistrationDate` (DateTime): Date and time when the user registered.
-            *   `LastActiveDate` (DateTime): Date and time when the user was last active.
-            *   `Rank` (VARCHAR): User's rank, calculated from `TotalScore`.
-            *   `RankIconURL` (VARCHAR): URL to an icon/image representing the user's rank, has default value
-            *   `ActiveStreak` (INT, optional): Number of consecutive days the user has been active.
-        */
+        // Implicit fields from IdentityUser<int>:
+        // public virtual int Id { get; set; }
+        // public virtual string UserName { get; set; }
+        // public virtual string NormalizedUserName { get; set; }
+        // public virtual string Email { get; set; }
+        // public virtual string NormalizedEmail { get; set; }
+        // public virtual bool EmailConfirmed { get; set; }
+        // public virtual string PasswordHash { get; set; }
+        // public virtual string SecurityStamp { get; set; }
+        // public virtual string ConcurrencyStamp { get; set; }
+        // public virtual string PhoneNumber { get; set; }
+        // public virtual bool PhoneNumberConfirmed { get; set; }
+        // public virtual bool TwoFactorEnabled { get; set; }
+        // public virtual DateTimeOffset? LockoutEnd { get; set; }
+        // public virtual bool LockoutEnabled { get; set; }
+        // public virtual int AccessFailedCount { get; set; }
 
-
-        public int UserId { get; set; }
-        public string Username { get; set; }
-        public string PasswordHash { get; set; }
-        public string EmailAddress { get; set; }
-        public bool TwoFactorEnabled { get; set; }
+        // Custom properties
         public string? SecretKey { get; set; } // encrypted secret key for 2FA
         public int TotalScore { get; set; }
         public string ProfilePictureURL { get; set; }
         public DateTime RegistrationDate { get; set; }
         public DateTime LastActiveDate { get; set; }
         public string Rank { get; set; }
-        public int ActiveStreak { get; set; }
 
         // Navigation properties
         public List<AIConversation> AIConversations { get; set; }
