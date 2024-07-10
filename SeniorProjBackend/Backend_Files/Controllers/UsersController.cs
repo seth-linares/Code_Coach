@@ -41,6 +41,12 @@ namespace SeniorProjBackend.Controllers
             return Ok("Email service test completed");
         }
 
+        [HttpGet("AccessDenied")]
+        public IActionResult AccessDenied()
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = "Access denied. You do not have permission to access this resource." });
+        }
+
         // GET: api/Users
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()

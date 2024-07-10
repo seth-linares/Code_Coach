@@ -22,7 +22,7 @@ namespace SeniorProjBackend.Middleware
             {
                 try
                 {
-                    _logger.LogInformation("Beginning unconfirmed user cleanup");
+                    _logger.LogInformation("\n\n\n\nBeginning unconfirmed user cleanup\n\n\n\n");
                     await CleanupUnconfirmedUsersAsync();
                 }
                 catch (Exception ex)
@@ -53,7 +53,7 @@ namespace SeniorProjBackend.Middleware
                         var result = await userManager.DeleteAsync(user);
                         if (result.Succeeded)
                         {
-                            _logger.LogInformation("Deleted unconfirmed user: {Username}, {Email}", user.UserName, user.Email);
+                            _logger.LogInformation($"\n\n\n\nDeleted unconfirmed user: {user.UserName}, {user.Email}\n\n\n\n");
                         }
                         else
                         {

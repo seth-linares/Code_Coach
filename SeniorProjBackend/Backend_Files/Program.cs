@@ -5,6 +5,7 @@ using Microsoft.OpenApi.Models;
 using SeniorProjBackend.Data;
 using System.Threading.RateLimiting;
 using SeniorProjBackend.Middleware;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 
 // This console write will appear in the Docker logs
@@ -46,7 +47,26 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LoginPath = "/api/Users/Login";
     options.AccessDeniedPath = "/api/Users/AccessDenied";
     options.SlidingExpiration = true;
+    options.Events = new CookieAuthenticationEvents
+    {
+        OnRedirectToLogin = context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        },
+        OnRedirectToAccessDenied = context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return Task.CompletedTask;
+        }
+    };
 });
+
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "X-XSRF-TOKEN";
+});
+
 
 // Configure services
 builder.Services.AddDbContext<OurDbContext>(options =>
