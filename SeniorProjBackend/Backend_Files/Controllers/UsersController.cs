@@ -4,6 +4,7 @@ using SeniorProjBackend.Data;
 using SeniorProjBackend.DTOs;
 using Microsoft.AspNetCore.Identity;
 using System.Net;
+using Microsoft.AspNetCore.Authorization;
 
 
 
@@ -32,20 +33,6 @@ namespace SeniorProjBackend.Controllers
             _configuration = configuration;
         }
 
-        [HttpGet("testEmail")]
-        public IActionResult TestEmail()
-        {
-            _logger.LogInformation("TestEmail endpoint called");
-            var emailService = HttpContext.RequestServices.GetRequiredService<IEmailService>();
-            _logger.LogInformation("EmailService retrieved from DI container");
-            return Ok("Email service test completed");
-        }
-
-        [HttpGet("AccessDenied")]
-        public IActionResult AccessDenied()
-        {
-            return StatusCode(StatusCodes.Status403Forbidden, new { message = "Access denied. You do not have permission to access this resource." });
-        }
 
         // GET: api/Users
         [HttpGet]
@@ -68,6 +55,72 @@ namespace SeniorProjBackend.Controllers
 
             return user;
         }
+
+
+        // POST: api/Users/DeleteAccount
+        [Authorize]
+        [HttpPost("DeleteAccount")]
+        public async Task<IActionResult> DeleteAccount([FromBody] DeleteAccountDto deleteAccountDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                ModelState.AddModelError("User", "User not found.");
+                return ValidationProblem(ModelState);
+            }
+
+            var result = await _userManager.CheckPasswordAsync(user, deleteAccountDto.Password);
+            if (!result)
+            {
+                ModelState.AddModelError("Password", "Incorrect password");
+                return ValidationProblem(ModelState);
+            }
+
+            try
+            {
+                // Delete the user - this will trigger cascade deletes for related entities
+                var deleteResult = await _userManager.DeleteAsync(user);
+                if (!deleteResult.Succeeded)
+                {
+                    throw new Exception("Failed to delete user.");
+                }
+
+                // Log the account deletion
+                _logger.LogInformation($"User account deleted: {user.UserName} (ID: {user.Id})");
+
+                // Sign out the user
+                await _signInManager.SignOutAsync();
+
+                return Ok("Your account has been successfully deleted.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error deleting user account: {user.UserName} (ID: {user.Id})");
+                return StatusCode(500, "An error occurred while deleting your account. Please try again later.");
+            }
+        }
+
+        [HttpGet("testEmail")]
+        public IActionResult TestEmail()
+        {
+            _logger.LogInformation("TestEmail endpoint called");
+            var emailService = HttpContext.RequestServices.GetRequiredService<IEmailService>();
+            _logger.LogInformation("EmailService retrieved from DI container");
+            return Ok("Email service test completed");
+        }
+
+        [HttpGet("AccessDenied")]
+        public IActionResult AccessDenied()
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = "Access denied. You do not have permission to access this resource." });
+        }
+
+        
 
         // GET: api/Users/username/{username}
         [HttpGet("username/{username}")]
@@ -180,11 +233,13 @@ namespace SeniorProjBackend.Controllers
                 var existingUserName = await _userManager.FindByNameAsync(userDto.Username);
                 if (existingUserEmail != null)
                 {
-                    return Conflict("A user with this email already exists.");
+                    ModelState.AddModelError("Email", "A user with this email already exists.");
+                    return ValidationProblem(ModelState);
                 }
                 if (existingUserName != null)
                 {
-                    return Conflict("This username is already taken.");
+                    ModelState.AddModelError("UserName", "This username is already taken.");
+                    return ValidationProblem(ModelState);
                 }
 
                 var user = new User
@@ -205,7 +260,7 @@ namespace SeniorProjBackend.Controllers
                     {
                         ModelState.AddModelError(string.Empty, error.Description);
                     }
-                    return BadRequest(ModelState);
+                    return ValidationProblem(ModelState);
                 }
 
                 _logger.LogInformation("\n\n\n\nUSER CREATED\n\n\n\n");
