@@ -8,12 +8,12 @@
    - **Key Features**: Secure forms for login and registration, social media or OAuth options for ease of access, and a link to reset password.
    - **Navigation**: Redirects to Home Page on successful login/registration or to the 2FA Setup Page if enabled.
 
-### 3. **Dashboard Page**
+### 3. **Profile Page**
    - **Purpose**: To allow users to view and edit their personal information, manage API keys, and view their problem attempt history.
    - **Key Features**: Personal information edit options, API Key Management subsection, and a summary of recent problem attempts.
    - **Navigation**: Links to Settings/Account Management, API Key Management, and Problem Attempt History Page.
 
-### 4. **Coding Problems Index Page**
+### 4. **Dashboard Index Page**
    - **Purpose**: To list available coding problems that users can attempt.
    - **Key Features**: Filters by difficulty, tags (e.g., algorithms, data structures), a search bar, and quick access to problem details.
    - **Navigation**: Links to individual Coding Problem Detail Pages.
