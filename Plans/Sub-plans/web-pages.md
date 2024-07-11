@@ -13,7 +13,7 @@
    - **Key Features**: Personal information edit options, API Key Management subsection, and a summary of recent problem attempts.
    - **Navigation**: Links to Settings/Account Management, API Key Management, and Problem Attempt History Page.
 
-### 4. **Coding Problems Index Page**
+### 4. **Dashboard Index Page**
    - **Purpose**: To list available coding problems that users can attempt.
    - **Key Features**: Filters by difficulty, tags (e.g., algorithms, data structures), a search bar, and quick access to problem details.
    - **Navigation**: Links to individual Coding Problem Detail Pages.
