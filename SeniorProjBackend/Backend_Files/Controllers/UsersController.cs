@@ -132,6 +132,11 @@ namespace SeniorProjBackend.Controllers
             }
         }
 
+
+        //// POST: api/Users/Enable2FA
+        //[HttpPost("Enable2FA")]
+        //public async 
+
         
 
         // POST: api/Users/ConfirmEmail
@@ -162,8 +167,7 @@ namespace SeniorProjBackend.Controllers
 
         // POST: api/Users/Login
         [HttpPost("Login")]
-        [HttpPost("Login")]
-        public async Task<IActionResult> LoginUser(UserLoginDto userDto)
+        public async Task<IActionResult> Login(UserLoginDto userDto)
         {
             _logger.LogInformation($"Attempting to log in user: {userDto.Username}");
 
@@ -372,7 +376,7 @@ namespace SeniorProjBackend.Controllers
             return Ok("If your email is registered and confirmed, you will receive a password reset link shortly.");
         }
 
-
+        
         [HttpPost("ResetPassword")]
         public async Task<IActionResult> ResetPassword(ResetPasswordDto resetPasswordDto)
         {
