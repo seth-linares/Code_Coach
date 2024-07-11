@@ -133,11 +133,113 @@ namespace SeniorProjBackend.Controllers
         }
 
 
-        //// POST: api/Users/Enable2FA
-        //[HttpPost("Enable2FA")]
-        //public async 
+        // POST: api/Users/Enable2FA
+        [Authorize]
+        [HttpPost("Enable2FA")]
+        public async Task<IActionResult> Enable2FA()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
 
-        
+            if (await _userManager.GetTwoFactorEnabledAsync(user))
+            {
+                return BadRequest("2FA is already enabled for this user");
+            }
+
+            // Generate a verification token
+            var token = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
+
+            // Send the verification email
+            var emailSent = await _emailService.SendEmailAsync(
+                user.Email,
+                "Verify your email for 2FA",
+                $"Your verification code is: {token}");
+
+            if (!emailSent)
+            {
+                return StatusCode(500, "Failed to send verification email");
+            }
+
+            _logger.LogInformation($"2FA verification email sent to user: {user.UserName}");
+            return Ok(new { message = "Verification code sent to your email. Please verify to enable 2FA." });
+        }
+
+        // POST: api/Users/VerifyAnd2FA
+        [Authorize]
+        [HttpPost("VerifyAnd2FA")]
+        public async Task<IActionResult> VerifyAnd2FA(string verificationCode)
+        {
+            _logger.LogInformation($"\n\n\n\nVerification code: {verificationCode}\n\n\n\n");
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            var isValid = await _userManager.VerifyTwoFactorTokenAsync(user, "Email", verificationCode);
+            if (!isValid)
+            {
+                _logger.LogInformation($"\n\n\n\nBAD VERIFICATION CODE\n\n\n\n");
+                return BadRequest("Invalid verification code");
+            }
+
+            var result = await _userManager.SetTwoFactorEnabledAsync(user, true);
+            if (result.Succeeded)
+            {
+                _logger.LogInformation($"\n\n\n\n2FA enabled for user: {user.UserName}\n\n\n\n");
+                return Ok(new { message = "2FA has been enabled successfully" });
+            }
+            else
+            {
+                _logger.LogWarning($"\n\n\n\nFailed to enable 2FA for {user.UserName}. Errors: {string.Join(", ", result.Errors.Select(e => e.Description))}\n\n\n\n");
+                return BadRequest(new { message = "Failed to enable 2FA", errors = result.Errors.Select(e => e.Description) });
+            }
+        }
+
+        [Authorize]
+        [HttpPost("Disable2FA")]
+        public async Task<IActionResult> Disable2FA()
+        {
+            _logger.LogInformation($"\n\n\n\nDisable2FA\n\n\n\n");
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            var result = await _userManager.SetTwoFactorEnabledAsync(user, false);
+            if (result.Succeeded)
+            {
+                _logger.LogInformation($"\n\n\n\n2FA disabled for user: {user.UserName}\n\n\n\n");
+                return Ok(new { message = "2FA has been disabled successfully" });
+            }
+            else
+            {
+                _logger.LogWarning($"\n\n\n\nFailed to disable 2FA for {user.UserName}. Errors: {string.Join(", ", result.Errors.Select(e => e.Description))}\n\n\n\n");
+                return BadRequest(new { message = "Failed to disable 2FA", errors = result.Errors.Select(e => e.Description) });
+            }
+        }
+
+        [Authorize]
+        [HttpGet("2FAStatus")]
+        public async Task<IActionResult> Get2FAStatus()
+        {
+            _logger.LogInformation($"\n\n\n\nGetting 2FA Status\n\n\n\n");
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            var is2faEnabled = await _userManager.GetTwoFactorEnabledAsync(user);
+            _logger.LogInformation($"\n\n\n\nis2faEnabled: {is2faEnabled}\n\n\n\n");
+            return Ok(new { is2faEnabled });
+        }
+
+
 
         // POST: api/Users/ConfirmEmail
         [HttpPost("ConfirmEmail")]
