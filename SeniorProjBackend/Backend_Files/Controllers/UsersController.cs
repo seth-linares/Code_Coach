@@ -33,6 +33,19 @@ namespace SeniorProjBackend.Controllers
             _configuration = configuration;
         }
 
+        private async Task<bool> SendLinkEmailAsync(User user, string subject, string linkText, string linkPath, string tokenType)
+        {
+            var token = await _userManager.GenerateUserTokenAsync(user, "Default", tokenType);
+            var link = $"{_configuration["FrontendUrl"]}/{linkPath}?userId={user.Id}&token={WebUtility.UrlEncode(token)}";
+
+            return await _emailService.SendEmailAsync(
+                user.Email,
+                subject,
+                $"{linkText}: {link}",
+                $"{linkText}: <a href='{link}'>{linkText}</a>"
+            );
+        }
+
 
         // GET: api/Users
         [HttpGet]
@@ -42,29 +55,367 @@ namespace SeniorProjBackend.Controllers
             return await _context.Users.ToListAsync();
         }
 
-        // GET: api/Users/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUserById(int id)
+        // POST: api/Users/Register
+        [HttpPost("Register")]
+        public async Task<IActionResult> RegisterUser(UserRegistrationDto userDto)
         {
-            var user = await _context.Users.FindAsync(id);
+            _logger.LogInformation("Attempting to register new user");
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return ValidationProblem(ModelState);
+                }
 
+                // Check if user already exists (by email or username)
+                var existingUserEmail = await _userManager.FindByEmailAsync(userDto.EmailAddress);
+                var existingUserName = await _userManager.FindByNameAsync(userDto.Username);
+                if (existingUserEmail != null)
+                {
+                    ModelState.AddModelError("Email", "A user with this email already exists.");
+                    return ValidationProblem(ModelState);
+                }
+                if (existingUserName != null)
+                {
+                    ModelState.AddModelError("UserName", "This username is already taken.");
+                    return ValidationProblem(ModelState);
+                }
+
+                var user = new User
+                {
+                    UserName = userDto.Username,
+                    Email = userDto.EmailAddress,
+                    RegistrationDate = DateTime.UtcNow,
+                    LastActiveDate = DateTime.UtcNow
+                };
+
+                var result = await _userManager.CreateAsync(user, userDto.Password);
+
+                if (!result.Succeeded)
+                {
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, error.Description);
+                    }
+                    return ValidationProblem(ModelState);
+                }
+
+                _logger.LogInformation($"User created: {user.UserName} (ID: {user.Id})");
+
+                var emailSent = await SendLinkEmailAsync(
+                    user,
+                    "Confirm your email",
+                    "Please confirm your account by clicking this link",
+                    "confirm-email",
+                    "EmailConfirmation"
+                );
+
+                if (!emailSent)
+                {
+                    _logger.LogWarning($"Failed to send confirmation email to user {user.Id}");
+                    await _userManager.DeleteAsync(user);
+                    return StatusCode(500, "User registered but failed to send confirmation email. Please try again.");
+                }
+
+                _logger.LogInformation($"Confirmation email sent to: {user.UserName} (ID: {user.Id})");
+
+                return Ok(new
+                {
+                    message = "Registration successful. Please check your email to confirm your account before logging in.",
+                    userId = user.Id
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred during user registration");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
+            }
+        }
+
+        
+
+        // POST: api/Users/ConfirmEmail
+        [HttpPost("ConfirmEmail")]
+        public async Task<IActionResult> ConfirmEmail(ConfirmEmailDto dto)
+        {
+
+            var user = await _userManager.FindByIdAsync(dto.UserId);
             if (user == null)
             {
-                return NotFound();
+                return NotFound($"Unable to load user with ID '{dto.UserId}'.");
             }
 
-            return user;
+            var result = await _userManager.ConfirmEmailAsync(user, dto.Token);
+            if (!result.Succeeded)
+            {
+                _logger.LogWarning($"Failed to confirm email for user {dto.UserId}. Errors: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                return BadRequest("Error confirming your email. Please try again or contact support.");
+            }
+
+            _logger.LogInformation($"Email confirmed for user {dto.UserId}");
+            return Ok(new { message = "Email confirmed successfully. You can now log in to your account." });
+        }
+
+
+
+
+
+        // POST: api/Users/Login
+        [HttpPost("Login")]
+        [HttpPost("Login")]
+        public async Task<IActionResult> LoginUser(UserLoginDto userDto)
+        {
+            _logger.LogInformation($"Attempting to log in user: {userDto.Username}");
+
+            try
+            {
+                var user = await _userManager.FindByNameAsync(userDto.Username);
+                if (user == null)
+                {
+                    _logger.LogWarning($"Failed login attempt for invalid username: {userDto.Username}");
+                    return Unauthorized(new { message = "Invalid username or password." });
+                }
+
+                if (!await _userManager.IsEmailConfirmedAsync(user))
+                {
+                    _logger.LogWarning($"Login attempt for unconfirmed email: {user.Email}");
+                    return Unauthorized(new { message = "Please confirm your email before logging in." });
+                }
+
+                var result = await _signInManager.PasswordSignInAsync(user, userDto.Password, isPersistent: userDto.RememberMe, lockoutOnFailure: true);
+
+                if (result.Succeeded)
+                {
+                    return await CompleteLoginAsync(user);
+                }
+
+                if (result.RequiresTwoFactor)
+                {
+                    return await InitiateTwoFactorAuthenticationAsync(user);
+                }
+
+                if (result.IsLockedOut)
+                {
+                    _logger.LogWarning($"User account locked out: {user.UserName}");
+                    return StatusCode(StatusCodes.Status423Locked, new { message = "Account is locked. Please try again later." });
+                }
+
+                _logger.LogWarning($"Failed login attempt for user: {user.UserName}");
+                return Unauthorized(new { message = "Invalid username or password." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error during login");
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "An unexpected error has occurred. Please try again later.",
+                    errorCode = "UNEXPECTED_ERROR"
+                });
+            }
+        }
+
+        private async Task<IActionResult> CompleteLoginAsync(User user)
+        {
+            user.LastActiveDate = DateTime.UtcNow;
+            await _userManager.UpdateAsync(user);
+
+            _logger.LogInformation($"User {user.UserName} logged in successfully");
+            return Ok(new { message = "Logged in successfully" });
+        }
+
+        private async Task<IActionResult> InitiateTwoFactorAuthenticationAsync(User user)
+        {
+            var token = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
+            await _emailService.SendEmailAsync(user.Email, "Your 2FA Code", $"Your login code is: {token}");
+
+            _logger.LogInformation($"2FA initiated for user: {user.UserName}");
+            return Ok(new { requiresTwoFactor = true, message = "2FA code sent to your email." });
+        }
+
+        [HttpPost("VerifyTwoFactorCode")]
+        public async Task<IActionResult> VerifyTwoFactorCode(TwoFactorVerificationDto twoFactorDto)
+        {
+            var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+            if (user == null)
+            {
+                return BadRequest("Invalid request");
+            }
+
+            var result = await _signInManager.TwoFactorSignInAsync("Email", twoFactorDto.Code, twoFactorDto.RememberMe, twoFactorDto.RememberBrowser);
+            if (result.Succeeded)
+            {
+                return await CompleteLoginAsync(user);
+            }
+            else if (result.IsLockedOut)
+            {
+                _logger.LogWarning($"User account locked out during 2FA: {user.UserName}");
+                return StatusCode(StatusCodes.Status423Locked, new { message = "Account is locked. Please try again later." });
+            }
+            else
+            {
+                _logger.LogWarning($"Invalid 2FA code attempt for user: {user.UserName}");
+                return BadRequest("Invalid verification code");
+            }
+        }
+
+        // POST: /api/Users/Logout
+        [HttpPost("Logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            _logger.LogInformation($"\n\n\nLogging user out!!!\n\n\n");
+            return Ok(new { message = "Logged out successfully" });
+        }
+
+
+        // GET: /api/Users/CheckSession
+        [HttpGet("CheckSession")]
+        public async Task<IActionResult> CheckSession()
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user != null)
+                {
+                    // Only update LastActiveDate if it's been more than 5 minutes
+                    if (DateTime.UtcNow - user.LastActiveDate > TimeSpan.FromMinutes(5))
+                    {
+                        user.LastActiveDate = DateTime.UtcNow;
+                        await _userManager.UpdateAsync(user);
+                    }
+
+                    return Ok(new
+                    {
+                        isAuthenticated = true,
+                        userId = user.Id,
+                        username = user.UserName,
+                        email = user.Email,
+                        lastActiveDate = user.LastActiveDate,
+                    });
+                }
+            }
+
+            return Ok(new { isAuthenticated = false });
+        }
+
+        // POST: /api/Users/ChangePassword
+        [Authorize]
+        [HttpPost("ChangePassword")]
+        public async Task<IActionResult> ChangePassword(ChangePasswordDto changePasswordDto)
+        {
+            _logger.LogInformation($"\n\n\n\nAttempting to change password");
+
+            if (!ModelState.IsValid)
+            {
+                return ValidationProblem(ModelState);
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            var changePasswordResult = await _userManager.ChangePasswordAsync(user,
+                changePasswordDto.CurrentPassword, changePasswordDto.NewPassword);
+
+            if (!changePasswordResult.Succeeded)
+            {
+                foreach (var error in changePasswordResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+                return ValidationProblem(ModelState);
+            }
+
+            // Optional: Sign in the user again to update the authentication cookie
+            await _signInManager.RefreshSignInAsync(user);
+
+            _logger.LogInformation($"\n\n\n\nUser {user.UserName} successfully changed their password.\n\n\n\n");
+
+            return Ok("Your password has been changed successfully.");
+        }
+
+        [HttpPost("ForgotPassword")]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordDto forgotPasswordDto)
+        {
+            _logger.LogInformation($"\n\n\n\nATTEMPTING TO HANDLE FORGOT PASSWORD WITH EMAIL: {forgotPasswordDto.Email}\n\n\n\n");
+            
+            if (!ModelState.IsValid)
+            {
+                return ValidationProblem(ModelState);
+            }
+                
+
+            var user = await _userManager.FindByEmailAsync(forgotPasswordDto.Email);
+            if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
+            {
+                _logger.LogInformation($"\n\n\n\nFAKE USER EMAIL: {forgotPasswordDto.Email}\n\n\n\n");
+                // Don't reveal that the user does not exist or is not confirmed
+                return Ok("If your email is registered and confirmed, you will receive a password reset link shortly.");
+            }
+
+            var emailSent = await SendLinkEmailAsync(
+                user,
+                "Reset your password",
+                "Please reset your password by clicking here",
+                "reset-password",
+                "ResetPassword"
+            );
+
+            if (!emailSent)
+            {
+                _logger.LogWarning($"\n\n\n\nFailed to send password reset email to user {user.Id}\n\n\n\n");
+                return StatusCode(500, "Failed to send password reset email. Please try again later.");
+            }
+
+            return Ok("If your email is registered and confirmed, you will receive a password reset link shortly.");
+        }
+
+
+        [HttpPost("ResetPassword")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordDto resetPasswordDto)
+        {
+            _logger.LogInformation($"\n\n\n\nATTEMPTING TO RESET PASSWORD\n\n\n\n");
+            if (!ModelState.IsValid)
+            {
+                return ValidationProblem(ModelState);
+            }
+                
+
+            var user = await _userManager.FindByIdAsync(resetPasswordDto.UserId);
+            if (user == null)
+            {
+                _logger.LogInformation($"\n\n\n\nUSER NOT FOUND IN RESET\n\n\n\n");
+                // Don't reveal that the user does not exist
+                return Ok("If your account exists, your password has been reset.");
+            }
+
+            var result = await _userManager.ResetPasswordAsync(user, resetPasswordDto.Token, resetPasswordDto.NewPassword);
+            if (result.Succeeded)
+            {
+                _logger.LogInformation($"\n\n\n\nPassword reset successfully for user {user.Id}\n\n\n\n");
+                return Ok("Your password has been reset successfully.");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+            _logger.LogInformation($"\n\n\n\nERRORS CAME UP WHEN RESETTING PASSWORD\n\n\n\n");
+            return ValidationProblem(ModelState);
         }
 
 
         // POST: api/Users/DeleteAccount
         [Authorize]
         [HttpPost("DeleteAccount")]
-        public async Task<IActionResult> DeleteAccount([FromBody] DeleteAccountDto deleteAccountDto)
+        public async Task<IActionResult> DeleteAccount(DeleteAccountDto deleteAccountDto)
         {
+            _logger.LogInformation($"\n\n\n\nAttemping to delete account\n\n\n\n");
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return ValidationProblem(ModelState);
             }
 
             var user = await _userManager.GetUserAsync(User);
@@ -87,7 +438,9 @@ namespace SeniorProjBackend.Controllers
                 var deleteResult = await _userManager.DeleteAsync(user);
                 if (!deleteResult.Succeeded)
                 {
-                    throw new Exception("Failed to delete user.");
+                    _logger.LogError($"\n\n\n\nFailed to delete user: {user.UserName} (ID: {user.Id})\n\n\n\n");
+                    // You can include error details from deleteResult.Errors if they provide useful context
+                    return StatusCode(500, "Failed to delete user. Please try again later.");
                 }
 
                 // Log the account deletion
@@ -136,270 +489,11 @@ namespace SeniorProjBackend.Controllers
             return user;
         }
 
-        // PUT: api/Users/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user)
-        {
-            if (id != user.Id)
-            {
-                return BadRequest();
-            }
 
-            _context.Entry(user).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
+        
 
 
-
-        // DELETE: api/Users/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(int id)
-        {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool UserExists(int id)
-        {
-            return _context.Users.Any(e => e.Id == id);
-        }
-
-        // POST: api/Users/ConfirmEmail
-        [HttpPost("ConfirmEmail")]
-        public async Task<IActionResult> ConfirmEmail(ConfirmEmailDto dto)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var user = await _userManager.FindByIdAsync(dto.UserId);
-            if (user == null)
-            {
-                return NotFound($"Unable to load user with ID '{dto.UserId}'.");
-            }
-
-            var result = await _userManager.ConfirmEmailAsync(user, dto.Token);
-            if (!result.Succeeded)
-            {
-                _logger.LogWarning($"Failed to confirm email for user {dto.UserId}. Errors: {string.Join(", ", result.Errors.Select(e => e.Description))}");
-                return BadRequest("Error confirming your email. Please try again or contact support.");
-            }
-
-            _logger.LogInformation($"Email confirmed for user {dto.UserId}");
-            return Ok(new { message = "Email confirmed successfully. You can now log in to your account." });
-        }
-
-
-        // POST: api/Users/Register
-        [HttpPost("Register")]
-        public async Task<IActionResult> RegisterUser(UserRegistrationDto userDto)
-        {
-            _logger.LogInformation("\n\n\n\nTRYING TO REGISTER\n\n\n\n");
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                // Check if user already exists (by email or username)
-                var existingUserEmail = await _userManager.FindByEmailAsync(userDto.EmailAddress);
-                var existingUserName = await _userManager.FindByNameAsync(userDto.Username);
-                if (existingUserEmail != null)
-                {
-                    ModelState.AddModelError("Email", "A user with this email already exists.");
-                    return ValidationProblem(ModelState);
-                }
-                if (existingUserName != null)
-                {
-                    ModelState.AddModelError("UserName", "This username is already taken.");
-                    return ValidationProblem(ModelState);
-                }
-
-                var user = new User
-                {
-                    UserName = userDto.Username,
-                    Email = userDto.EmailAddress,
-                    RegistrationDate = DateTime.UtcNow,
-                    LastActiveDate = DateTime.UtcNow
-                };
-
-                
-
-                var result = await _userManager.CreateAsync(user, userDto.Password);
-
-                if (!result.Succeeded)
-                {
-                    foreach (var error in result.Errors)
-                    {
-                        ModelState.AddModelError(string.Empty, error.Description);
-                    }
-                    return ValidationProblem(ModelState);
-                }
-
-                _logger.LogInformation("\n\n\n\nUSER CREATED\n\n\n\n");
-
-                //// Add user to a default role if you're using roles
-                //await _userManager.AddToRoleAsync(user, "User");
-
-                var emailSent = await SendConfirmationEmailAsync(user);
-
-                _logger.LogInformation($"\n\n\n\nTRYING TO SEND EMAIL, emailSent: {emailSent}\n\n\n\n");
-
-                if (!emailSent)
-                {
-                    _logger.LogWarning($"Failed to send confirmation email to user {user.Id}");
-                    await _userManager.DeleteAsync(user);
-                    return StatusCode(500, "User registered but failed to send confirmation email. Please try again.");
-                }
-
-                _logger.LogInformation($"New user registered: {user.UserName} (ID: {user.Id})");
-
-                return Ok(new
-                {
-                    message = "Registration successful. Please check your email to confirm your account before logging in.",
-                    userId = user.Id
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred during user registration");
-                return StatusCode(500, "An unexpected error occurred. Please try again later.");
-            }
-        }
-
-        private async Task<bool> SendConfirmationEmailAsync(User user)
-        {
-            var confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            var confirmationLink = $"{_configuration["FrontendUrl"]}/confirm-email?userId={user.Id}&token={WebUtility.UrlEncode(confirmationToken)}";
-
-            return await _emailService.SendEmailAsync(
-                user.Email,
-                "Confirm your email",
-                "Please confirm your account by clicking this link: ",
-                $"Please confirm your account by clicking this link: <a href='{confirmationLink}'>link</a>"
-            );
-        }
-
-
-
-        // POST: api/Users/Login
-        [HttpPost("Login")]
-        public async Task<IActionResult> LoginUser(UserLoginDto userDto)
-        {
-            _logger.LogInformation($"Attempting to log in user: {userDto.Username}");
-
-            try
-            {
-                var user = await _userManager.FindByNameAsync(userDto.Username);
-                if (user == null)
-                {
-                    _logger.LogWarning($"Failed login attempt for invalid username: {userDto.Username}");
-                    return Unauthorized(new { message = "Invalid username or password." });
-                }
-
-                if (!await _userManager.IsEmailConfirmedAsync(user))
-                {
-                    _logger.LogWarning($"Login attempt for unconfirmed email: {user.Email}");
-                    return Unauthorized(new { message = "Please confirm your email before logging in." });
-                }
-
-                var result = await _signInManager.PasswordSignInAsync(user, userDto.Password, isPersistent: true, lockoutOnFailure: true);
-
-                if (result.Succeeded)
-                {
-                    user.LastActiveDate = DateTime.UtcNow;
-                    await _userManager.UpdateAsync(user);
-
-                    _logger.LogInformation($"User {user.UserName} logged in successfully");
-                    return Ok(new { message = "Logged in successfully" });
-                }
-
-                if (result.IsLockedOut)
-                {
-                    _logger.LogWarning($"User account locked out: {user.UserName}");
-                    return StatusCode(StatusCodes.Status423Locked, new { message = "Account is locked. Please try again later." });
-                }
-
-                _logger.LogWarning($"Failed login attempt for user: {user.UserName}");
-                return Unauthorized(new { message = "Invalid username or password." });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error during login");
-                return StatusCode(StatusCodes.Status500InternalServerError, new
-                {
-                    message = "An unexpected error has occurred. Please try again later.",
-                    errorCode = "UNEXPECTED_ERROR"
-                });
-            }
-        }
-
-        // POST: /api/Users/Logout
-        [HttpPost("Logout")]
-        public async Task<IActionResult> Logout()
-        {
-            await _signInManager.SignOutAsync();
-            _logger.LogInformation($"\n\n\nLogging user out!!!\n\n\n");
-            return Ok(new { message = "Logged out successfully" });
-        }
-
-
-        // GET: /api/Users/CheckSession
-        [HttpGet("CheckSession")]
-        public async Task<IActionResult> CheckSession()
-        {
-            if (User.Identity.IsAuthenticated)
-            {
-                var user = await _userManager.GetUserAsync(User);
-                if (user != null)
-                {
-                    // Only update LastActiveDate if it's been more than 5 minutes
-                    if (DateTime.UtcNow - user.LastActiveDate > TimeSpan.FromMinutes(5))
-                    {
-                        user.LastActiveDate = DateTime.UtcNow;
-                        await _userManager.UpdateAsync(user);
-                    }
-
-                    return Ok(new
-                    {
-                        isAuthenticated = true,
-                        userId = user.Id,
-                        username = user.UserName,
-                        email = user.Email,
-                        lastActiveDate = user.LastActiveDate,
-                    });
-                }
-            }
-
-            return Ok(new { isAuthenticated = false });
-        }
+        
 
 
 
