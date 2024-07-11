@@ -8,7 +8,7 @@
    - **Key Features**: Secure forms for login and registration, social media or OAuth options for ease of access, and a link to reset password.
    - **Navigation**: Redirects to Home Page on successful login/registration or to the 2FA Setup Page if enabled.
 
-### 3. **Profile Page**
+### 3. **Dashboard Page**
    - **Purpose**: To allow users to view and edit their personal information, manage API keys, and view their problem attempt history.
    - **Key Features**: Personal information edit options, API Key Management subsection, and a summary of recent problem attempts.
    - **Navigation**: Links to Settings/Account Management, API Key Management, and Problem Attempt History Page.
