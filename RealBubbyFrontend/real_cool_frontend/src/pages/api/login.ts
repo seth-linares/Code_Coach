@@ -7,6 +7,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'; // Import types fro
 export interface LoginRequestBody {
     username: string;
     password: string;
+    rememberMe: boolean;
 }
 
 // Interface for the login response
@@ -28,12 +29,13 @@ export default async function handler(
     if (req.method === 'POST') {
         try {
             // Extract username and password from the request body
-            const { username, password }: LoginRequestBody = req.body;
+            const { username, password, rememberMe }: LoginRequestBody = req.body;
 
             // Construct the data object to send to the backend API
             const data: LoginRequestBody = {
                 username,
                 password,
+                rememberMe
             };
 
             const apiUrl = process.env.NODE_ENV === 'production'

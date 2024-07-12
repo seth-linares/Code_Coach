@@ -1,19 +1,14 @@
 // src/components/join/Register.tsx
 
 
-// TODO:
-//  1. JWT to local storage and
-//  2. re-route to real profile page
 "use client";
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+
 import InputField from '../common/InputField';
-import { useRouter } from "next/navigation";
-import {AuthResponse, register, RegisterRequest} from '@/services/authService';
-import {ApiResponse} from "@/services/api";
-import {RegisterResponse} from "@/pages/api/register";
-import {AppRouterInstance} from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { RegisterRequest, RegisterResponse } from "@/pages/api/register";
+import axios, { AxiosError } from 'axios';
 
 export function Register() {
     const [formData, setFormData] = useState<RegisterRequest>({
@@ -25,8 +20,7 @@ export function Register() {
     const [error, setError] = useState<string | null>(null);
     const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
     const [success, setSuccess] = useState<string | null>(null);
-
-    const router: AppRouterInstance = useRouter();
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -37,16 +31,31 @@ export function Register() {
         setError(null);
         setValidationErrors({});
         setSuccess(null);
+        setIsLoading(true);
 
-        const result: ApiResponse<AuthResponse> = await register(formData);
-
-        if (result.data) {
-            setSuccess('Registration successful!');
-            router.push('/dashboard');
-        } else if (result.validationErrors) {
-            setValidationErrors(result.validationErrors);
-        } else if (result.error) {
-            setError(result.error);
+        try {
+            const response = await axios.post<RegisterResponse>('https://localhost/api/Users/Register', formData);
+            setSuccess(response.data.message);
+        } catch (err) {
+            if (axios.isAxiosError(err) && err.response) {
+                if (err.response.status === 400) {
+                    if (err.response.data.errors) {
+                        // Handle validation errors
+                        setValidationErrors(err.response.data.errors);
+                    } else {
+                        // Handle other 400 errors
+                        setError(err.response.data.title || 'An error occurred during registration');
+                    }
+                } else {
+                    // Handle non-400 errors
+                    setError(err.response.data.title || err.message || 'An unexpected error occurred');
+                }
+            } else {
+                setError('An unexpected error occurred');
+            }
+            console.error('Registration error:', err);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -64,7 +73,7 @@ export function Register() {
                     name="username"
                     value={formData.username}
                     onChange={handleChange}
-                    error={validationErrors.Username?.[0]}
+                    error={validationErrors.UserName?.[0]}
                     required
                 />
                 <InputField
@@ -73,7 +82,7 @@ export function Register() {
                     name="emailAddress"
                     value={formData.emailAddress}
                     onChange={handleChange}
-                    error={validationErrors.EmailAddress?.[0]}
+                    error={validationErrors.Email?.[0]}
                     required
                 />
                 <InputField
@@ -96,7 +105,9 @@ export function Register() {
                 />
 
                 <div className="form-control mt-6">
-                    <button type="submit" className="btn btn-primary w-full">Register</button>
+                    <button type="submit" className="btn btn-primary w-full" disabled={isLoading}>
+                        {isLoading ? 'Registering...' : 'Register'}
+                    </button>
                 </div>
             </form>
 

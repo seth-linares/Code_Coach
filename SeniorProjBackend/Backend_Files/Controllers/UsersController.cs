@@ -36,7 +36,7 @@ namespace SeniorProjBackend.Controllers
         private async Task<bool> SendLinkEmailAsync(User user, string subject, string linkText, string linkPath, string tokenType)
         {
             var token = await _userManager.GenerateUserTokenAsync(user, "Default", tokenType);
-            var link = $"{_configuration["FrontendUrl"]}/{linkPath}?userId={user.Id}&token={WebUtility.UrlEncode(token)}";
+            var link = $"{_configuration["FrontendUrl:Development"]}/{linkPath}?userId={user.Id}&token={WebUtility.UrlEncode(token)}";
 
             return await _emailService.SendEmailAsync(
                 user.Email,
@@ -59,7 +59,7 @@ namespace SeniorProjBackend.Controllers
         [HttpPost("Register")]
         public async Task<IActionResult> RegisterUser(UserRegistrationDto userDto)
         {
-            _logger.LogInformation("Attempting to register new user");
+            _logger.LogInformation("\n\n\n\nAttempting to register new user\n\n\n\n");
             try
             {
                 if (!ModelState.IsValid)
@@ -72,11 +72,13 @@ namespace SeniorProjBackend.Controllers
                 var existingUserName = await _userManager.FindByNameAsync(userDto.Username);
                 if (existingUserEmail != null)
                 {
+                    _logger.LogError($"\n\n\n\nEMAIL ALREADY EXISTS {userDto.EmailAddress}\n\n\n\n");
                     ModelState.AddModelError("Email", "A user with this email already exists.");
                     return ValidationProblem(ModelState);
                 }
                 if (existingUserName != null)
                 {
+                    _logger.LogError($"\n\n\n\nUSERNAME ALREADY EXISTS {userDto.Username}\n\n\n\n");
                     ModelState.AddModelError("UserName", "This username is already taken.");
                     return ValidationProblem(ModelState);
                 }
@@ -95,12 +97,14 @@ namespace SeniorProjBackend.Controllers
                 {
                     foreach (var error in result.Errors)
                     {
-                        ModelState.AddModelError(string.Empty, error.Description);
+                        _logger.LogError($"\n\n\n\nERRORS OCCURED WHILE REGISTERING\n");
+                        _logger.LogError($"Error: {error}\n\n\n\n");
+                        ModelState.AddModelError(error.Code, error.Description);
                     }
                     return ValidationProblem(ModelState);
                 }
 
-                _logger.LogInformation($"User created: {user.UserName} (ID: {user.Id})");
+                _logger.LogInformation($"\n\n\n\nUser created: {user.UserName} (ID: {user.Id})\n\n\n\n");
 
                 var emailSent = await SendLinkEmailAsync(
                     user,
@@ -112,12 +116,12 @@ namespace SeniorProjBackend.Controllers
 
                 if (!emailSent)
                 {
-                    _logger.LogWarning($"Failed to send confirmation email to user {user.Id}");
+                    _logger.LogWarning($"\n\n\n\nFailed to send confirmation email to user {user.Id}\n\n\n\n");
                     await _userManager.DeleteAsync(user);
                     return StatusCode(500, "User registered but failed to send confirmation email. Please try again.");
                 }
 
-                _logger.LogInformation($"Confirmation email sent to: {user.UserName} (ID: {user.Id})");
+                _logger.LogInformation($"\n\n\n\nConfirmation email sent to: {user.UserName} (ID: {user.Id})\n\n\n\n");
 
                 return Ok(new
                 {
@@ -127,7 +131,7 @@ namespace SeniorProjBackend.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred during user registration");
+                _logger.LogError($"\n\n\n\nException: {ex}\nAn error occurred during user registration\n\n\n\n");
                 return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
@@ -138,6 +142,7 @@ namespace SeniorProjBackend.Controllers
         [HttpPost("Enable2FA")]
         public async Task<IActionResult> Enable2FA()
         {
+            _logger.LogInformation($"\n\n\n\nATTEMPTING TO ENABLE 2FA\n\n\n\n");
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -163,7 +168,7 @@ namespace SeniorProjBackend.Controllers
                 return StatusCode(500, "Failed to send verification email");
             }
 
-            _logger.LogInformation($"2FA verification email sent to user: {user.UserName}");
+            _logger.LogInformation($"\n\n\n\n2FA verification email sent to user: {user.UserName}\n\n\n\n");
             return Ok(new { message = "Verification code sent to your email. Please verify to enable 2FA." });
         }
 
@@ -245,21 +250,29 @@ namespace SeniorProjBackend.Controllers
         [HttpPost("ConfirmEmail")]
         public async Task<IActionResult> ConfirmEmail(ConfirmEmailDto dto)
         {
+            _logger.LogInformation($"\n\n\n\nAttempting to confirm email for user ID: {dto.UserId}\n\n\n\n");
 
             var user = await _userManager.FindByIdAsync(dto.UserId);
             if (user == null)
             {
+                _logger.LogWarning($"\n\n\n\nUnable to load user with ID '{dto.UserId}'.\n\n\n\n");
                 return NotFound($"Unable to load user with ID '{dto.UserId}'.");
+            }
+
+            if (user.EmailConfirmed)
+            {
+                _logger.LogInformation($"\n\n\n\nEmail already confirmed for user {dto.UserId}\n\n\n\n");
+                return Ok(new { message = "Email already confirmed. You can log in to your account." });
             }
 
             var result = await _userManager.ConfirmEmailAsync(user, dto.Token);
             if (!result.Succeeded)
             {
-                _logger.LogWarning($"Failed to confirm email for user {dto.UserId}. Errors: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                _logger.LogWarning($"\n\n\n\nFailed to confirm email for user {dto.UserId}. Errors: {string.Join(", ", result.Errors.Select(e => e.Description))}\n\n\n\n");
                 return BadRequest("Error confirming your email. Please try again or contact support.");
             }
 
-            _logger.LogInformation($"Email confirmed for user {dto.UserId}");
+            _logger.LogInformation($"\n\n\n\nEmail confirmed successfully for user {dto.UserId} \n\n\n\n");
             return Ok(new { message = "Email confirmed successfully. You can now log in to your account." });
         }
 
@@ -271,20 +284,20 @@ namespace SeniorProjBackend.Controllers
         [HttpPost("Login")]
         public async Task<IActionResult> Login(UserLoginDto userDto)
         {
-            _logger.LogInformation($"Attempting to log in user: {userDto.Username}");
+            _logger.LogInformation($"\n\n\n\nAttempting to log in user: {userDto.Username}\n\n\n\n");
 
             try
             {
                 var user = await _userManager.FindByNameAsync(userDto.Username);
                 if (user == null)
                 {
-                    _logger.LogWarning($"Failed login attempt for invalid username: {userDto.Username}");
+                    _logger.LogWarning($"\n\n\n\nFailed login attempt for invalid username: {userDto.Username}\n\n\n\n");
                     return Unauthorized(new { message = "Invalid username or password." });
                 }
 
                 if (!await _userManager.IsEmailConfirmedAsync(user))
                 {
-                    _logger.LogWarning($"Login attempt for unconfirmed email: {user.Email}");
+                    _logger.LogWarning($"\n\n\n\nLogin attempt for unconfirmed email: {user.Email}\n\n\n\n");
                     return Unauthorized(new { message = "Please confirm your email before logging in." });
                 }
 
@@ -302,16 +315,16 @@ namespace SeniorProjBackend.Controllers
 
                 if (result.IsLockedOut)
                 {
-                    _logger.LogWarning($"User account locked out: {user.UserName}");
+                    _logger.LogWarning($"\n\n\n\nUser account locked out: {user.UserName}\n\n\n\n");
                     return StatusCode(StatusCodes.Status423Locked, new { message = "Account is locked. Please try again later." });
                 }
 
-                _logger.LogWarning($"Failed login attempt for user: {user.UserName}");
+                _logger.LogWarning($"\n\n\n\nFailed login attempt for user: {user.UserName}\n\n\n\n");
                 return Unauthorized(new { message = "Invalid username or password." });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error during login");
+                _logger.LogError($"\n\n\n\nException: {ex}\nUnexpected error during login\n\n\n\n");
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
                     message = "An unexpected error has occurred. Please try again later.",
@@ -325,7 +338,7 @@ namespace SeniorProjBackend.Controllers
             user.LastActiveDate = DateTime.UtcNow;
             await _userManager.UpdateAsync(user);
 
-            _logger.LogInformation($"User {user.UserName} logged in successfully");
+            _logger.LogInformation($"\n\n\n\nUser {user.UserName} logged in successfully\n\n\n\n");
             return Ok(new { message = "Logged in successfully" });
         }
 
@@ -334,13 +347,14 @@ namespace SeniorProjBackend.Controllers
             var token = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
             await _emailService.SendEmailAsync(user.Email, "Your 2FA Code", $"Your login code is: {token}");
 
-            _logger.LogInformation($"2FA initiated for user: {user.UserName}");
+            _logger.LogInformation($"\n\n\n\n2FA initiated for user: {user.UserName}\n\n\n\n");
             return Ok(new { requiresTwoFactor = true, message = "2FA code sent to your email." });
         }
 
         [HttpPost("VerifyTwoFactorCode")]
         public async Task<IActionResult> VerifyTwoFactorCode(TwoFactorVerificationDto twoFactorDto)
         {
+            _logger.LogInformation($"\n\n\n\nATTEMPTING TO VERIFY 2FA\n\n\n\n");
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
@@ -350,16 +364,17 @@ namespace SeniorProjBackend.Controllers
             var result = await _signInManager.TwoFactorSignInAsync("Email", twoFactorDto.Code, twoFactorDto.RememberMe, twoFactorDto.RememberBrowser);
             if (result.Succeeded)
             {
+                _logger.LogInformation($"\n\n\n\n2FA WORKED FOR {user.UserName}\n\n\n\n");
                 return await CompleteLoginAsync(user);
             }
             else if (result.IsLockedOut)
             {
-                _logger.LogWarning($"User account locked out during 2FA: {user.UserName}");
+                _logger.LogWarning($"\n\n\n\nUser account locked out during 2FA: {user.UserName}\n\n\n\n");
                 return StatusCode(StatusCodes.Status423Locked, new { message = "Account is locked. Please try again later." });
             }
             else
             {
-                _logger.LogWarning($"Invalid 2FA code attempt for user: {user.UserName}");
+                _logger.LogWarning($"\n\n\n\nInvalid 2FA code attempt for user: {user.UserName}\n\n\n\n");
                 return BadRequest("Invalid verification code");
             }
         }
@@ -550,7 +565,7 @@ namespace SeniorProjBackend.Controllers
                 }
 
                 // Log the account deletion
-                _logger.LogInformation($"User account deleted: {user.UserName} (ID: {user.Id})");
+                _logger.LogInformation($"\n\n\n\nUser account deleted: {user.UserName} (ID: {user.Id})\n\n\n\n");
 
                 // Sign out the user
                 await _signInManager.SignOutAsync();
@@ -559,7 +574,7 @@ namespace SeniorProjBackend.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error deleting user account: {user.UserName} (ID: {user.Id})");
+                _logger.LogError($"\n\n\n\nException:{ex}\nError deleting user account: {user.UserName} (ID: {user.Id})\n\n\n\n");
                 return StatusCode(500, "An error occurred while deleting your account. Please try again later.");
             }
         }

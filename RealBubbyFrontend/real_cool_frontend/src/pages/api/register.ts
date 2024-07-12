@@ -1,7 +1,7 @@
 // pages/api/register.ts
 
-import axios, { AxiosResponse } from 'axios';
 import type { NextApiRequest, NextApiResponse } from 'next';
+import axios, { AxiosError } from 'axios';
 
 export interface RegisterRequest {
     username: string;
@@ -11,55 +11,60 @@ export interface RegisterRequest {
 }
 
 export interface RegisterResponse {
-    token: string;
+    message: string;
+    userId: string;
 }
 
 export interface ValidationError {
     [key: string]: string[];
 }
 
+const apiClient = axios.create({
+    baseURL: process.env.NODE_ENV === 'production'
+        ? 'https://your-production-domain.com/api'
+        : 'https://localhost/api',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+
 export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse
 ): Promise<void> {
-    if (req.method === 'POST') {
-        try {
-            const { username, password, confirmPassword, emailAddress }: RegisterRequest = req.body;
-
-            const data: RegisterRequest = {
-                username,
-                password,
-                confirmPassword,
-                emailAddress,
-            };
-
-            // Update the URL to use HTTPS and the new Nginx proxy
-            const apiUrl = process.env.NODE_ENV === 'production'
-                ? 'https://your-production-domain.com/api/Users/Register'
-                : 'https://localhost/api/Users/Register';
-
-            try {
-                const response: AxiosResponse<RegisterResponse> = await axios.post<RegisterResponse>(apiUrl, data, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
-                console.log(response.data);
-                res.status(201).json(response.data);
-            } catch (error: any) {
-                if (error.response?.data?.errors) {
-                    const validationError: ValidationError = error.response?.data?.errors;
-                    console.log("validationError", validationError);
-                    res.status(400).json({ errors: validationError });
-                } else {
-                    res.status(error.response?.status || 500).json({ message: error.message });
-                }
-            }
-        } catch (error: any) {
-            res.status(500).json({ message: error.message });
-        }
-    } else {
+    if (req.method !== 'POST') {
         res.setHeader('Allow', ['POST']);
         res.status(405).end('Method Not Allowed');
+        return;
+    }
+
+    try {
+        const { username, password, confirmPassword, emailAddress }: RegisterRequest = req.body;
+
+        const response = await apiClient.post<RegisterResponse>('/Users/Register', {
+            username,
+            password,
+            confirmPassword,
+            emailAddress,
+        });
+
+        res.status(201).json(response.data);
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            const axiosError = error as AxiosError<{ errors?: ValidationError }>;
+            if (axiosError.response?.status === 400) {
+                // Handle validation errors
+                const validationErrors = axiosError.response.data.errors || {};
+                res.status(400).json({ errors: validationErrors });
+            } else if (axiosError.response?.status === 500) {
+                // Handle server errors
+                res.status(500).json({ message: axiosError.response.data });
+            } else {
+                // Handle other errors
+                res.status(axiosError.response?.status || 500).json({ message: axiosError.message });
+            }
+        } else {
+            res.status(500).json({ message: 'An unexpected error occurred' });
+        }
     }
 }
