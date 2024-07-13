@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 export interface RegisterRequest {
     username: string;
@@ -17,6 +18,7 @@ export interface RegisterResponse {
 }
 
 function useRegistration() {
+    const router = useRouter();
     const [formData, setFormData] = useState<RegisterRequest>({
         username: '',
         password: '',
@@ -42,6 +44,8 @@ function useRegistration() {
         try {
             const response = await axios.post<RegisterResponse>('https://localhost/api/Users/Register', formData);
             setSuccess(response.data.message);
+            setTimeout(() => router.push("/login"), 3000);
+
         } catch (err) {
             if (axios.isAxiosError(err) && err.response) {
                 if (err.response.status === 400) {
