@@ -5,6 +5,7 @@ import React from 'react';
 import useLogin from '@/hooks/useLogin';
 import InputField from '../common/InputField';
 import TwoFactorVerification from '../auth/TwoFactorVerification';
+import Link from "next/link";
 
 const Login: React.FC = () => {
     const {
@@ -21,7 +22,7 @@ const Login: React.FC = () => {
     } = useLogin();
 
     return (
-        <div className="min-h-screen bg-base-200 flex items-center justify-center">
+        <div className="flex-grow bg-base-300 flex flex-col items-center justify-center py-10">
             <div className="bg-base-100 p-8 rounded-lg shadow-lg max-w-md w-full">
                 <h2 className="text-2xl font-bold mb-6 text-center">
                     {requiresTwoFactor ? '2FA Verification' : 'Login'}
@@ -68,6 +69,9 @@ const Login: React.FC = () => {
                     />
                 )}
             </div>
+            <p className="text-center mt-6">
+                Don&apos;t have an account yet? <Link href={"/join"} className="link link-primary">Join CodeCoach!</Link>
+            </p>
         </div>
     );
 };
