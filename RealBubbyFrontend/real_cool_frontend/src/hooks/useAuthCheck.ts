@@ -42,7 +42,7 @@ export function useAuthCheck() {
             }
         } else {
             if (!PUBLIC_ROUTES.includes(currentPath)) {
-                router.push('/login');
+                router.push('/');
             }
         }
     }, [router]);
