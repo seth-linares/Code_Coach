@@ -2,16 +2,19 @@
 
 import Link from "next/link";
 import AuthWrapper from "@/components/common/AuthWrapper";
+import {Dashboard} from "@/components/dashboard/Dashboard";
+import {DashboardNavbar} from "@/components/common/DashboardNavbar";
+import {Footer} from "@/components/common/Footer";
 
 export default function DashboardPage() {
     return (
-        <AuthWrapper requireAuth={true}>
-            <main className="flex min-h-screen flex-col items-center justify-between p-24">
-                <Link href="/" className="btn font-bold text-xl">
-                    Home
-                </Link>
-                <h1>Dashboard Bubby!</h1>
-            </main>
-        </AuthWrapper>
+        // <AuthWrapper requireAuth={true}>
+        <div className="min-h-screen flex flex-col">
+            <DashboardNavbar/>
+            <Dashboard/>
+            <Footer/>
+        </div>
+
+        // </AuthWrapper>
     );
 }
