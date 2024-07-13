@@ -1,13 +1,14 @@
-import Image from "next/image";
-import Link from "next/link";
-import {Register} from '@/components/join/Register';
+import { Register } from '@/components/join/Register';
 import { Footer } from "@/components/common/Footer";
+import AuthWrapper from "@/components/common/AuthWrapper";
 
 export default function JoinPage() {
     return (
-        <div className="min-h-screen flex flex-col">
-            <Register/> {/* Client component */}
-            <Footer/>
-        </div>
+        <AuthWrapper>
+            <div className="min-h-screen flex flex-col">
+                <Register/> {/* Client component */}
+                <Footer/>
+            </div>
+        </AuthWrapper>
     );
 }

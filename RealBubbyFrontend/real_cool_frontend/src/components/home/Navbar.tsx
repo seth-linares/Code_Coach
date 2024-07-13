@@ -1,4 +1,4 @@
-// components/Navbar.tsx
+// src/components/home/Navbar.tsx
 import Link from 'next/link';
 
 export const Navbar = () => (

@@ -1,4 +1,4 @@
-// components/HeroSection.tsx
+// src/components/home/HeroSection.tsx
 import Link from 'next/link';
 
 export const HeroSection = () => {

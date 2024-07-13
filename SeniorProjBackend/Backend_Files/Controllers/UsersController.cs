@@ -298,7 +298,7 @@ namespace SeniorProjBackend.Controllers
                 if (!await _userManager.IsEmailConfirmedAsync(user))
                 {
                     _logger.LogWarning($"\n\n\n\nLogin attempt for unconfirmed email: {user.Email}\n\n\n\n");
-                    return Unauthorized(new { message = "Please confirm your email before logging in." });
+                    return BadRequest(new { message = "Please confirm your email before logging in." });
                 }
 
                 var result = await _signInManager.PasswordSignInAsync(user, userDto.Password, isPersistent: userDto.RememberMe, lockoutOnFailure: true);
@@ -339,7 +339,7 @@ namespace SeniorProjBackend.Controllers
             await _userManager.UpdateAsync(user);
 
             _logger.LogInformation($"\n\n\n\nUser {user.UserName} logged in successfully\n\n\n\n");
-            return Ok(new { message = "Logged in successfully" });
+            return Ok(new { requiredTwoFactor = false, message = "Logged in successfully" });
         }
 
         private async Task<IActionResult> InitiateTwoFactorAuthenticationAsync(User user)
@@ -393,11 +393,14 @@ namespace SeniorProjBackend.Controllers
         [HttpGet("CheckSession")]
         public async Task<IActionResult> CheckSession()
         {
+            _logger.LogInformation($"\n\n\n\nCHECKING SESSION\n\n\n\n");
             if (User.Identity.IsAuthenticated)
             {
+                
                 var user = await _userManager.GetUserAsync(User);
                 if (user != null)
                 {
+                    _logger.LogInformation($"\n\n\n\nUSER FOUND: {user.UserName}, {user.Id}\n\n\n\n");
                     // Only update LastActiveDate if it's been more than 5 minutes
                     if (DateTime.UtcNow - user.LastActiveDate > TimeSpan.FromMinutes(5))
                     {
@@ -415,7 +418,7 @@ namespace SeniorProjBackend.Controllers
                     });
                 }
             }
-
+            _logger.LogInformation($"\n\n\n\nNO AUTHENTICATION FOUND\n\n\n\n");
             return Ok(new { isAuthenticated = false });
         }
 

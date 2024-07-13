@@ -1,4 +1,4 @@
-// components/FeaturesSection.tsx
+// src/components/home/FeaturesSection.tsx
 import { FaCode, FaBookOpen, FaRobot } from 'react-icons/fa';
 
 export const FeaturesSection = () => {

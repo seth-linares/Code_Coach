@@ -1,65 +1,28 @@
 // src/components/join/Register.tsx
-
-
 "use client";
 
-import React, { useState } from 'react';
 import Link from 'next/link';
-
 import InputField from '../common/InputField';
-import { RegisterRequest, RegisterResponse } from "@/pages/api/register";
-import axios, { AxiosError } from 'axios';
+import useRegistration from '@/hooks/useRegistration'
+
+import React from "react";
 
 export function Register() {
-    const [formData, setFormData] = useState<RegisterRequest>({
-        username: '',
-        password: '',
-        confirmPassword: '',
-        emailAddress: '',
-    });
-    const [error, setError] = useState<string | null>(null);
-    const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
-    const [success, setSuccess] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+    const {
+        formData,
+        error,
+        validationErrors,
+        success,
+        isLoading,
+        handleChange,
+        handleSubmit
+    } = useRegistration();
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
-        e.preventDefault();
-        setError(null);
-        setValidationErrors({});
-        setSuccess(null);
-        setIsLoading(true);
 
-        try {
-            const response = await axios.post<RegisterResponse>('https://localhost/api/Users/Register', formData);
-            setSuccess(response.data.message);
-        } catch (err) {
-            if (axios.isAxiosError(err) && err.response) {
-                if (err.response.status === 400) {
-                    if (err.response.data.errors) {
-                        // Handle validation errors
-                        setValidationErrors(err.response.data.errors);
-                    } else {
-                        // Handle other 400 errors
-                        setError(err.response.data.title || 'An error occurred during registration');
-                    }
-                } else {
-                    // Handle non-400 errors
-                    setError(err.response.data.title || err.message || 'An unexpected error occurred');
-                }
-            } else {
-                setError('An unexpected error occurred');
-            }
-            console.error('Registration error:', err);
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     return (
+
         <div className="flex-grow bg-base-300 flex flex-col items-center justify-center py-10">
             <form onSubmit={handleSubmit} className="form bg-base-100 p-6 rounded-lg shadow-lg max-w-md w-full">
                 <h2 className="text-2xl font-bold mb-6 text-center">Register</h2>

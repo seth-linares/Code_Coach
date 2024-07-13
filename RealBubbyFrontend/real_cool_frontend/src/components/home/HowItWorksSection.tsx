@@ -1,8 +1,11 @@
-// components/HowItWorksSection.tsx
+// src/components/home/HowItWorksSection.tsx
 "use client"
+
 import { motion } from 'framer-motion';
+import React from "react";
 
 export const HowItWorksSection = () => {
+
     const stepVariants = {
         offscreen: {
             y: 50,

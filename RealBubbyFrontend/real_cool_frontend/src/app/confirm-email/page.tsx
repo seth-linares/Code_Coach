@@ -38,7 +38,7 @@ export default function ConfirmEmail() {
                 } catch (error) {
                     console.error('Error confirming email:', error);
                     setStatus('error');
-                    setMessage('Failed to confirm email. Please try again or contact support.');
+                    setMessage('Failed to confirm email. Please try again.');
                 }
             } else {
                 setStatus('error');
