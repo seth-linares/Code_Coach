@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function Dashboard() {
     return (
         <div className="flex-grow bg-base-300 flex flex-col items-center justify-start py-20 pl-10">
@@ -63,7 +65,8 @@ export function Dashboard() {
                             </span>
                             </h2>
                             <p className="text-2xl mb-4">Total Problems: 12</p>
-                            <button className="btn">Get Started</button>
+                            <Link className={"btn"} href={"/problems"}>Get Started</Link>
+                            {/*<button className="btn">Get Started</button>*/}
                         </div>
                     </div>
                 </div>

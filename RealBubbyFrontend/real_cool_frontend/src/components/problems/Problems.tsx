@@ -1,47 +1,29 @@
 "use client"
 
-import {useEffect, useRef, useState} from "react";
-import * as monaco from 'monaco-editor';
+import { useRef, useState } from "react";
+import Editor, { OnMount } from "@monaco-editor/react";
 
-const languageMap : {[key: string]: string} = { 'Python': 'python', 'C++': 'cpp', 'C#': 'csharp' };
-
+const languageMap: { [key: string]: string } = { 'Python': 'python', 'C++': 'cpp', 'C#': 'csharp' };
 
 export function Problems() {
-    let monaco: any;
-    if (typeof window !== 'undefined') {
-        monaco = require('monaco-editor');
-    }
-
-    const editorRef = useRef(null);
-    const editorInstance = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
     const [selectedLanguage, setSelectedLanguage] = useState("Python");
+    const editorRef = useRef<any>(null);
 
-
-    useEffect(() => {
-        if (editorRef.current && !editorInstance.current  && monaco) {
-            
-            editorInstance.current = monaco.editor.create(editorRef.current, {
-                value: '',
-                language: languageMap[selectedLanguage], // should be either python, cpp, or csharp
-                theme: 'vs-dark'
-            });
-        }
-    }, [selectedLanguage]);
-
-    useEffect(() => {
-        if (editorInstance.current) {
-            const model = editorInstance.current.getModel();
-            if (model) {
-                monaco.editor.setModelLanguage(model, languageMap[selectedLanguage]);
-            }
-        }
-    }, [selectedLanguage]);
+    const handleEditorDidMount: OnMount = (editor, monaco) => {
+        editorRef.current = editor;
+    };
 
     return (
         <div className="flex-grow bg-base-300 flex flex-row items-center justify-center py-10 pl-10">
             <div className="h-[1100px] w-1/2 flex flex-col items-center">
-                <div ref={editorRef} className="h-full w-full mb-4">
-                </div>
+                <Editor
+                    height="100%"
+                    width="100%"
+                    language={languageMap[selectedLanguage]}
+                    theme="vs-dark"
+                    onMount={handleEditorDidMount}
+                    className="mb-4"
+                />
                 <div className="flex justify-center items-center w-full">
                     <div className="dropdown">
                         <div tabIndex={0} role="button" className="btn m-1">{selectedLanguage}</div>
