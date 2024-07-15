@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-namespace SeniorProjBackend.Data
+﻿namespace SeniorProjBackend.Data
 {
     public class AIConversation
     {

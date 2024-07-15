@@ -42,6 +42,7 @@ services:
     depends_on:
       - seniorprojbackend
       - frontend
+      - judge0
     networks:
       - app-network
 
@@ -57,6 +58,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-judge0-db.sql:/docker-entrypoint-initdb.d/init-judge0-db.sql
     networks:
       - app-network
 
@@ -71,6 +73,27 @@ services:
       - "5050:80"
     depends_on:
       - postgres
+    networks:
+      - app-network
+
+  judge0:
+    image: judge0/judge0:latest
+    environment:
+      - REDIS_HOST=redis
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=judge0
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Password123!!
+      - AUTHZ_HEADER=X-Judge0-User
+      - AUTHZ_TOKEN=XyY/eUKxgYN8cPdUdNkWvfGUVot+Y7vkQyjWCaybXek=
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - app-network
+
+  redis:
+    image: redis:6.0
     networks:
       - app-network
 

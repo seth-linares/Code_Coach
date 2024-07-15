@@ -6,6 +6,7 @@ using SeniorProjBackend.Data;
 using System.Threading.RateLimiting;
 using SeniorProjBackend.Middleware;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using SeniorProjBackend.Encryption;
 
 
 // This console write will appear in the Docker logs
@@ -62,6 +63,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     };
 });
 
+
 builder.Services.AddAntiforgery(options =>
 {
     options.HeaderName = "X-XSRF-TOKEN";
@@ -87,6 +89,18 @@ builder.Services.AddLogging(logging =>
 
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IEmailSender>(sp => sp.GetRequiredService<IEmailService>());
+builder.Services.AddTransient<Judge0AuthHandler>();
+
+// Configure Judge0 HttpClient
+builder.Services.AddHttpClient("Judge0", (serviceProvider, client) =>
+{
+    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+    var baseUrl = configuration["Judge0:BaseUrl"];
+    var timeout = int.Parse(configuration["Judge0:TimeoutSeconds"]);
+
+    client.BaseAddress = new Uri(baseUrl);
+    client.Timeout = TimeSpan.FromSeconds(timeout);
+}).AddHttpMessageHandler<Judge0AuthHandler>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
