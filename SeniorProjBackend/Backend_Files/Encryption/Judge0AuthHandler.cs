@@ -8,14 +8,19 @@
         public Judge0AuthHandler(IConfiguration configuration, ILogger<Judge0AuthHandler> logger)
         {
             _configuration = configuration;
-            _logger=logger;
+            _logger = logger;
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            string token = _configuration["Judge0:AuthToken"];
-            request.Headers.Add("X-Judge0-User", token);
-            _logger.LogInformation($"\n\n\n\nAdded X-Judge0-User header with token: {token.Substring(0, 5)}...\n\n\n\n");
+            string rapidApiKey = _configuration["Judge0:RapidApiKey"];
+            string rapidApiHost = _configuration["Judge0:RapidApiHost"];
+
+            request.Headers.Add("x-rapidapi-key", rapidApiKey);
+            request.Headers.Add("x-rapidapi-host", rapidApiHost);
+
+            _logger.LogInformation($"\n\n\n\nAdding headers to Judge0 request:\nx-rapidapi-key: {rapidApiKey}\nx-rapidapi-host: {rapidApiHost}\n\n\n\n");
+
             return await base.SendAsync(request, cancellationToken);
         }
     }

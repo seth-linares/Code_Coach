@@ -96,10 +96,8 @@ builder.Services.AddHttpClient("Judge0", (serviceProvider, client) =>
 {
     var configuration = serviceProvider.GetRequiredService<IConfiguration>();
     var baseUrl = configuration["Judge0:BaseUrl"];
-    var timeout = int.Parse(configuration["Judge0:TimeoutSeconds"]);
 
     client.BaseAddress = new Uri(baseUrl);
-    client.Timeout = TimeSpan.FromSeconds(timeout);
 }).AddHttpMessageHandler<Judge0AuthHandler>();
 
 builder.Services.AddEndpointsApiExplorer();

@@ -11,4 +11,17 @@ namespace SeniorProjBackend.DTOs
 
         public bool RememberBrowser { get; set; }
     }
+
+    
+
+    public class ConfirmEmailDto
+    {
+        [Required(ErrorMessage = "User ID is required.")]
+        public string UserId { get; set; }
+
+        [Required(ErrorMessage = "Confirmation token is required.")]
+        public string Token { get; set; }
+    }
+
+    
 }

@@ -2,6 +2,15 @@
 
 namespace SeniorProjBackend.Data
 {
+
+    public enum Ranks
+    {
+        Newbie = 0,
+        Novice = 25, 
+        Amateur = 75,
+        Talented = 150,
+        Pro = 300
+    }
     public class User : IdentityUser<int>
     {
         // Implicit fields from IdentityUser<int>:
@@ -22,20 +31,31 @@ namespace SeniorProjBackend.Data
         // public virtual int AccessFailedCount { get; set; }
 
         // Custom properties
-        public string? SecretKey { get; set; } // encrypted secret key for 2FA
         public int TotalScore { get; set; }
-        public string ProfilePictureURL { get; set; }
-        public DateTime RegistrationDate { get; set; }
-        public DateTime LastActiveDate { get; set; }
-        public string Rank { get; set; }
+        public string ProfilePictureURL { get; set; } // URL: https://cdn.pfps.gg/pfps/9150-cat-25.png
+        public DateTimeOffset RegistrationDate { get; set; }
+        public Ranks Rank { get; private set; }
+        public int CompletedProblems { get; set; }
+        public int AttemptedProblems { get; set; }
 
         // Navigation properties
         public List<AIConversation> AIConversations { get; set; }
         public List<APIKey> APIKeys { get; set; }
-        public List<Feedback> Feedbacks { get; set; }
-        public List<RecoveryCode> RecoveryCodes { get; set; }
-        public List<UserPreference> UserPreferences { get; set; }
-        public List<AuditLog> AuditLogs { get; set; }
         public List<UserSubmission> UserSubmissions { get; set; }
+
+        public void UpdateRank()
+        {
+            Rank = CalculateRank(TotalScore);
+        }
+
+        public static Ranks CalculateRank(int score)
+        {
+            if (score >= 300) return Ranks.Pro;
+            if (score >= 150) return Ranks.Talented;
+            if (score >= 75) return Ranks.Amateur;
+            if (score >= 25) return Ranks.Novice;
+            return Ranks.Newbie;
+        }
+
     }
 }

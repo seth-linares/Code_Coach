@@ -5,6 +5,7 @@ using SeniorProjBackend.DTOs;
 using Microsoft.AspNetCore.Identity;
 using System.Net;
 using Microsoft.AspNetCore.Authorization;
+using System.ComponentModel.DataAnnotations;
 
 
 
@@ -87,8 +88,7 @@ namespace SeniorProjBackend.Controllers
                 {
                     UserName = userDto.Username,
                     Email = userDto.EmailAddress,
-                    RegistrationDate = DateTime.UtcNow,
-                    LastActiveDate = DateTime.UtcNow
+                    RegistrationDate = DateTimeOffset.UtcNow,
                 };
 
                 var result = await _userManager.CreateAsync(user, userDto.Password);
@@ -335,7 +335,6 @@ namespace SeniorProjBackend.Controllers
 
         private async Task<IActionResult> CompleteLoginAsync(User user)
         {
-            user.LastActiveDate = DateTime.UtcNow;
             await _userManager.UpdateAsync(user);
 
             _logger.LogInformation($"\n\n\n\nUser {user.UserName} logged in successfully\n\n\n\n");
@@ -401,12 +400,6 @@ namespace SeniorProjBackend.Controllers
                 if (user != null)
                 {
                     _logger.LogInformation($"\n\n\n\nUSER FOUND: {user.UserName}, {user.Id}\n\n\n\n");
-                    // Only update LastActiveDate if it's been more than 5 minutes
-                    if (DateTime.UtcNow - user.LastActiveDate > TimeSpan.FromMinutes(5))
-                    {
-                        user.LastActiveDate = DateTime.UtcNow;
-                        await _userManager.UpdateAsync(user);
-                    }
 
                     return Ok(new
                     {
@@ -414,7 +407,6 @@ namespace SeniorProjBackend.Controllers
                         userId = user.Id,
                         username = user.UserName,
                         email = user.Email,
-                        lastActiveDate = user.LastActiveDate,
                     });
                 }
             }
@@ -458,6 +450,13 @@ namespace SeniorProjBackend.Controllers
             _logger.LogInformation($"\n\n\n\nUser {user.UserName} successfully changed their password.\n\n\n\n");
 
             return Ok("Your password has been changed successfully.");
+        }
+
+        public class ForgotPasswordDto
+        {
+            [Required]
+            [EmailAddress]
+            public string Email { get; set; }
         }
 
         [HttpPost("ForgotPassword")]
@@ -582,6 +581,35 @@ namespace SeniorProjBackend.Controllers
             }
         }
 
+        [Authorize]
+        [HttpGet("stats")]
+        public async Task<ActionResult<UserStatsDto>> GetUserStats()
+        {
+            _logger.LogInformation($"\n\n\n\nATTEMPTING TO GET USER STATS\n\n\n\n");
+            // Get the current user
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                _logger.LogInformation($"\n\n\n\nUSER NOT FOUND\n\n\n\n");
+                return NotFound("User not found.");
+            }
+
+            var userStats = new UserStatsDto
+            {
+                Username = user.UserName,
+                TotalScore = user.TotalScore,
+                Rank = user.Rank.ToString(),
+                CompletedProblems = user.CompletedProblems,
+                ProfilePictureURL = user.ProfilePictureURL,
+                RegistrationDate = user.RegistrationDate
+            };
+
+            _logger.LogInformation($"\n\n\n\nSUCCESSFULLY RETURNING STATS\n\n\n\n");
+            return userStats;
+        }
+
+
         [HttpGet("testEmail")]
         public IActionResult TestEmail()
         {
@@ -598,20 +626,6 @@ namespace SeniorProjBackend.Controllers
         }
 
         
-
-        // GET: api/Users/username/{username}
-        [HttpGet("username/{username}")]
-        public async Task<ActionResult<User>> GetUserByUsername(string username)
-        {
-            var user = await _context.Users.SingleOrDefaultAsync(u => u.UserName == username);
-
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            return user;
-        }
 
 
         

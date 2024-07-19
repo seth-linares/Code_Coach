@@ -2,18 +2,11 @@
 {
     public class Language
     {
-        /*
-         * 4.  **Languages Table**:
-    
-                *   `LanguageID` (Primary Key, INT).
-                *   `LanguageName` (VARCHAR).
-        */
         public int LanguageID { get; set; }
-        public string LanguageName { get; set; }
+        public string Name { get; set; }
+        public int Judge0ID { get; set; }
 
-        // Navigation Properties
+        // Navigation property
         public List<ProblemLanguage> ProblemLanguages { get; set; }
-        public List<UserSubmission> UserSubmissions { get; set; }
-
     }
 }

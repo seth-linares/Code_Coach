@@ -11,15 +11,9 @@ namespace SeniorProjBackend.Data
 
         public DbSet<AIConversation> AIConversations { get; set; }
         public DbSet<APIKey> APIKeys { get; set; }
-        public DbSet<AuditLog> AuditLogs { get; set; }
-        public DbSet<Category> Categories { get; set; }
-        public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<Language> Languages { get; set; }
         public DbSet<Problem> Problems { get; set; }
-        public DbSet<ProblemCategory> ProblemCategories { get; set; }
         public DbSet<ProblemLanguage> ProblemLanguages { get; set; }
-        public DbSet<RecoveryCode> RecoveryCodes { get; set; }
-        public DbSet<UserPreference> UserPreferences { get; set; }
         public DbSet<UserSubmission> UserSubmissions { get; set; }
 
         /*
@@ -44,471 +38,240 @@ namespace SeniorProjBackend.Data
             modelBuilder.Entity<IdentityRoleClaim<int>>().ToTable("RoleClaims");
             modelBuilder.Entity<IdentityUserToken<int>>().ToTable("UserTokens");
 
-
-
-
-
-            // AIConversation Table
-
-            // Primary Key
-            modelBuilder.Entity<AIConversation>()
-                .HasKey(c => c.ConversationID);
-
-            // One-to-many relationship between AIConversation and User
-            modelBuilder.Entity<AIConversation>()
-                .HasOne(c => c.User)
-                .WithMany(u => u.AIConversations) // Users navigation property
-                .HasForeignKey(c => c.UserId)
-                .IsRequired() // Required to have a user
-                .OnDelete(DeleteBehavior.Cascade); // Set Cascade for now but also could become ClientCascade 
-
-            // One-to-many relationship between AIConversation and Problem
-            modelBuilder.Entity<AIConversation>()
-                .HasOne(c => c.Problem)
-                .WithMany(p => p.AIConversations)  // Problems navigation property
-                .HasForeignKey(c => c.ProblemID)
-                .OnDelete(DeleteBehavior.SetNull); // Set null for now, but could change to ClientSetNull for more fine control 
-
-            // Properties
-            modelBuilder.Entity<AIConversation>()
-                .Property(c => c.ConversationID)
-                .ValueGeneratedOnAdd(); // should auto increment 
-            modelBuilder.Entity<AIConversation>()
-                .Property(c => c.Timestamp)
-                .HasColumnType("timestamp with time zone") // should be timestamp
-                .HasDefaultValueSql("NOW()") // should default to current date and time. Will need to modify timestamp each time we change content
-                .IsRequired();
-            modelBuilder.Entity<AIConversation>()
-                .Property(c => c.ConversationContent)
-                .HasColumnType("text")
-                .IsRequired();
-            modelBuilder.Entity<AIConversation>()
-                .Property(c => c.IsCompleted)
-                .HasColumnType("boolean")
-                .HasDefaultValue(false)
-                .IsRequired();
-
-
-
-
-
-
-
-            // APIKey Table
-            modelBuilder.Entity<APIKey>()
-                .HasKey(a => a.APIKeyID);
-
-            // One-to-many relationship between APIKey and User
-            modelBuilder.Entity<APIKey>()
-                .HasOne(a => a.User)
-                .WithMany(u => u.APIKeys)
-                .HasForeignKey(a => a.UserId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // Properties
-            modelBuilder.Entity<APIKey>()
-                .Property(a => a.APIKeyID)
-                .ValueGeneratedOnAdd();
-            modelBuilder.Entity<APIKey>()
-                .Property(a => a.KeyType)
-                .HasColumnType("varchar(50)")
-                .IsRequired();
-            modelBuilder.Entity<APIKey>()
-                .Property(a => a.KeyValue)
-                .HasColumnType("varchar(255)")
-                .IsRequired();
-            modelBuilder.Entity<APIKey>()
-                .Property(a => a.Permissions)
-                .HasColumnType("varchar(255)");
-            modelBuilder.Entity<APIKey>()
-                .Property(a => a.CreatedAt)
-                .HasColumnType("timestamp with time zone")
-                .HasDefaultValueSql("NOW()")
-                .IsRequired();
-            modelBuilder.Entity<APIKey>()
-                .Property(a => a.ExpiresAt)
-                .HasColumnType("timestamp with time zone");
-
-
-
-
-
-
-
-            // AuditLog Table
-            modelBuilder.Entity<AuditLog>()
-                .HasKey(AuditLog => AuditLog.AuditLogID);
-
-            // One-to-many relationship between AuditLog and User
-            modelBuilder.Entity<AuditLog>()
-                .HasOne(a => a.User)
-                .WithMany(u => u.AuditLogs)
-                .HasForeignKey(a => a.UserId)
-                .OnDelete(DeleteBehavior.SetNull); // If a User is deleted, the UserId in the AuditLog table is set to null
-
-            // Properties
-            modelBuilder.Entity<AuditLog>()
-                .Property(a => a.AuditLogID)
-                .ValueGeneratedOnAdd();
-            modelBuilder.Entity<AuditLog>()
-                .Property(a => a.EventType) // We have an enum for this!! We convert it to a string for storage
-                .HasConversion<string>()
-                .HasColumnType("varchar(50)")
-                .IsRequired();
-            modelBuilder.Entity<AuditLog>()
-                .Property(a => a.Details)
-                .HasColumnType("text")
-                .IsRequired();
-            modelBuilder.Entity<AuditLog>()
-                .Property(a => a.Timestamp)
-                .HasColumnType("timestamp with time zone")
-                .HasDefaultValueSql("NOW()")
-                .IsRequired();
-
-
-
-
-
-
-
-            // Category Table
-            modelBuilder.Entity<Category>()
-                .HasKey(c => c.CategoryID);
-
-            // handle one-to-many relationship between Category and ProblemCategory
-            modelBuilder.Entity<Category>()
-                .HasMany(c => c.ProblemCategories)
-                .WithOne(pc => pc.Category)
-                .HasForeignKey(pc => pc.CategoryID)
-                .OnDelete(DeleteBehavior.Cascade); // if a Category is deleted, all associated ProblemCategories are also deleted
-
-            // Properties
-            modelBuilder.Entity<Category>()
-                .Property(c => c.CategoryName)
-                .HasColumnType("varchar(50)")
-                .IsRequired();
-
-
-
-
-
-
-
-
-            // Feedback Table
-            modelBuilder.Entity<Feedback>()
-                .HasKey(f => f.FeedbackID);
-
-            /*
-             * THE CASCADE DELETING MIGHT HAVE TO BE CHANGED TO CLIENTSETNULL FOR PROBLEM
-             * IT IS UNCLEAR UNTIL WE HAVE SOME TESTING DONE
-             * FOR NOW ASSUME IT IS FINE BUT IT MIGHT NEED TO BE CHANGED
-            */ 
-
-            // One-to-many relationship between Feedback and User
-            modelBuilder.Entity<Feedback>()
-                .HasOne(f => f.User)
-                .WithMany(u => u.Feedbacks)
-                .HasForeignKey(f => f.UserId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade); // if a User is deleted, all associated Feedbacks are also deleted
-
-            // One-to-many relationship between Feedback and Problem
-            modelBuilder.Entity<Feedback>()
-                .HasOne(f => f.Problem)
-                .WithMany(p => p.Feedbacks)
-                .HasForeignKey(f => f.ProblemID)
-                .IsRequired(false) // Ensure ProblemID is nullable
-                .OnDelete(DeleteBehavior.ClientSetNull); // Set ProblemID to null in Feedback when a Problem is deleted
-
-
-            // Properties
-            modelBuilder.Entity<Feedback>()
-                .Property(f => f.FeedbackID)
-                .ValueGeneratedOnAdd();
-            modelBuilder.Entity<Feedback>()
-                .Property(f => f.FeedbackText)
-                .HasColumnType("text")
-                .IsRequired();
-            modelBuilder.Entity<Feedback>()
-                .Property(f => f.SubmissionTime)
-                .HasColumnType("timestamp with time zone")
-                .HasDefaultValueSql("NOW()")
-                .IsRequired();
-
-
-
-
-
-
-
-
-            // Language Table
-            modelBuilder.Entity<Language>()
-                .HasKey(l => l.LanguageID);
-
-            // one-to-many relationship between Language and ProblemLanguage
-            modelBuilder.Entity<Language>()
-                .HasMany(l => l.ProblemLanguages)
-                .WithOne(pl => pl.Language)
-                .HasForeignKey(pl => pl.LanguageID)
-                .OnDelete(DeleteBehavior.Cascade); // if a Language is deleted, all associated ProblemLanguages are also deleted
-            
-            // Properties
-            modelBuilder.Entity<Language>()
-                .Property(l => l.LanguageID)
-                .ValueGeneratedOnAdd();
-            modelBuilder.Entity<Language>()
-                .Property(l => l.LanguageName)
-                .HasColumnType("varchar(50)")
-                .IsRequired();
-
-
-
-
-
-
-
-
-
-            // Problem Table
-            modelBuilder.Entity<Problem>()
-                .HasKey(p => p.ProblemID);
-
-            // One-to-many relationship between Problem and AIConversation
-            modelBuilder.Entity<Problem>()
-                .HasMany(p => p.AIConversations) // Each Problem can have many AIConversations
-                .WithOne(ai => ai.Problem) // Each AIConversation is associated with one Problem
-                .HasForeignKey(ai => ai.ProblemID) // The foreign key in the AIConversation table is ProblemID
-                .OnDelete(DeleteBehavior.SetNull); // If a Problem is deleted, the ProblemID in the AIConversation table is set to null
-
-
-            // One-to-many relationship between Problem and Feedback
-            modelBuilder.Entity<Problem>()
-                .HasMany(p => p.Feedbacks) 
-                .WithOne(f => f.Problem) 
-                .HasForeignKey(f => f.ProblemID) 
-                .OnDelete(DeleteBehavior.Cascade); // If a Problem is deleted, all associated Feedbacks are also deleted
-
-            // One-to-many relationship between Problem and ProblemCategory
-            modelBuilder.Entity<Problem>()
-                .HasMany(p => p.ProblemCategories) 
-                .WithOne(pc => pc.Problem) 
-                .HasForeignKey(pc => pc.ProblemID) 
-                .OnDelete(DeleteBehavior.Cascade); // If a Problem is deleted, all associated ProblemCategories are also deleted
-
-            // One-to-many relationship between Problem and ProblemLanguage
-            modelBuilder.Entity<Problem>()
-                .HasMany(p => p.ProblemLanguages) 
-                .WithOne(pl => pl.Problem) 
-                .HasForeignKey(pl => pl.ProblemID) 
-                .OnDelete(DeleteBehavior.Cascade); // If a Problem is deleted, all associated ProblemLanguages are also deleted
-
-            // One-to-many relationship between Problem and UserSubmission
-            modelBuilder.Entity<Problem>()
-                .HasMany(p => p.UserSubmissions) 
-                .WithOne(us => us.Problem) 
-                .HasForeignKey(us => us.ProblemID) 
-                .OnDelete(DeleteBehavior.Cascade); // If a Problem is deleted, all associated UserSubmissions are also deleted
-
-
-            // Properties
-            modelBuilder.Entity<Problem>()
-                .Property(p => p.ProblemID)
-                .ValueGeneratedOnAdd();
-            modelBuilder.Entity<Problem>()
-                .Property(p => p.Title)
-                .HasColumnType("varchar(250)")
-                .IsRequired();
-            modelBuilder.Entity<Problem>()
-                .Property(p => p.Description)
-                .HasColumnType("text")
-                .IsRequired();
-            modelBuilder.Entity<Problem>()
-                .Property(p => p.DifficultyScore)
-                .HasColumnType("integer")
-                .IsRequired();
-            modelBuilder.Entity<Problem>()
-                .Property(p => p.IsActive)
-                .HasColumnType("boolean")
-                .HasDefaultValue(true)
-                .IsRequired();
-            modelBuilder.Entity<Problem>()
-                .Property(p => p.LastModifiedDate)
-                .HasColumnType("timestamp with time zone")
-                .HasDefaultValueSql("NOW()")
-                .IsRequired();
-            modelBuilder.Entity<Problem>()
-                .Property(p => p.TestCodeFileName)
-                .HasColumnType("varchar(250)")
-                .IsRequired();
-            
-
-
-
-
-
-
-            // ProblemCategory Table
-            modelBuilder.Entity<ProblemCategory>()
-                .HasKey(pc => pc.ProblemCategoryID);
-
-            // One-to-many relationship between ProblemCategory and Problem
-            modelBuilder.Entity<ProblemCategory>()
-                .HasOne(pc => pc.Problem)
-                .WithMany(p => p.ProblemCategories)
-                .HasForeignKey(pc => pc.ProblemID)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade); // If a Problem is deleted, all associated ProblemCategories are also deleted
-
-            // One-to-many relationship between ProblemCategory and Category
-            modelBuilder.Entity<ProblemCategory>()
-                .HasOne(pc => pc.Category)
-                .WithMany(c => c.ProblemCategories)
-                .HasForeignKey(pc => pc.CategoryID)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade); // If a Category is deleted, all associated ProblemCategories are also deleted
-
-            // Property
-            modelBuilder.Entity<ProblemCategory>()
-                .Property(pc => pc.ProblemCategoryID)
-                .ValueGeneratedOnAdd();
-
-
-
-
-
-            // ProblemLanguage Table
-            modelBuilder.Entity<ProblemLanguage>()
-                .HasKey(pl => pl.ProblemLanguageID);
-
-            // One-to-many relationship between ProblemLanguage and Problem
-            modelBuilder.Entity<ProblemLanguage>()
-                .HasOne(pl => pl.Problem)
-                .WithMany(p => p.ProblemLanguages)
-                .HasForeignKey(pl => pl.ProblemID)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade); // If a Problem is deleted, all associated ProblemLanguages are also deleted
-
-
-            // One-to-many relationship between ProblemLanguage and Language
-            modelBuilder.Entity<ProblemLanguage>()
-                .HasOne(pl => pl.Language)
-                .WithMany(l => l.ProblemLanguages)
-                .HasForeignKey(pl => pl.LanguageID)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade); // If a Language is deleted, all associated ProblemLanguages are also deleted
-
-            // Property
-            modelBuilder.Entity<ProblemLanguage>()
-                .Property(pl => pl.ProblemLanguageID)
-                .ValueGeneratedOnAdd();
-
-
-
-
-
-            // RecoveryCode Table
-            modelBuilder.Entity<RecoveryCode>()
-                .HasKey(rc => rc.RecoveryCodeID);
-
-            // One-to-many relationship between RecoveryCode and User
-            modelBuilder.Entity<RecoveryCode>()
-                .HasOne(rc => rc.User)
-                .WithMany(u => u.RecoveryCodes)
-                .HasForeignKey(rc => rc.UserId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated RecoveryCodes are also deleted
-
-            // Properties
-            modelBuilder.Entity<RecoveryCode>()
-                .Property(rc => rc.RecoveryCodeID)
-                .ValueGeneratedOnAdd();
-            modelBuilder.Entity<RecoveryCode>()
-                .Property(rc => rc.Code)
-                .HasColumnType("varchar(255)") // Hashed recovery code
-                .IsRequired();
-            modelBuilder.Entity<RecoveryCode>()
-                .Property(rc => rc.CreationDate)
-                .HasColumnType("timestamp with time zone")
-                .HasDefaultValueSql("NOW()")
-                .IsRequired();
-
-
-            // Unique constraints and indexes
-            modelBuilder.Entity<RecoveryCode>()
-                .HasIndex(rc => rc.Code)
-                .IsUnique();
-
-
-
-            // User Table
             modelBuilder.Entity<User>(entity =>
             {
-                // Custom properties
-                entity.Property(u => u.SecretKey)
-                    .HasColumnType("varchar(255)");
 
-                entity.Property(u => u.TotalScore)
-                    .HasColumnType("integer")
-                    .HasDefaultValue(0)
-                    .IsRequired();
-
-                entity.Property(u => u.ProfilePictureURL)
+                entity.Property(e => e.ProfilePictureURL)
                     .HasColumnType("varchar(255)")
-                    .HasDefaultValue("https://cdn.pfps.gg/pfps/9150-cat-25.png")
-                    .IsRequired();
+                    .HasDefaultValue("https://cdn.pfps.gg/pfps/9150-cat-25.png");
 
-                entity.Property(u => u.RegistrationDate)
-                    .HasColumnType("timestamp with time zone")
-                    .HasDefaultValueSql("NOW()")
-                    .IsRequired();
+                entity.Property(e => e.RegistrationDate)
+                    .HasColumnType("timestamptz")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                entity.Property(u => u.LastActiveDate)
-                    .HasColumnType("timestamp with time zone")
-                    .HasDefaultValueSql("NOW()")
-                    .IsRequired();
+                entity.Property(e => e.TotalScore)
+                    .HasColumnType("integer")
+                    .HasDefaultValue(0);
 
-                entity.Property(u => u.Rank)
-                    .HasColumnType("varchar(50)")
-                    .HasDefaultValue("Newbie")
-                    .IsRequired();
+                entity.Property(e => e.Rank)
+                    .HasColumnType("integer")
+                    .HasComputedColumnSql("CASE " +
+                        "WHEN \"TotalScore\" >= 300 THEN 4 " +
+                        "WHEN \"TotalScore\" >= 150 THEN 3 " +
+                        "WHEN \"TotalScore\" >= 75 THEN 2 " +
+                        "WHEN \"TotalScore\" >= 25 THEN 1 " +
+                        "ELSE 0 END", stored: true);
 
-                // Relationships
-                entity.HasMany(u => u.AIConversations)
-                    .WithOne(ai => ai.User)
-                    .HasForeignKey(ai => ai.UserId)
+                entity.Property(e => e.CompletedProblems)
+                    .HasColumnType("integer")
+                    .HasDefaultValue(0);
+
+                entity.Property(e => e.AttemptedProblems)
+                    .HasColumnType ("integer")
+                    .HasDefaultValue (0);
+
+                entity.HasMany(e => e.AIConversations)
+                    .WithOne(e => e.User)
+                    .HasForeignKey(e => e.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasMany(u => u.APIKeys)
-                    .WithOne(a => a.User)
-                    .HasForeignKey(a => a.UserId)
+                entity.HasMany(e => e.APIKeys)
+                    .WithOne()
+                    .HasForeignKey("UserId")
                     .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasMany(u => u.Feedbacks)
-                    .WithOne(f => f.User)
-                    .HasForeignKey(f => f.UserId)
+                entity.HasMany(e => e.UserSubmissions)
+                    .WithOne()
+                    .HasForeignKey("UserId")
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+
+
+
+            modelBuilder.Entity<AIConversation>(entity =>
+            {
+                entity.HasKey(e => e.ConversationID);
+
+                entity.Property(e => e.ConversationID)
+                    .HasColumnType("integer")
+                    .UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.UserId)
+                    .HasColumnType("integer");
+
+                entity.Property(e => e.ProblemID)
+                    .HasColumnType("integer");
+
+                entity.Property(e => e.LanguageID)
+                    .HasColumnType("integer");
+
+                entity.Property(e => e.StartTime)
+                    .HasColumnType("timestamptz")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                entity.HasOne(e => e.User)
+                    .WithMany(e => e.AIConversations)
+                    .HasForeignKey(e => e.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasMany(u => u.RecoveryCodes)
-                    .WithOne(rc => rc.User)
-                    .HasForeignKey(rc => rc.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasMany(u => u.UserPreferences)
-                    .WithOne(up => up.User)
-                    .HasForeignKey(up => up.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasMany(u => u.AuditLogs)
-                    .WithOne(al => al.User)
-                    .HasForeignKey(al => al.UserId)
+                entity.HasOne(e => e.Problem)
+                    .WithMany()
+                    .HasForeignKey(e => e.ProblemID)
                     .OnDelete(DeleteBehavior.SetNull);
 
-                entity.HasMany(u => u.UserSubmissions)
-                    .WithOne(us => us.User)
-                    .HasForeignKey(us => us.UserId)
+                entity.HasOne(e => e.Language)
+                    .WithMany()
+                    .HasForeignKey(e => e.LanguageID)
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasMany(e => e.Messages)
+                    .WithOne(e => e.Conversation)
+                    .HasForeignKey(e => e.ConversationID)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+
+
+
+            modelBuilder.Entity<AIMessage>(entity =>
+            {
+                entity.HasKey(e => e.MessageID);
+
+                entity.Property(e => e.MessageID)
+                    .HasColumnType("integer")
+                    .UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.ConversationID)
+                    .HasColumnType("integer");
+
+                entity.Property(e => e.Content)
+                    .HasColumnType("text");
+
+                entity.Property(e => e.Role)
+                    .HasColumnType("varchar(20)")
+                    .HasDefaultValue("assistant");
+
+                entity.Property(e => e.Timestamp)
+                    .HasColumnType("timestamptz")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                entity.HasOne(e => e.Conversation)
+                    .WithMany(e => e.Messages)
+                    .HasForeignKey(e => e.ConversationID)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<APIKey>(entity =>
+            {
+                entity.HasKey(e => e.APIKeyID);
+
+                entity.Property(e => e.APIKeyID)
+                    .HasColumnType("integer")
+                    .UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.UserId)
+                    .HasColumnType("integer")
+                    .IsRequired();
+
+                entity.Property(e => e.KeyName)
+                    .HasColumnType("varchar(100)")
+                    .IsRequired();
+
+                entity.Property(e => e.KeyValue)
+                    .HasColumnType("varchar(255)")
+                    .IsRequired();
+
+                entity.Property(e => e.IsActive)
+                    .HasColumnType("boolean")
+                    .IsRequired();
+
+                entity.Property(e => e.CreatedAt)
+                    .HasColumnType("timestamptz")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                    .IsRequired();
+
+                entity.Property(e => e.LastUsedAt)
+                    .HasColumnType("timestamptz");
+
+                entity.Property(e => e.UsageCount)
+                    .HasColumnType("integer")
+                    .HasDefaultValue(0);
+
+                entity.HasOne(e => e.User)
+                    .WithMany(u => u.APIKeys)
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+    
+
+
+            modelBuilder.Entity<Problem>(entity =>
+            {
+                entity.HasKey(e => e.ProblemID);
+
+                entity.Property(e => e.ProblemID)
+                    .HasColumnType("integer")
+                    .UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.Title)
+                    .HasColumnType("varchar(255)")
+                    .IsRequired();
+
+                entity.Property(e => e.Description)
+                    .HasColumnType("text")
+                    .IsRequired();
+
+                entity.Property(e => e.Points)
+                    .HasColumnType("integer")
+                    .IsRequired();
+
+                entity.Property(e => e.Difficulty)
+                    .HasColumnType("integer")
+                    .IsRequired();
+
+                entity.Property(e => e.Category)
+                    .HasColumnType("integer")
+                    .IsRequired();
+
+                entity.HasMany(e => e.ProblemLanguages)
+                    .WithOne(e => e.Problem)
+                    .HasForeignKey(e => e.ProblemID)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasMany(e => e.UserSubmissions)
+                    .WithOne(e => e.Problem)
+                    .HasForeignKey(e => e.ProblemID)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasMany(e => e.AIConversations)
+                    .WithOne(e => e.Problem)
+                    .HasForeignKey(e => e.ProblemID)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
+
+
+            modelBuilder.Entity<Language>(entity =>
+            {
+                entity.HasKey(e => e.LanguageID);
+
+                entity.Property(e => e.LanguageID)
+                    .HasColumnType("integer")
+                    .UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.Name)
+                    .HasColumnType("varchar(50)")
+                    .IsRequired();
+
+                entity.Property(e => e.Judge0ID)
+                    .HasColumnType("integer")
+                    .IsRequired();
+
+                entity.HasMany(e => e.ProblemLanguages)
+                    .WithOne(e => e.Language)
+                    .HasForeignKey(e => e.LanguageID)
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
@@ -516,89 +279,108 @@ namespace SeniorProjBackend.Data
 
 
 
-            // UserPreference Table
-            modelBuilder.Entity<UserPreference>()
-                .HasKey(up => up.UserPreferenceID);
+            modelBuilder.Entity<ProblemLanguage>(entity =>
+            {
+                entity.HasKey(e => e.ProblemLanguageID);
 
-            // One-to-many relationship between UserPreference and User
-            modelBuilder.Entity<UserPreference>()
-                .HasOne(up => up.User)
-                .WithMany(u => u.UserPreferences)
-                .HasForeignKey(up => up.UserId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated UserPreferences are also deleted
+                entity.Property(e => e.ProblemLanguageID)
+                    .HasColumnType("integer")
+                    .UseIdentityAlwaysColumn();
 
-            // Properties
-            modelBuilder.Entity<UserPreference>()
-                .Property(up => up.UserPreferenceID)
-                .ValueGeneratedOnAdd();
-            modelBuilder.Entity<UserPreference>()
-                .Property(up => up.PreferenceKey)
-                .HasConversion<string>() // Convert enum to string for storage
-                .HasColumnType("varchar(50)")
-                .IsRequired();
-            modelBuilder.Entity<UserPreference>()
-                .Property(up => up.PreferenceValue)
-                .HasColumnType("varchar(255)")
-                .IsRequired();
+                entity.Property(e => e.ProblemID)
+                    .HasColumnType("integer")
+                    .IsRequired();
+
+                entity.Property(e => e.LanguageID)
+                    .HasColumnType("integer")
+                    .IsRequired();
+
+                entity.Property(e => e.FunctionSignature)
+                    .HasColumnType("text")
+                    .IsRequired();
+
+                entity.Property(e => e.TestCode)
+                    .HasColumnType("text")
+                    .IsRequired();
+
+                entity.HasOne(e => e.Problem)
+                    .WithMany(e => e.ProblemLanguages)
+                    .HasForeignKey(e => e.ProblemID)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Language)
+                    .WithMany(e => e.ProblemLanguages)
+                    .HasForeignKey(e => e.LanguageID)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
 
 
 
-            // UserSubmission Table
-            modelBuilder.Entity<UserSubmission>()
-                .HasKey(us => us.SubmissionID);
 
-            // One-to-many relationship between UserSubmission and User
-            modelBuilder.Entity<UserSubmission>()
-                .HasOne(us => us.User)
-                .WithMany(u => u.UserSubmissions)
-                .HasForeignKey(us => us.UserId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, all associated UserSubmissions are also deleted
 
-            // One-to-many relationship between UserSubmission and Problem
-            modelBuilder.Entity<UserSubmission>()
-                .HasOne(us => us.Problem)
-                .WithMany(p => p.UserSubmissions)
-                .HasForeignKey(us => us.ProblemID)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade); // If a Problem is deleted, all associated UserSubmissions are also deleted
+            modelBuilder.Entity<UserSubmission>(entity =>
+            {
+                entity.HasKey(e => e.SubmissionID);
 
-            // One-to-many relationship between UserSubmission and Language
-            modelBuilder.Entity<UserSubmission>()
-                .HasOne(us => us.Language)
-                .WithMany(l => l.UserSubmissions)
-                .HasForeignKey(us => us.LanguageID)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade); // If a Language is deleted, all associated UserSubmissions are also deleted
+                entity.Property(e => e.SubmissionID)
+                    .HasColumnType("integer")
+                    .UseIdentityAlwaysColumn();
 
-            // Properties
-            modelBuilder.Entity<UserSubmission>()
-                .Property(us => us.SubmissionID)
-                .ValueGeneratedOnAdd();
-            modelBuilder.Entity<UserSubmission>()
-                .Property(us => us.SubmittedCode)
-                .HasColumnType("text")
-                .IsRequired();
-            modelBuilder.Entity<UserSubmission>()
-                .Property(us => us.SubmissionTime)
-                .HasColumnType("timestamp with time zone")
-                .HasDefaultValueSql("NOW()")
-                .IsRequired();
-            modelBuilder.Entity<UserSubmission>()
-                .Property(us => us.IsSuccessful)
-                .HasColumnType("boolean")
-                .IsRequired();
-            modelBuilder.Entity<UserSubmission>()
-                .Property(us => us.ScoreAwarded) // This might belong in the Problems table, not sure!!!
-                .HasColumnType("integer")
-                .IsRequired();
-            modelBuilder.Entity<UserSubmission>()
-                .Property(us => us.ExecutionTime)
-                .HasColumnType("integer");
-            modelBuilder.Entity<UserSubmission>()
-                .Property(us => us.MemoryUsage)
-                .HasColumnType("integer");
+                entity.Property(e => e.UserId)
+                    .HasColumnType("integer")
+                    .IsRequired();
+
+                entity.Property(e => e.ProblemID)
+                    .HasColumnType("integer")
+                    .IsRequired();
+
+                entity.Property(e => e.LanguageID)
+                    .HasColumnType("integer")
+                    .IsRequired();
+
+                entity.Property(e => e.SubmittedCode)
+                    .HasColumnType("text")
+                    .IsRequired();
+
+                entity.Property(e => e.SubmissionTime)
+                    .HasColumnType("timestamptz")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                    .IsRequired();
+
+                entity.Property(e => e.IsSuccessful)
+                    .HasColumnType("boolean")
+                    .IsRequired();
+
+                entity.Property(e => e.Token)
+                    .HasColumnType("varchar(255)")
+                    .IsRequired();
+
+                entity.Property(e => e.ExecutionTime)
+                    .HasColumnType("real");
+
+                entity.Property(e => e.MemoryUsed)
+                    .HasColumnType("real");
+
+                // Navigation properties
+                entity.HasOne(e => e.User)
+                    .WithMany(u => u.UserSubmissions)
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Problem)
+                    .WithMany(p => p.UserSubmissions)
+                    .HasForeignKey(e => e.ProblemID)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Language)
+                    .WithMany()
+                    .HasForeignKey(e => e.LanguageID)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+
+
+
 
         }
 

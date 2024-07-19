@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace SeniorProjBackend.Migrations
 {
     /// <inheritdoc />
-    public partial class July : Migration
+    public partial class Final_Schema : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,12 +18,12 @@ namespace SeniorProjBackend.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    SecretKey = table.Column<string>(type: "varchar(255)", nullable: true),
                     TotalScore = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
                     ProfilePictureURL = table.Column<string>(type: "varchar(255)", nullable: false, defaultValue: "https://cdn.pfps.gg/pfps/9150-cat-25.png"),
-                    RegistrationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
-                    LastActiveDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
-                    Rank = table.Column<string>(type: "varchar(50)", nullable: false, defaultValue: "Newbie"),
+                    RegistrationDate = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    Rank = table.Column<int>(type: "integer", nullable: false, computedColumnSql: "CASE WHEN \"TotalScore\" >= 300 THEN 4 WHEN \"TotalScore\" >= 150 THEN 3 WHEN \"TotalScore\" >= 75 THEN 2 WHEN \"TotalScore\" >= 25 THEN 1 ELSE 0 END", stored: true),
+                    CompletedProblems = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                    AttemptedProblems = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -45,25 +45,13 @@ namespace SeniorProjBackend.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Categories",
-                columns: table => new
-                {
-                    CategoryID = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    CategoryName = table.Column<string>(type: "varchar(50)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Categories", x => x.CategoryID);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Languages",
                 columns: table => new
                 {
                     LanguageID = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    LanguageName = table.Column<string>(type: "varchar(50)", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
+                    Name = table.Column<string>(type: "varchar(50)", nullable: false),
+                    Judge0ID = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -75,13 +63,12 @@ namespace SeniorProjBackend.Migrations
                 columns: table => new
                 {
                     ProblemID = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Title = table.Column<string>(type: "varchar(250)", nullable: false),
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
+                    Title = table.Column<string>(type: "varchar(255)", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
-                    DifficultyScore = table.Column<int>(type: "integer", nullable: false),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
-                    LastModifiedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
-                    TestCodeFileName = table.Column<string>(type: "varchar(250)", nullable: false)
+                    Points = table.Column<int>(type: "integer", nullable: false),
+                    Difficulty = table.Column<int>(type: "integer", nullable: false),
+                    Category = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -108,62 +95,20 @@ namespace SeniorProjBackend.Migrations
                 columns: table => new
                 {
                     APIKeyID = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
                     UserId = table.Column<int>(type: "integer", nullable: false),
-                    KeyType = table.Column<string>(type: "varchar(50)", nullable: false),
+                    KeyName = table.Column<string>(type: "varchar(100)", nullable: false),
                     KeyValue = table.Column<string>(type: "varchar(255)", nullable: false),
-                    Permissions = table.Column<string>(type: "varchar(255)", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
-                    ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    LastUsedAt = table.Column<DateTimeOffset>(type: "timestamptz", nullable: true),
+                    UsageCount = table.Column<int>(type: "integer", nullable: false, defaultValue: 0)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_APIKeys", x => x.APIKeyID);
                     table.ForeignKey(
                         name: "FK_APIKeys_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AuditLogs",
-                columns: table => new
-                {
-                    AuditLogID = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserId = table.Column<int>(type: "integer", nullable: false),
-                    EventType = table.Column<string>(type: "varchar(50)", nullable: false),
-                    Details = table.Column<string>(type: "text", nullable: false),
-                    Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AuditLogs", x => x.AuditLogID);
-                    table.ForeignKey(
-                        name: "FK_AuditLogs_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "RecoveryCodes",
-                columns: table => new
-                {
-                    RecoveryCodeID = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserId = table.Column<int>(type: "integer", nullable: false),
-                    Code = table.Column<string>(type: "varchar(255)", nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_RecoveryCodes", x => x.RecoveryCodeID);
-                    table.ForeignKey(
-                        name: "FK_RecoveryCodes_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
@@ -212,27 +157,6 @@ namespace SeniorProjBackend.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserPreferences",
-                columns: table => new
-                {
-                    UserPreferenceID = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserId = table.Column<int>(type: "integer", nullable: false),
-                    PreferenceKey = table.Column<string>(type: "varchar(50)", nullable: false),
-                    PreferenceValue = table.Column<string>(type: "varchar(255)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_UserPreferences", x => x.UserPreferenceID);
-                    table.ForeignKey(
-                        name: "FK_UserPreferences_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "UserTokens",
                 columns: table => new
                 {
@@ -257,12 +181,11 @@ namespace SeniorProjBackend.Migrations
                 columns: table => new
                 {
                     ConversationID = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
                     UserId = table.Column<int>(type: "integer", nullable: false),
                     ProblemID = table.Column<int>(type: "integer", nullable: true),
-                    Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
-                    ConversationContent = table.Column<string>(type: "text", nullable: false),
-                    IsCompleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
+                    LanguageID = table.Column<int>(type: "integer", nullable: true),
+                    StartTime = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
                 constraints: table =>
                 {
@@ -274,6 +197,12 @@ namespace SeniorProjBackend.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
+                        name: "FK_AIConversations_Languages_LanguageID",
+                        column: x => x.LanguageID,
+                        principalTable: "Languages",
+                        principalColumn: "LanguageID",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
                         name: "FK_AIConversations_Problems_ProblemID",
                         column: x => x.ProblemID,
                         principalTable: "Problems",
@@ -282,67 +211,15 @@ namespace SeniorProjBackend.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Feedbacks",
-                columns: table => new
-                {
-                    FeedbackID = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserId = table.Column<int>(type: "integer", nullable: false),
-                    ProblemID = table.Column<int>(type: "integer", nullable: true),
-                    FeedbackText = table.Column<string>(type: "text", nullable: false),
-                    SubmissionTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Feedbacks", x => x.FeedbackID);
-                    table.ForeignKey(
-                        name: "FK_Feedbacks_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Feedbacks_Problems_ProblemID",
-                        column: x => x.ProblemID,
-                        principalTable: "Problems",
-                        principalColumn: "ProblemID",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ProblemCategories",
-                columns: table => new
-                {
-                    ProblemCategoryID = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    ProblemID = table.Column<int>(type: "integer", nullable: false),
-                    CategoryID = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ProblemCategories", x => x.ProblemCategoryID);
-                    table.ForeignKey(
-                        name: "FK_ProblemCategories_Categories_CategoryID",
-                        column: x => x.CategoryID,
-                        principalTable: "Categories",
-                        principalColumn: "CategoryID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ProblemCategories_Problems_ProblemID",
-                        column: x => x.ProblemID,
-                        principalTable: "Problems",
-                        principalColumn: "ProblemID",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ProblemLanguages",
                 columns: table => new
                 {
                     ProblemLanguageID = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
                     ProblemID = table.Column<int>(type: "integer", nullable: false),
-                    LanguageID = table.Column<int>(type: "integer", nullable: false)
+                    LanguageID = table.Column<int>(type: "integer", nullable: false),
+                    FunctionSignature = table.Column<string>(type: "text", nullable: false),
+                    TestCode = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -366,16 +243,16 @@ namespace SeniorProjBackend.Migrations
                 columns: table => new
                 {
                     SubmissionID = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
                     UserId = table.Column<int>(type: "integer", nullable: false),
                     ProblemID = table.Column<int>(type: "integer", nullable: false),
                     LanguageID = table.Column<int>(type: "integer", nullable: false),
                     SubmittedCode = table.Column<string>(type: "text", nullable: false),
-                    SubmissionTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
+                    SubmissionTime = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     IsSuccessful = table.Column<bool>(type: "boolean", nullable: false),
-                    ScoreAwarded = table.Column<int>(type: "integer", nullable: false),
-                    ExecutionTime = table.Column<int>(type: "integer", nullable: true),
-                    MemoryUsage = table.Column<int>(type: "integer", nullable: true)
+                    Token = table.Column<string>(type: "varchar(255)", nullable: false),
+                    ExecutionTime = table.Column<float>(type: "real", nullable: true),
+                    MemoryUsed = table.Column<float>(type: "real", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -445,6 +322,33 @@ namespace SeniorProjBackend.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "AIMessage",
+                columns: table => new
+                {
+                    MessageID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
+                    ConversationID = table.Column<int>(type: "integer", nullable: false),
+                    Content = table.Column<string>(type: "text", nullable: false),
+                    Role = table.Column<string>(type: "varchar(20)", nullable: false, defaultValue: "assistant"),
+                    Timestamp = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AIMessage", x => x.MessageID);
+                    table.ForeignKey(
+                        name: "FK_AIMessage_AIConversations_ConversationID",
+                        column: x => x.ConversationID,
+                        principalTable: "AIConversations",
+                        principalColumn: "ConversationID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AIConversations_LanguageID",
+                table: "AIConversations",
+                column: "LanguageID");
+
             migrationBuilder.CreateIndex(
                 name: "IX_AIConversations_ProblemID",
                 table: "AIConversations",
@@ -454,6 +358,11 @@ namespace SeniorProjBackend.Migrations
                 name: "IX_AIConversations_UserId",
                 table: "AIConversations",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AIMessage_ConversationID",
+                table: "AIMessage",
+                column: "ConversationID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_APIKeys_UserId",
@@ -472,31 +381,6 @@ namespace SeniorProjBackend.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_AuditLogs_UserId",
-                table: "AuditLogs",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Feedbacks_ProblemID",
-                table: "Feedbacks",
-                column: "ProblemID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Feedbacks_UserId",
-                table: "Feedbacks",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProblemCategories_CategoryID",
-                table: "ProblemCategories",
-                column: "CategoryID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProblemCategories_ProblemID",
-                table: "ProblemCategories",
-                column: "ProblemID");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_ProblemLanguages_LanguageID",
                 table: "ProblemLanguages",
                 column: "LanguageID");
@@ -505,17 +389,6 @@ namespace SeniorProjBackend.Migrations
                 name: "IX_ProblemLanguages_ProblemID",
                 table: "ProblemLanguages",
                 column: "ProblemID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_RecoveryCodes_Code",
-                table: "RecoveryCodes",
-                column: "Code",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_RecoveryCodes_UserId",
-                table: "RecoveryCodes",
-                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RoleClaims_RoleId",
@@ -536,11 +409,6 @@ namespace SeniorProjBackend.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_UserLogins_UserId",
                 table: "UserLogins",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserPreferences_UserId",
-                table: "UserPreferences",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
@@ -568,25 +436,13 @@ namespace SeniorProjBackend.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "AIConversations");
+                name: "AIMessage");
 
             migrationBuilder.DropTable(
                 name: "APIKeys");
 
             migrationBuilder.DropTable(
-                name: "AuditLogs");
-
-            migrationBuilder.DropTable(
-                name: "Feedbacks");
-
-            migrationBuilder.DropTable(
-                name: "ProblemCategories");
-
-            migrationBuilder.DropTable(
                 name: "ProblemLanguages");
-
-            migrationBuilder.DropTable(
-                name: "RecoveryCodes");
 
             migrationBuilder.DropTable(
                 name: "RoleClaims");
@@ -598,9 +454,6 @@ namespace SeniorProjBackend.Migrations
                 name: "UserLogins");
 
             migrationBuilder.DropTable(
-                name: "UserPreferences");
-
-            migrationBuilder.DropTable(
                 name: "UserRoles");
 
             migrationBuilder.DropTable(
@@ -610,19 +463,19 @@ namespace SeniorProjBackend.Migrations
                 name: "UserTokens");
 
             migrationBuilder.DropTable(
-                name: "Categories");
+                name: "AIConversations");
 
             migrationBuilder.DropTable(
                 name: "Roles");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUsers");
 
             migrationBuilder.DropTable(
                 name: "Languages");
 
             migrationBuilder.DropTable(
                 name: "Problems");
-
-            migrationBuilder.DropTable(
-                name: "AspNetUsers");
         }
     }
 }
