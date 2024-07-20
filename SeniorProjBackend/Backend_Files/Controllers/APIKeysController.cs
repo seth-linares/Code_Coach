@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SeniorProjBackend.Data;
 using SeniorProjBackend.DTOs;
-using static SeniorProjBackend.Controllers.APIKeysController;
 
 namespace SeniorProjBackend.Controllers
 {
@@ -30,7 +29,13 @@ namespace SeniorProjBackend.Controllers
             _userManager = userManager;
         }
 
-        [HttpGet("list")]
+        [HttpGet("GetAPIKeys")]
+        public async Task<ActionResult<IEnumerable<APIKey>>> GetAPIKeys()
+        {
+            return await _context.APIKeys.Include(k => k.User).ToListAsync();
+        }
+
+        [HttpGet("ListAPIKeys")]
         public async Task<IActionResult> ListAPIKeys()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -55,8 +60,8 @@ namespace SeniorProjBackend.Controllers
             return Ok(apiKeys);
         }
 
-        [HttpGet("usage/{apiKeyId}")]
-        public async Task<IActionResult> GetAPIKeyUsage(int apiKeyId)
+        [HttpPost("GetAPIKeyUsage")]
+        public async Task<IActionResult> GetAPIKeyUsage(RequestId apiKeyId)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
@@ -65,7 +70,7 @@ namespace SeniorProjBackend.Controllers
             }
 
             var apiKeyUsage = await _context.APIKeys
-                .Where(k => k.UserId == user.Id && k.APIKeyID == apiKeyId)
+                .Where(k => k.UserId == user.Id && k.APIKeyID == apiKeyId.Id)
                 .Select(k => new APIKeyUsageDto
                 {
                     APIKeyID = k.APIKeyID,
@@ -86,7 +91,7 @@ namespace SeniorProjBackend.Controllers
             return Ok(apiKeyUsage);
         }
 
-        [HttpPost("create")]
+        [HttpPost("CreateAPIKey")]
         public async Task<IActionResult> CreateAPIKey(CreateAPIKeyRequest request)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -95,6 +100,14 @@ namespace SeniorProjBackend.Controllers
                 return Unauthorized();
             }
 
+            // Deactivate all existing keys
+            var existingKeys = await _context.APIKeys.Where(k => k.UserId == user.Id).ToListAsync();
+            foreach (var key in existingKeys)
+            {
+                key.IsActive = false;
+            }
+
+            // Create and activate the new key
             var apiKey = new APIKey
             {
                 UserId = user.Id,
@@ -105,16 +118,19 @@ namespace SeniorProjBackend.Controllers
                 UsageCount = 0
             };
 
+            // Remove this line:
+            // apiKey.User = user;
+
             _context.APIKeys.Add(apiKey);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation($"\n\n\n\nAPI Key created for user {user.Id}\n\n\n\n");
-            return Ok(new { Message = "API Key created successfully", APIKeyID = apiKey.APIKeyID });
+            _logger.LogInformation($"\n\n\n\nNew API Key created and set as active for user {user.Id}\n\n\n\n");
+            return Ok(new { Message = "API Key created successfully and set as active", APIKeyID = apiKey.APIKeyID });
         }
 
-        
 
-        [HttpPut("update")]
+
+        [HttpPut("UpdateAPIKey")]
         public async Task<IActionResult> UpdateAPIKey(UpdateAPIKeyRequest request)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -138,13 +154,9 @@ namespace SeniorProjBackend.Controllers
             return Ok(new { Message = "API Key updated successfully" });
         }
 
-        public class APIKeyIdDto
-        {
-            public int KeyID { get; set; }
-        }
 
-        [HttpDelete("delete")]
-        public async Task<IActionResult> DeleteAPIKey(APIKeyIdDto apiKeyIdDto)
+        [HttpDelete("DeleteAPIKey")]
+        public async Task<IActionResult> DeleteAPIKey(RequestId KeyID)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
@@ -152,7 +164,7 @@ namespace SeniorProjBackend.Controllers
                 return Unauthorized();
             }
 
-            var apiKey = await _context.APIKeys.FindAsync(apiKeyIdDto.KeyID);
+            var apiKey = await _context.APIKeys.FindAsync(KeyID.Id);
             if (apiKey == null || apiKey.UserId != user.Id)
             {
                 return NotFound("API Key not found or does not belong to the user");
@@ -161,15 +173,14 @@ namespace SeniorProjBackend.Controllers
             _context.APIKeys.Remove(apiKey);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation($"\n\n\n\nAPI Key {apiKeyIdDto.KeyID} deleted for user {user.Id}\n\n\n\n");
+            _logger.LogInformation($"\n\n\n\nAPI Key {KeyID.Id} deleted for user {user.Id}\n\n\n\n");
             return Ok(new { Message = "API Key deleted successfully" });
         }
 
 
 
-        // NEED TO ENSURE ONLY 1 KEY ACTIVE AT A TIME
-        [HttpPut("set-active")]
-        public async Task<IActionResult> SetActiveAPIKey(SetActiveAPIKeyRequest request)
+        [HttpPut("SetActiveAPIKey")]
+        public async Task<IActionResult> SetActiveAPIKey(RequestId APIKeyID)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
@@ -178,7 +189,7 @@ namespace SeniorProjBackend.Controllers
             }
 
             var apiKeys = await _context.APIKeys.Where(k => k.UserId == user.Id).ToListAsync();
-            var activeKey = apiKeys.FirstOrDefault(k => k.APIKeyID == request.APIKeyID);
+            var activeKey = apiKeys.FirstOrDefault(k => k.APIKeyID == APIKeyID.Id);
 
             if (activeKey == null)
             {
@@ -189,12 +200,14 @@ namespace SeniorProjBackend.Controllers
 
             foreach (var key in apiKeys)
             {
-                key.IsActive = (key.APIKeyID == request.APIKeyID);
+                key.IsActive = false;
             }
+
+            activeKey.IsActive = true;
 
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation($"\n\n\n\nAPI Key {request.APIKeyID} set as active for user {user.Id}\n\n\n\n");
+            _logger.LogInformation($"\n\n\n\nAPI Key {APIKeyID.Id} set as active for user {user.Id}\n\n\n\n");
             return Ok(new { Message = "Active API Key set successfully" });
         }
     }

@@ -39,9 +39,9 @@ namespace SeniorProjBackend.Data
         public int AttemptedProblems { get; set; }
 
         // Navigation properties
-        public List<AIConversation> AIConversations { get; set; }
-        public List<APIKey> APIKeys { get; set; }
-        public List<UserSubmission> UserSubmissions { get; set; }
+        public virtual List<AIConversation> AIConversations { get; set; }
+        public virtual List<APIKey> APIKeys { get; set; }
+        public virtual List<UserSubmission> UserSubmissions { get; set; }
 
         public void UpdateRank()
         {

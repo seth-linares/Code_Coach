@@ -7,6 +7,6 @@
         public int Judge0ID { get; set; }
 
         // Navigation property
-        public List<ProblemLanguage> ProblemLanguages { get; set; }
+        public virtual List<ProblemLanguage> ProblemLanguages { get; set; }
     }
 }

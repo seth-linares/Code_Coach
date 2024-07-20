@@ -6,9 +6,10 @@
         public int? LanguageId { get; set; }
     }
 
-    public class SendMessageRequest
+    public class ChatGPTRequest
     {
-        public int ConversationId { get; set; }
+        public int? ConversationId { get; set; }
+        public int ProblemId { get; set; }
         public string Message { get; set; }
     }
 
@@ -42,7 +43,7 @@
         public int TotalTokens { get; set; }
     }
 
-    public class ConversationsByProblemRequest : PaginationRequest
+    public class ConversationsByProblemRequest
     {
         public int ProblemId { get; set; }
     }

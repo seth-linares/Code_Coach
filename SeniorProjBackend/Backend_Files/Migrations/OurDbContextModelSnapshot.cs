@@ -165,9 +165,6 @@ namespace SeniorProjBackend.Migrations
                     b.Property<DateTimeOffset?>("EndTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("LanguageID")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Model")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -189,8 +186,6 @@ namespace SeniorProjBackend.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("ConversationID");
-
-                    b.HasIndex("LanguageID");
 
                     b.HasIndex("ProblemID");
 
@@ -562,11 +557,6 @@ namespace SeniorProjBackend.Migrations
 
             modelBuilder.Entity("SeniorProjBackend.Data.AIConversation", b =>
                 {
-                    b.HasOne("SeniorProjBackend.Data.Language", "Language")
-                        .WithMany()
-                        .HasForeignKey("LanguageID")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("SeniorProjBackend.Data.Problem", "Problem")
                         .WithMany("AIConversations")
                         .HasForeignKey("ProblemID")
@@ -577,8 +567,6 @@ namespace SeniorProjBackend.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Language");
 
                     b.Navigation("Problem");
 

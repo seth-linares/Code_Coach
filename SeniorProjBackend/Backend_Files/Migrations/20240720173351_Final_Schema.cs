@@ -184,7 +184,6 @@ namespace SeniorProjBackend.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
                     UserId = table.Column<int>(type: "integer", nullable: false),
                     ProblemID = table.Column<int>(type: "integer", nullable: true),
-                    LanguageID = table.Column<int>(type: "integer", nullable: true),
                     StartTime = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     Model = table.Column<string>(type: "varchar(100)", nullable: false, defaultValueSql: "'gpt-4o-mini'"),
                     TotalTokens = table.Column<int>(type: "integer", nullable: false),
@@ -199,12 +198,6 @@ namespace SeniorProjBackend.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AIConversations_Languages_LanguageID",
-                        column: x => x.LanguageID,
-                        principalTable: "Languages",
-                        principalColumn: "LanguageID",
-                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_AIConversations_Problems_ProblemID",
                         column: x => x.ProblemID,
@@ -350,11 +343,6 @@ namespace SeniorProjBackend.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_AIConversations_LanguageID",
-                table: "AIConversations",
-                column: "LanguageID");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_AIConversations_ProblemID",
                 table: "AIConversations",
                 column: "ProblemID");
@@ -474,10 +462,10 @@ namespace SeniorProjBackend.Migrations
                 name: "Roles");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "Languages");
 
             migrationBuilder.DropTable(
-                name: "Languages");
+                name: "AspNetUsers");
 
             migrationBuilder.DropTable(
                 name: "Problems");

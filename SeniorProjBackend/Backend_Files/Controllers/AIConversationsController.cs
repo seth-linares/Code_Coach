@@ -31,6 +31,56 @@ namespace SeniorProjBackend.Controllers
             _chatGPTService = chatGPTService;
         }
 
+        [HttpPost("test")]
+        public async Task<IActionResult> TestChatGPTService()
+        {
+            _logger.LogInformation("\n\n\n\n\nStarting ChatGPT service test\n\n\n\n\n");
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                _logger.LogWarning("\n\n\n\n\nUnauthorized access attempt\n\n\n\n\n");
+                return Unauthorized();
+            }
+
+            var activeApiKey = await _context.APIKeys
+                .FirstOrDefaultAsync(k => k.UserId == user.Id && k.IsActive);
+
+            if (activeApiKey == null)
+            {
+                _logger.LogWarning($"\n\n\n\n\nNo active API key found for user {user.Id}\n\n\n\n\n");
+                return BadRequest("No active API key found");
+            }
+
+            _logger.LogInformation($"\n\n\n\n\nUsing API key: {activeApiKey.KeyName}\n\n\n\n\n");
+
+            string testMessage = "SSBhbSB0cnlpbmcgdG8gc29sdmUgdGhpcyBjb2RpbmcgYmF0IGFuZCBuZWVkIGhlbHAgdW5kZXJzdGFuZGluZyB0aGUgcHJvbXB0LiBDYW4geW91IGV4cGxhaW4gaXQgdG8gbWU/OgpHaXZlbiBhIHN0cmluZywgcmV0dXJuIGEgc3RyaW5nIGxlbmd0aCAyIG1hZGUgb2YgaXRzIGZpcnN0IDIgY2hhcnMuIElmIHRoZSBzdHJpbmcgbGVuZ3RoIGlzIGxlc3MgdGhhbiAyLCB1c2UgJ0AnIGZvciB0aGUgbWlzc2luZyBjaGFycy4KCmF0Rmlyc3QoImhlbGxvIikg4oaSICJoZSIKYXRGaXJzdCgiaGkiKSDihpIgImhpIgphdEZpcnN0KCJoIikg4oaSICJoQCIK";
+            _logger.LogInformation($"\n\n\n\n\nTest message: {testMessage}\n\n\n\n\n");
+
+            try
+            {
+                var chatGPTResponse = await _chatGPTService.SendMessage(activeApiKey.KeyValue, testMessage);
+
+                activeApiKey.UsageCount++;
+                activeApiKey.LastUsedAt = DateTime.UtcNow;
+
+                _logger.LogInformation($"\n\n\n\n\nChatGPT Response:\n{chatGPTResponse.Choices[0].Message.Content}\n\n\n\n\n");
+
+                _logger.LogInformation($"\n\n\n\n\nUsage Statistics:\nPrompt Tokens: {chatGPTResponse.Usage.PromptTokens}\nCompletion Tokens: {chatGPTResponse.Usage.CompletionTokens}\nTotal Tokens: {chatGPTResponse.Usage.TotalTokens}\n\n\n\n\n");
+
+                return Ok(new 
+                { 
+                    Message = chatGPTResponse.Choices[0].Message.Content,
+                    Usage = chatGPTResponse.Usage
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"\n\n\n\n\nError occurred while testing ChatGPT service: {ex.Message}\n\nStack Trace: {ex.StackTrace}\n\n\n\n\n");
+                return StatusCode(500, "An error occurred while testing the ChatGPT service. Please check the logs for more information.");
+            }
+        }
+
         // GET: api/AIConversations
         [HttpGet]
         public async Task<ActionResult<IEnumerable<AIConversation>>> GetAIConversations()
@@ -38,8 +88,10 @@ namespace SeniorProjBackend.Controllers
             return await _context.AIConversations.ToListAsync();
         }
 
-        [HttpPost("start")]
-        public async Task<IActionResult> StartConversation(StartConversationRequest request)
+
+
+        [HttpPost("ChatGPT")]
+        public async Task<IActionResult> ChatGPT(ChatGPTRequest request)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
@@ -55,23 +107,96 @@ namespace SeniorProjBackend.Controllers
                 return BadRequest("No active API key found. Please set an active API key before starting a conversation.");
             }
 
-            var conversation = new AIConversation
+            AIConversation conversation;
+            if (request.ConversationId == null)
             {
-                UserId = user.Id,
-                ProblemID = request.ProblemId,
-                LanguageID = request.LanguageId,
-                StartTime = DateTimeOffset.UtcNow,
-                Model = "gpt-4o-mini"
-            };
+                // Start a new conversation
+                conversation = new AIConversation
+                {
+                    UserId = user.Id,
+                    ProblemID = request.ProblemId,
+                    StartTime = DateTimeOffset.UtcNow,
+                    Model = "gpt-4o-mini"
+                };
+                _context.AIConversations.Add(conversation);
+            }
+            else
+            {
+                // Continue existing conversation
+                conversation = await _context.AIConversations
+                    .Include(c => c.Messages)
+                    .FirstOrDefaultAsync(c => c.ConversationID == request.ConversationId && c.UserId == user.Id);
 
-            _context.AIConversations.Add(conversation);
-            await _context.SaveChangesAsync();
+                if (conversation == null)
+                {
+                    return NotFound("Conversation not found");
+                }
+            }
 
-            return Ok(new { ConversationId = conversation.ConversationID });
+            // Fetch the problem description
+            var problem = await _context.Problems
+                .FirstOrDefaultAsync(p => p.ProblemID == request.ProblemId);
+
+            if (problem == null)
+            {
+                return NotFound("Problem not found");
+            }
+
+            try
+            {
+                // Combine problem description and user message
+                string combinedMessage = $"Problem Description (Base64 Encoded): {problem.Description}\n\nUser Message (Base64 Encoded): {request.Message}";
+
+                // Send the combined message to the ChatGPT service
+                var chatGPTResponse = await _chatGPTService.SendMessage(activeApiKey.KeyValue, combinedMessage);
+
+                if (chatGPTResponse == null || chatGPTResponse.Choices == null || chatGPTResponse.Choices.Count == 0)
+                {
+                    return StatusCode(500, "Received an invalid response from the ChatGPT service");
+                }
+
+                var userMessage = new AIMessage
+                {
+                    ConversationID = conversation.ConversationID,
+                    Content = request.Message,
+                    Role = "user",
+                    Timestamp = DateTimeOffset.UtcNow,
+                    PromptTokens = chatGPTResponse.Usage?.PromptTokens ?? 0
+                };
+
+                var assistantMessage = new AIMessage
+                {
+                    ConversationID = conversation.ConversationID,
+                    Content = chatGPTResponse.Choices[0].Message.Content,
+                    Role = "assistant",
+                    Timestamp = DateTimeOffset.UtcNow,
+                    CompletionTokens = chatGPTResponse.Usage?.CompletionTokens ?? 0
+                };
+
+                conversation.Messages.Add(userMessage);
+                conversation.Messages.Add(assistantMessage);
+                conversation.TotalTokens += chatGPTResponse.Usage?.TotalTokens ?? 0;
+
+                activeApiKey.UsageCount++;
+                activeApiKey.LastUsedAt = DateTimeOffset.UtcNow;
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    ConversationId = conversation.ConversationID,
+                    Message = assistantMessage.Content
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"\n\n\n\nException: {ex}\nError occurred while processing ChatGPT response\n\n\n\n");
+                return StatusCode(500, "An error occurred while processing your request");
+            }
         }
 
-        [HttpPost("send-message")]
-        public async Task<IActionResult> SendMessage(SendMessageRequest request)
+        [HttpPost("GetConversationHistory")]
+        public async Task<IActionResult> GetConversationHistory(RequestId conversationId)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
@@ -81,65 +206,7 @@ namespace SeniorProjBackend.Controllers
 
             var conversation = await _context.AIConversations
                 .Include(c => c.Messages)
-                .FirstOrDefaultAsync(c => c.ConversationID == request.ConversationId && c.UserId == user.Id);
-
-            if (conversation == null)
-            {
-                return NotFound("Conversation not found");
-            }
-
-            var activeApiKey = await _context.APIKeys
-                .FirstOrDefaultAsync(k => k.UserId == user.Id && k.IsActive);
-
-            if (activeApiKey == null)
-            {
-                return BadRequest("No active API key found");
-            }
-
-            var chatGPTResponse = await _chatGPTService.SendMessage(activeApiKey.KeyValue, conversation.Messages, request.Message);
-
-            var userMessage = new AIMessage
-            {
-                ConversationID = conversation.ConversationID,
-                Content = request.Message,
-                Role = "user",
-                Timestamp = DateTimeOffset.UtcNow,
-                PromptTokens = chatGPTResponse.Usage.PromptTokens
-            };
-
-            var assistantMessage = new AIMessage
-            {
-                ConversationID = conversation.ConversationID,
-                Content = chatGPTResponse.Choices[0].Message.Content,
-                Role = "assistant",
-                Timestamp = DateTimeOffset.UtcNow,
-                CompletionTokens = chatGPTResponse.Usage.CompletionTokens
-            };
-
-            conversation.Messages.Add(userMessage);
-            conversation.Messages.Add(assistantMessage);
-            conversation.TotalTokens += chatGPTResponse.Usage.TotalTokens;
-
-            activeApiKey.UsageCount++;
-            activeApiKey.LastUsedAt = DateTimeOffset.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            return Ok(new { Message = assistantMessage.Content });
-        }
-
-        [HttpGet("{conversationId}")]
-        public async Task<IActionResult> GetConversationHistory(int conversationId)
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return Unauthorized();
-            }
-
-            var conversation = await _context.AIConversations
-                .Include(c => c.Messages)
-                .FirstOrDefaultAsync(c => c.ConversationID == conversationId && c.UserId == user.Id);
+                .FirstOrDefaultAsync(c => c.ConversationID == conversationId.Id && c.UserId == user.Id);
 
             if (conversation == null)
             {
@@ -160,14 +227,13 @@ namespace SeniorProjBackend.Controllers
                 StartTime = conversation.StartTime,
                 EndTime = conversation.EndTime,
                 ProblemID = conversation.ProblemID,
-                LanguageID = conversation.LanguageID,
                 Messages = messages,
                 TotalTokens = conversation.TotalTokens
             });
         }
 
-        [HttpGet("list")]
-        public async Task<IActionResult> ListConversations([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        [HttpPost("ListConversations")]
+        public async Task<IActionResult> ListConversations()
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
@@ -178,34 +244,23 @@ namespace SeniorProjBackend.Controllers
             var conversations = await _context.AIConversations
                 .Where(c => c.UserId == user.Id)
                 .OrderByDescending(c => c.StartTime)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
                 .Select(c => new ConversationListItemDto
                 {
                     ConversationID = c.ConversationID,
                     StartTime = c.StartTime,
                     EndTime = c.EndTime,
                     ProblemID = c.ProblemID,
-                    LanguageID = c.LanguageID,
                     MessageCount = c.Messages.Count,
                     TotalTokens = c.TotalTokens
                 })
                 .ToListAsync();
 
-            var totalCount = await _context.AIConversations.CountAsync(c => c.UserId == user.Id);
 
-            return Ok(new PaginatedResponse<ConversationListItemDto>
-            {
-                Items = conversations,
-                TotalCount = totalCount,
-                PageCount = (int)Math.Ceiling((double)totalCount / pageSize),
-                CurrentPage = page,
-                PageSize = pageSize
-            });
+            return Ok(conversations);
         }
 
-        [HttpPost("by-problem")]
-        public async Task<IActionResult> GetConversationsByProblem([FromBody] ConversationsByProblemRequest request)
+        [HttpPost("GetConversationsByProblem")]
+        public async Task<IActionResult> GetConversationsByProblem(ConversationsByProblemRequest request)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
@@ -220,114 +275,17 @@ namespace SeniorProjBackend.Controllers
             var totalCount = await query.CountAsync();
 
             var conversations = await query
-                .Skip((request.Page - 1) * request.PageSize)
-                .Take(request.PageSize)
                 .Select(c => new ConversationListItemDto
                 {
                     ConversationID = c.ConversationID,
                     StartTime = c.StartTime,
                     EndTime = c.EndTime,
-                    LanguageID = c.LanguageID,
                     MessageCount = c.Messages.Count,
                     TotalTokens = c.TotalTokens
                 })
                 .ToListAsync();
 
-            return Ok(new PaginatedResponse<ConversationListItemDto>
-            {
-                Items = conversations,
-                TotalCount = totalCount,
-                PageCount = (int)Math.Ceiling((double)totalCount / request.PageSize),
-                CurrentPage = request.Page,
-                PageSize = request.PageSize
-            });
-        }
-
-        [HttpPost("{conversationId}/end")]
-        public async Task<IActionResult> EndConversation(int conversationId)
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return Unauthorized();
-            }
-
-            var conversation = await _context.AIConversations
-                .FirstOrDefaultAsync(c => c.ConversationID == conversationId && c.UserId == user.Id);
-
-            if (conversation == null)
-            {
-                return NotFound("Conversation not found");
-            }
-
-            conversation.EndTime = DateTimeOffset.UtcNow;
-            await _context.SaveChangesAsync();
-
-            return Ok(new { Message = "Conversation ended successfully" });
-        }
-
-        [HttpGet("{conversationId}/summary")]
-        public async Task<IActionResult> GetConversationSummary(int conversationId)
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return Unauthorized();
-            }
-
-            var conversation = await _context.AIConversations
-                .Include(c => c.Messages)
-                .FirstOrDefaultAsync(c => c.ConversationID == conversationId && c.UserId == user.Id);
-
-            if (conversation == null)
-            {
-                return NotFound("Conversation not found");
-            }
-
-            var activeApiKey = await _context.APIKeys
-                .FirstOrDefaultAsync(k => k.UserId == user.Id && k.IsActive);
-
-            if (activeApiKey == null)
-            {
-                return BadRequest("No active API key found");
-            }
-
-            var summaryRequest = "Please provide a brief summary of our conversation so far, highlighting the main topics and key points discussed.";
-            var chatGPTResponse = await _chatGPTService.SendMessage(activeApiKey.KeyValue, conversation.Messages, summaryRequest);
-
-            return Ok(new { Summary = chatGPTResponse.Choices[0].Message.Content });
-        }
-
-        [HttpGet("{conversationId}/suggested-questions")]
-        public async Task<IActionResult> GetSuggestedQuestions(int conversationId)
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return Unauthorized();
-            }
-
-            var conversation = await _context.AIConversations
-                .Include(c => c.Messages)
-                .FirstOrDefaultAsync(c => c.ConversationID == conversationId && c.UserId == user.Id);
-
-            if (conversation == null)
-            {
-                return NotFound("Conversation not found");
-            }
-
-            var activeApiKey = await _context.APIKeys
-                .FirstOrDefaultAsync(k => k.UserId == user.Id && k.IsActive);
-
-            if (activeApiKey == null)
-            {
-                return BadRequest("No active API key found");
-            }
-
-            var suggestionsRequest = "Based on our conversation so far, what are 3 relevant follow-up questions the user might want to ask to deepen their understanding of the topics we've discussed?";
-            var chatGPTResponse = await _chatGPTService.SendMessage(activeApiKey.KeyValue, conversation.Messages, suggestionsRequest);
-
-            return Ok(new { SuggestedQuestions = chatGPTResponse.Choices[0].Message.Content });
+            return Ok(conversations);
         }
     }
 

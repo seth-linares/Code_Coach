@@ -11,6 +11,6 @@
         public int CompletionTokens { get; set; }
 
         // Navigation property
-        public AIConversation Conversation { get; set; }
+        public virtual AIConversation Conversation { get; set; }
     }
 }

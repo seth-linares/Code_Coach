@@ -7,7 +7,7 @@ using SeniorProjBackend.Data;
 using SeniorProjBackend.DTOs;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
+
 
 [Authorize]
 [ApiController]
@@ -28,7 +28,7 @@ public class UserSubmissionsController : ControllerBase
     }
 
 
-    [HttpPost("submit")]
+    [HttpPost("SubmitCode")]
     public async Task<IActionResult> SubmitCode(SubmissionRequestDto submissionRequest)
     {
         var user = await _userManager.GetUserAsync(User);
@@ -39,6 +39,7 @@ public class UserSubmissionsController : ControllerBase
 
         var problem = await _context.Problems
             .Include(p => p.ProblemLanguages)
+            .ThenInclude(pl => pl.Language)
             .FirstOrDefaultAsync(p => p.ProblemID == submissionRequest.ProblemId);
 
         if (problem == null)
@@ -46,15 +47,20 @@ public class UserSubmissionsController : ControllerBase
             return NotFound("Problem not found");
         }
 
-        var problemLanguages = problem.ProblemLanguages
-            .FirstOrDefault(pl => pl.Language.Judge0ID == submissionRequest.Judge0LanguageId);
+        if (problem.ProblemLanguages == null)
+        {
+            return BadRequest("Problem languages not configured for this problem");
+        }
 
-        if (problemLanguages == null)
+        var problemLanguage = problem.ProblemLanguages
+            .FirstOrDefault(pl => pl.Language != null && pl.Language.Judge0ID == submissionRequest.Judge0LanguageId);
+
+        if (problemLanguage == null)
         {
             return BadRequest("Invalid language for this problem");
         }
 
-        string combinedCode = CombineCode(submissionRequest.EncodedCode, problemLanguages.TestCode, submissionRequest.Judge0LanguageId);
+        string combinedCode = CombineCode(submissionRequest.EncodedCode, problemLanguage.TestCode, submissionRequest.Judge0LanguageId);
 
         var judge0Request = new
         {
@@ -83,7 +89,7 @@ public class UserSubmissionsController : ControllerBase
         {
             UserId = user.Id,
             ProblemID = problem.ProblemID,
-            LanguageID = problemLanguages.LanguageID,
+            LanguageID = problemLanguage.LanguageID,
             SubmittedCode = submissionRequest.EncodedCode,
             SubmissionTime = DateTimeOffset.UtcNow,
             IsSuccessful = isSuccessful,
@@ -126,7 +132,11 @@ public class UserSubmissionsController : ControllerBase
             _ => decodedTestCode + "\n" + decodedUserCode   // C# and C++
         };
 
-        return Convert.ToBase64String(Encoding.UTF8.GetBytes(combinedCode));
+        var combinedEncoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(combinedCode));
+
+        _logger.LogInformation($"\n\n\n\nCombined encoded: {combinedEncoded}\n\n\n\n");
+
+        return combinedEncoded;
     }
 
     private bool IsSubmissionSuccessful(SubmissionResult result)
@@ -162,8 +172,8 @@ public class UserSubmissionsController : ControllerBase
     }
 
 
-    [HttpGet("successful")]
-    public async Task<IActionResult> GetSuccessfulSubmissions(PaginationRequest paginationRequest)
+    [HttpPost("GetSuccessfulSubmissions")]
+    public async Task<IActionResult> GetSuccessfulSubmissions()
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
@@ -180,8 +190,6 @@ public class UserSubmissionsController : ControllerBase
         var totalCount = await query.CountAsync();
 
         var successfulSubmissions = await query
-            .Skip((paginationRequest.Page - 1) * paginationRequest.PageSize)
-            .Take(paginationRequest.PageSize)
             .Select(s => new SuccessfulSubmissionDto
             {
                 SubmissionId = s.SubmissionID,
@@ -195,21 +203,12 @@ public class UserSubmissionsController : ControllerBase
             })
             .ToListAsync();
 
-        var response = new PaginatedResponse<SuccessfulSubmissionDto>
-        {
-            Items = successfulSubmissions,
-            TotalCount = totalCount,
-            PageCount = (int)Math.Ceiling((double)totalCount / paginationRequest.PageSize),
-            CurrentPage = paginationRequest.Page,
-            PageSize = paginationRequest.PageSize
-        };
-
-        return Ok(response);
+        return Ok(successfulSubmissions);
     }
 
 
 
-    [HttpPost("problem-submissions")]
+    [HttpPost("GetSubmissionsForProblem")]
     public async Task<IActionResult> GetSubmissionsForProblem(ProblemSubmissionsRequest request)
     {
         var user = await _userManager.GetUserAsync(User);
@@ -232,8 +231,6 @@ public class UserSubmissionsController : ControllerBase
 
         var submissions = await query
             .OrderByDescending(s => s.SubmissionTime)
-            .Skip((request.Page - 1) * request.PageSize)
-            .Take(request.PageSize)
             .Select(s => new ProblemSubmissionDto
             {
                 SubmissionId = s.SubmissionID,
@@ -245,28 +242,18 @@ public class UserSubmissionsController : ControllerBase
             })
             .ToListAsync();
 
-        var response = new PaginatedProblemSubmissionsResponse
-        {
-            ProblemId = request.ProblemId,
-            ProblemTitle = problem.Title,
-            TotalCount = totalCount,
-            PageCount = (int)Math.Ceiling((double)totalCount / request.PageSize),
-            CurrentPage = request.Page,
-            PageSize = request.PageSize,
-            Submissions = submissions
-        };
-
-        return Ok(response);
+        return Ok(submissions);
     }
 
-    public class RecentSubmissionsRequest
+    public class CountDto
     {
-        public int Count { get; set; } = 10;
+        public int Count { get; set; }
     }
 
-    // Endpoint URL: POST /api/usersubmission/recent
-    [HttpPost("recent")]
-    public async Task<IActionResult> GetRecentSubmissions([FromBody] RecentSubmissionsRequest request)
+
+    // Endpoint URL: POST /api/usersubmission/GetRecentSubmissions
+    [HttpPost("GetRecentSubmissions")]
+    public async Task<IActionResult> GetRecentSubmissions(CountDto countDto)
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
@@ -277,7 +264,7 @@ public class UserSubmissionsController : ControllerBase
         var recentSubmissions = await _context.UserSubmissions
             .Where(s => s.UserId == user.Id)
             .OrderByDescending(s => s.SubmissionTime)
-            .Take(request.Count)
+            .Take(countDto.Count)
             .Select(s => new RecentSubmissionDto
             {
                 SubmissionId = s.SubmissionID,
@@ -292,14 +279,10 @@ public class UserSubmissionsController : ControllerBase
         return Ok(recentSubmissions);
     }
 
-    public class SubmissionDetailsRequest
-{
-    public int SubmissionId { get; set; }
-}
 
-    // Endpoint URL: POST /api/usersubmission/details
-    [HttpPost("details")]
-    public async Task<IActionResult> GetSubmissionDetails(SubmissionDetailsRequest request)
+    // Endpoint URL: POST /api/usersubmission/GetSubmissionDetails
+    [HttpPost("GetSubmissionDetails")]
+    public async Task<IActionResult> GetSubmissionDetails(RequestId request)
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
@@ -308,7 +291,7 @@ public class UserSubmissionsController : ControllerBase
         }
 
         var submission = await _context.UserSubmissions
-            .Where(s => s.UserId == user.Id && s.SubmissionID == request.SubmissionId)
+            .Where(s => s.UserId == user.Id && s.SubmissionID == request.Id)
             .Select(s => new SubmissionDetailsDto
             {
                 SubmissionId = s.SubmissionID,
@@ -332,7 +315,7 @@ public class UserSubmissionsController : ControllerBase
     }
 
 
-    [HttpGet("about")]
+    [HttpGet("GetAbout")]
     public async Task<IActionResult> GetAbout()
     {
         try
@@ -348,7 +331,7 @@ public class UserSubmissionsController : ControllerBase
     }
 
 
-    [HttpGet("health")]
+    [HttpGet("HealthCheck")]
     public async Task<IActionResult> HealthCheck()
     {
         try
@@ -363,24 +346,28 @@ public class UserSubmissionsController : ControllerBase
         }
     }
 
-
-    [HttpGet("submissions_from_token")]
-    public async Task<IActionResult> GetSubmission(string token)
+    public class TokenDto
     {
-        _logger.LogInformation($"\n\n\n\nGetting Submission Result for token: {token}\n\n\n\n");
+        public string Token { get; set; }
+    }
+
+    [HttpGet("GetSubmissionFromToken")]
+    public async Task<IActionResult> GetSubmissionFromToken(TokenDto tokenDto)
+    {
+        _logger.LogInformation($"\n\n\n\nGetting Submission Result for token: {tokenDto.Token}\n\n\n\n");
         try
         {
-            var response = await _httpClient.GetAsync($"submissions/{token}?base64_encoded=true&fields=*");
+            var response = await _httpClient.GetAsync($"submissions/{tokenDto.Token}?base64_encoded=true&fields=*");
             return await FormatResponse(response);
         }
         catch (Exception ex)
         {
-            _logger.LogError($"\n\n\n\n{ex}\nError getting submission result for token: {token}\n\n\n\n");
+            _logger.LogError($"\n\n\n\n{ex}\nError getting submission result for token: {tokenDto.Token}\n\n\n\n");
             return StatusCode(500, "An error occurred while processing your request.");
         }
     }
 
-    [HttpGet("languages")]
+    [HttpGet("GetLanguages")]
     public async Task<IActionResult> GetLanguages([FromQuery] int page = 1, [FromQuery] int perPage = 20)
     {
         _logger.LogInformation("\n\n\n\nGetting Languages\n\n\n\n");
@@ -396,7 +383,7 @@ public class UserSubmissionsController : ControllerBase
         }
     }
 
-    [HttpGet("statuses")]
+    [HttpGet("GetStatuses")]
     public async Task<IActionResult> GetStatuses()
     {
         _logger.LogInformation("\n\n\n\nGetting Statuses\n\n\n\n");

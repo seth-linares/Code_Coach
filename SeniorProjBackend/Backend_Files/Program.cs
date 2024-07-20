@@ -7,6 +7,7 @@ using System.Threading.RateLimiting;
 using SeniorProjBackend.Middleware;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using SeniorProjBackend.Encryption;
+using System.Text.Json.Serialization;
 
 
 // This console write will appear in the Docker logs
@@ -79,8 +80,15 @@ builder.Services.AddDbContext<OurDbContext>(options =>
 });
 
 
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        options.JsonSerializerOptions.MaxDepth = 32;
+    });
 
-builder.Services.AddControllers();
+
 builder.Services.AddLogging(logging =>
 {
     logging.AddConfiguration(builder.Configuration.GetSection("Logging"));

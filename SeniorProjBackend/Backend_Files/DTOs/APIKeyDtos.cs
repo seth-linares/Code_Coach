@@ -13,10 +13,6 @@
         public string KeyValue { get; set; }
     }
 
-    public class SetActiveAPIKeyRequest
-    {
-        public int APIKeyID { get; set; }
-    }
 
     public class APIKeyListItemDto
     {

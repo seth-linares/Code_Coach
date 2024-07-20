@@ -12,6 +12,6 @@
         public int UsageCount { get; set; }
 
         // Navigation Properties
-        public User User { get; set; }
+        public virtual User User { get; set; }
     }
 }

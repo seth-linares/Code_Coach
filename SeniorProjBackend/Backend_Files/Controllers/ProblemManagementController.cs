@@ -22,43 +22,125 @@ public class ProblemManagementController : ControllerBase
     }
 
 
-    [HttpGet("normal_get_problems")]
-    public async Task<ActionResult<IEnumerable<Problem>>> GetProblem()
+    [HttpGet("GetProblemBasic")]
+    public async Task<ActionResult<IEnumerable<Problem>>> GetProblemBasic()
     {
         return await _context.Problems.ToListAsync();
     }
 
-    [HttpGet("normal_get_problemlanguages")]
-    public async Task<ActionResult<IEnumerable<ProblemLanguage>>> GetProblemLanguage()
+    [HttpGet("GetProblemLanguageBasic")]
+    public async Task<ActionResult<IEnumerable<ProblemLanguage>>> GetProblemLanguageBasic()
     {
         return await _context.ProblemLanguages.ToListAsync();
     }
 
-    [HttpGet("normal_get_languages")]
-    public async Task<ActionResult<IEnumerable<Language>>> GetLanguages()
+    [HttpGet("GetLanguagesBasic")]
+    public async Task<ActionResult<IEnumerable<Language>>> GetLanguagesBasic()
     {
         return await _context.Languages.ToListAsync();
     }
 
+
+
+    [HttpPost("GetProblemsByCategory")]
+    public async Task<IActionResult> GetProblemsByCategory(ProblemsByCategoryRequest request)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return Unauthorized();
+        }
+
+        if (!Enum.TryParse<ProblemCategory>(request.Category, true, out var category))
+        {
+            return BadRequest("Invalid category.");
+        }
+
+        var problems = await _context.Problems
+            .Where(p => p.Category == category)
+            .OrderBy(p => p.Difficulty)
+            .ThenBy(p => p.Title)
+            .Select(p => new FilteredProblemListItemDto
+            {
+                ProblemID = p.ProblemID,
+                Title = p.Title,
+                Difficulty = p.Difficulty.ToString(),
+                Category = p.Category.ToString(),
+                Points = p.Points,
+                IsCompleted = p.UserSubmissions.Any(us => us.UserId == user.Id && us.IsSuccessful)
+            })
+            .ToListAsync();
+
+        return Ok(problems);
+    }
+
+
+
+
+    [HttpPost("GetProblemsByDifficulty")]
+    public async Task<IActionResult> GetProblemsByDifficulty(ProblemsByDifficultyRequest request)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return Unauthorized();
+        }
+
+        if (!Enum.TryParse<DifficultyLevel>(request.Difficulty, true, out var difficulty))
+        {
+            return BadRequest("Invalid difficulty level.");
+        }
+
+        var problems = await _context.Problems
+            .Where(p => p.Difficulty == difficulty)
+            .OrderBy(p => p.Category)
+            .ThenBy(p => p.Title)
+            .Select(p => new FilteredProblemListItemDto
+            {
+                ProblemID = p.ProblemID,
+                Title = p.Title,
+                Difficulty = p.Difficulty.ToString(),
+                Category = p.Category.ToString(), 
+                Points = p.Points,
+                IsCompleted = p.UserSubmissions.Any(us => us.UserId == user.Id && us.IsSuccessful)
+            })
+            .ToListAsync();
+
+        return Ok(problems);
+    }
+
+
+
     [HttpPost("AddProblem")]
     public async Task<IActionResult> AddProblem(AddProblemRequest request)
     {
+        if (!Enum.TryParse<DifficultyLevel>(request.Difficulty, true, out var difficulty))
+        {
+            return BadRequest("Invalid difficulty level.");
+        }
+
+        if (!Enum.TryParse<ProblemCategory>(request.Category, true, out var category))
+        {
+            return BadRequest("Invalid category.");
+        }
+
         var problem = new Problem
         {
             Title = request.Title,
             Description = request.Description,
             Points = request.Points,
-            Difficulty = request.Difficulty,
-            Category = request.Category
+            Difficulty = difficulty,
+            Category = category
         };
 
         _context.Problems.Add(problem);
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation($"\n\n\n\nNew problem added: {problem.ProblemID}\n\n\n\n");
+        _logger.LogInformation($"New problem added: {problem.ProblemID}");
 
-        return CreatedAtAction(nameof(GetProblem), new { id = problem.ProblemID }, problem);
+        return CreatedAtAction(nameof(GetProblemById), new { id = problem.ProblemID }, problem);
     }
+
 
     [HttpPost("AddLanguage")]
     public async Task<IActionResult> AddLanguage(AddLanguageRequest request)
@@ -74,7 +156,7 @@ public class ProblemManagementController : ControllerBase
 
         _logger.LogInformation($"\n\n\n\nNew language added: {language.LanguageID}\n\n\n\n");
 
-        return CreatedAtAction(nameof(GetLanguage), new { id = language.LanguageID }, language);
+        return CreatedAtAction(nameof(GetLanguageById), new { id = language.LanguageID }, language);
     }
 
     [HttpPost("AddProgramLanguage")]
@@ -93,69 +175,102 @@ public class ProblemManagementController : ControllerBase
             ProblemID = request.ProblemID,
             LanguageID = request.LanguageID,
             FunctionSignature = request.FunctionSignature,
-            TestCode = request.TestCode
+            TestCode = request.TestCode,
+            Problem = problem,
+            Language = language,
         };
 
         _context.ProblemLanguages.Add(problemLanguage);
+
+        // Explicitly set the navigation properties
+        problemLanguage.Problem = problem;
+        problemLanguage.Language = language;
+
         await _context.SaveChangesAsync();
+
+        // Reload the ProblemLanguage to ensure all navigation properties are loaded
+        await _context.Entry(problemLanguage)
+            .Reference(pl => pl.Problem)
+            .LoadAsync();
+        await _context.Entry(problemLanguage)
+            .Reference(pl => pl.Language)
+            .LoadAsync();
 
         _logger.LogInformation($"\n\n\n\nNew problem-language association added: {problemLanguage.ProblemLanguageID}\n\n\n\n");
 
-        return CreatedAtAction(nameof(GetProblemLanguage), new { id = problemLanguage.ProblemLanguageID }, problemLanguage);
+        var dto = new ProblemLanguageDto
+        {
+            ProblemLanguageID = problemLanguage.ProblemLanguageID,
+            ProblemID = problemLanguage.ProblemID,
+            LanguageID = problemLanguage.LanguageID,
+            FunctionSignature = problemLanguage.FunctionSignature,
+            TestCode = problemLanguage.TestCode,
+        };
+
+        return CreatedAtAction(nameof(GetProblemLanguageById), new { id = problemLanguage.ProblemLanguageID }, dto);
     }
 
-    [HttpGet("problems")]
+    [HttpPost("GetProblems")]
     public async Task<IActionResult> GetProblems(ProblemListRequest request)
     {
-        var query = _context.Problems.AsQueryable();
-
-        if (request.Difficulty.HasValue)
+        if (!string.IsNullOrEmpty(request.Category))
         {
-            query = query.Where(p => p.Difficulty == request.Difficulty.Value);
+            if (!Enum.TryParse<ProblemCategory>(request.Category, true, out var category))
+            {
+                return BadRequest("Invalid category.");
+            }
+            request.ParsedCategory = category;
         }
 
-        if (request.Category.HasValue)
+        if (!string.IsNullOrEmpty(request.Difficulty))
         {
-            query = query.Where(p => p.Category == request.Category.Value);
+            if (!Enum.TryParse<DifficultyLevel>(request.Difficulty, true, out var difficulty))
+            {
+                return BadRequest("Invalid difficulty level.");
+            }
+            request.ParsedDifficulty = difficulty;
+        }
+
+        var query = _context.Problems.AsQueryable();
+
+        if (request.ParsedDifficulty.HasValue)
+        {
+            query = query.Where(p => p.Difficulty == request.ParsedDifficulty.Value);
+        }
+
+        if (request.ParsedCategory.HasValue)
+        {
+            query = query.Where(p => p.Category == request.ParsedCategory.Value);
         }
 
         var totalCount = await query.CountAsync();
 
         var problems = await query
             .OrderBy(p => p.ProblemID)
-            .Skip((request.Page - 1) * request.PageSize)
-            .Take(request.PageSize)
             .Select(p => new ProblemListItemDto
             {
                 ProblemID = p.ProblemID,
                 Title = p.Title,
-                Difficulty = p.Difficulty,
-                Category = p.Category,
+                Difficulty = p.Difficulty.ToString(),
+                Category = p.Category.ToString(),
                 Points = p.Points
             })
             .ToListAsync();
 
-        var response = new PaginatedResponse<ProblemListItemDto>
-        {
-            Items = problems,
-            TotalCount = totalCount,
-            PageCount = (int)Math.Ceiling((double)totalCount / request.PageSize),
-            CurrentPage = request.Page,
-            PageSize = request.PageSize
-        };
-
-        return Ok(response);
+        return Ok(problems);
     }
 
-    [HttpGet("languages")]
-    public async Task<IActionResult> GetLanguages(PaginationRequest request)
+
+
+
+
+    [HttpPost("GetLanguageDetails")]
+    public async Task<IActionResult> GetLanguageDetails()
     {
         var totalCount = await _context.Languages.CountAsync();
 
         var languages = await _context.Languages
-            .OrderBy(l => l.LanguageID)
-            .Skip((request.Page - 1) * request.PageSize)
-            .Take(request.PageSize)
+            .OrderBy(l => l.Name)
             .Select(l => new LanguageListItemDto
             {
                 LanguageID = l.LanguageID,
@@ -164,19 +279,10 @@ public class ProblemManagementController : ControllerBase
             })
             .ToListAsync();
 
-        var response = new PaginatedResponse<LanguageListItemDto>
-        {
-            Items = languages,
-            TotalCount = totalCount,
-            PageCount = (int)Math.Ceiling((double)totalCount / request.PageSize),
-            CurrentPage = request.Page,
-            PageSize = request.PageSize
-        };
-
-        return Ok(response);
+        return Ok(languages);
     }
 
-    [HttpGet("problem-languages")]
+    [HttpPost("GetProblemLanguages")]
     public async Task<IActionResult> GetProblemLanguages(ProblemLanguageListRequest request)
     {
         var query = _context.ProblemLanguages.AsQueryable();
@@ -195,8 +301,6 @@ public class ProblemManagementController : ControllerBase
 
         var problemLanguages = await query
             .OrderBy(pl => pl.ProblemLanguageID)
-            .Skip((request.Page - 1) * request.PageSize)
-            .Take(request.PageSize)
             .Select(pl => new ProblemLanguageListItemDto
             {
                 ProblemLanguageID = pl.ProblemLanguageID,
@@ -206,106 +310,15 @@ public class ProblemManagementController : ControllerBase
             })
             .ToListAsync();
 
-        var response = new PaginatedResponse<ProblemLanguageListItemDto>
-        {
-            Items = problemLanguages,
-            TotalCount = totalCount,
-            PageCount = (int)Math.Ceiling((double)totalCount / request.PageSize),
-            CurrentPage = request.Page,
-            PageSize = request.PageSize
-        };
-
-        return Ok(response);
+        return Ok(problemLanguages);
     }
 
 
-    [HttpPost("problems-by-category")]
-    public async Task<IActionResult> GetProblemsByCategory(ProblemsByCategoryRequest request)
-    {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-        {
-            return Unauthorized();
-        }
-
-        var problems = await _context.Problems
-            .Where(p => p.Category == request.Category)
-            .OrderBy(p => p.Difficulty)
-            .ThenBy(p => p.Title)
-            .Skip((request.Page - 1) * request.PageSize)
-            .Take(request.PageSize)
-            .Select(p => new FilteredProblemListItemDto
-            {
-                ProblemID = p.ProblemID,
-                Title = p.Title,
-                Difficulty = p.Difficulty,
-                Points = p.Points,
-                IsCompleted = p.UserSubmissions.Any(us => us.UserId == user.Id && us.IsSuccessful)
-            })
-            .ToListAsync();
-
-        var totalCount = await _context.Problems
-            .Where(p => p.Category == request.Category)
-            .CountAsync();
-
-        var response = new PaginatedResponse<FilteredProblemListItemDto>
-        {
-            Items = problems,
-            TotalCount = totalCount,
-            PageCount = (int)Math.Ceiling((double)totalCount / request.PageSize),
-            CurrentPage = request.Page,
-            PageSize = request.PageSize
-        };
-
-        return Ok(response);
-    }
-
-    [HttpPost("problems-by-difficulty")]
-    public async Task<IActionResult> GetProblemsByDifficulty(ProblemsByDifficultyRequest request)
-    {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-        {
-            return Unauthorized();
-        }
-
-        var problems = await _context.Problems
-            .Where(p => p.Difficulty == request.Difficulty)
-            .OrderBy(p => p.Category)
-            .ThenBy(p => p.Title)
-            .Skip((request.Page - 1) * request.PageSize)
-            .Take(request.PageSize)
-            .Select(p => new FilteredProblemListItemDto
-            {
-                ProblemID = p.ProblemID,
-                Title = p.Title,
-                Category = p.Category,
-                Points = p.Points,
-                IsCompleted = p.UserSubmissions.Any(us => us.UserId == user.Id && us.IsSuccessful)
-            })
-            .ToListAsync();
-
-        var totalCount = await _context.Problems
-            .Where(p => p.Difficulty == request.Difficulty)
-            .CountAsync();
-
-        var response = new PaginatedResponse<FilteredProblemListItemDto>
-        {
-            Items = problems,
-            TotalCount = totalCount,
-            PageCount = (int)Math.Ceiling((double)totalCount / request.PageSize),
-            CurrentPage = request.Page,
-            PageSize = request.PageSize
-        };
-
-        return Ok(response);
-    }
-
-    [HttpPost("problem-details")]
-    public async Task<IActionResult> GetProblemDetails(ProblemDetailsRequest request)
+    [HttpPost("GetProblemDetails")]
+    public async Task<IActionResult> GetProblemDetails(RequestId request)
     {
         var problemDetails = await _context.Problems
-            .Where(p => p.ProblemID == request.ProblemId)
+            .Where(p => p.ProblemID == request.Id)
             .Select(p => new ProblemDetailsDto
             {
                 ProblemID = p.ProblemID,
@@ -326,7 +339,7 @@ public class ProblemManagementController : ControllerBase
 
         if (problemDetails == null)
         {
-            return NotFound($"Problem with ID {request.ProblemId} not found.");
+            return NotFound($"Problem with ID {request.Id} not found.");
         }
 
         return Ok(problemDetails);
@@ -334,8 +347,8 @@ public class ProblemManagementController : ControllerBase
 
 
 
-    [HttpPost("get-problem")]
-    public async Task<IActionResult> GetProblem(GetByIdRequest request)
+    [HttpPost("GetProblemById")]
+    public async Task<IActionResult> GetProblemById(RequestId request)
     {
         var problem = await _context.Problems
             .Include(p => p.ProblemLanguages)
@@ -361,8 +374,8 @@ public class ProblemManagementController : ControllerBase
         return Ok(problemDto);
     }
 
-    [HttpPost("get-language")]
-    public async Task<IActionResult> GetLanguage(GetByIdRequest request)
+    [HttpPost("GetLanguageById")]
+    public async Task<IActionResult> GetLanguageById(RequestId request)
     {
         var language = await _context.Languages
             .FirstOrDefaultAsync(l => l.LanguageID == request.Id);
@@ -382,13 +395,9 @@ public class ProblemManagementController : ControllerBase
         return Ok(languageDto);
     }
 
-    public class GetByIdRequest
-    {
-        public int Id { get; set; }
-    }
 
-    [HttpPost("get-problem-language")]
-    public async Task<IActionResult> GetProblemLanguage(GetByIdRequest request)
+    [HttpPost("GetProblemLanguageById")]
+    public async Task<IActionResult> GetProblemLanguageById(RequestId request)
     {
         var problemLanguage = await _context.ProblemLanguages
             .Include(pl => pl.Problem)
@@ -416,7 +425,7 @@ public class ProblemManagementController : ControllerBase
 
 
 
-    [HttpPut("update-problem")]
+    [HttpPut("UpdateProblem")]
     public async Task<IActionResult> UpdateProblem(UpdateProblemRequest request)
     {
         var problem = await _context.Problems.FindAsync(request.ProblemID);
@@ -445,7 +454,7 @@ public class ProblemManagementController : ControllerBase
         }
     }
 
-    [HttpPut("update-language")]
+    [HttpPut("UpdateLanguage")]
     public async Task<IActionResult> UpdateLanguage(UpdateLanguageRequest request)
     {
         var language = await _context.Languages.FindAsync(request.LanguageID);
@@ -471,7 +480,7 @@ public class ProblemManagementController : ControllerBase
         }
     }
 
-    [HttpPut("update-problem-language")]
+    [HttpPut("UpdateProblemLanguage")]
     public async Task<IActionResult> UpdateProblemLanguage(UpdateProblemLanguageRequest request)
     {
         var problemLanguage = await _context.ProblemLanguages.FindAsync(request.ProblemLanguageID);
@@ -500,13 +509,8 @@ public class ProblemManagementController : ControllerBase
 
 
 
-    public class DeleteRequest
-    {
-        public int Id { get; set; }
-    }
-
-    [HttpPost("delete-problem")]
-    public async Task<IActionResult> DeleteProblem(DeleteRequest request)
+    [HttpPost("DeleteProblem")]
+    public async Task<IActionResult> DeleteProblem(RequestId request)
     {
         var problem = await _context.Problems
             .Include(p => p.ProblemLanguages)
@@ -536,8 +540,8 @@ public class ProblemManagementController : ControllerBase
         }
     }
 
-    [HttpPost("delete-language")]
-    public async Task<IActionResult> DeleteLanguage(DeleteRequest request)
+    [HttpPost("DeleteLanguage")]
+    public async Task<IActionResult> DeleteLanguage(RequestId request)
     {
         var language = await _context.Languages
             .Include(l => l.ProblemLanguages)
@@ -564,15 +568,15 @@ public class ProblemManagementController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError($"\n\n\n\nException: {ex}An error occurred while deleting Language with ID {request.Id}\n\n\n\n");
+            _logger.LogError($"\n\n\n\nException: {ex}\nAn error occurred while deleting Language with ID {request.Id}\n\n\n\n");
             return StatusCode(500, "An error occurred while processing your request. Please try again later.");
         }
     }
 
     
 
-    [HttpPost("delete-problem-language")]
-    public async Task<IActionResult> DeleteProblemLanguage(DeleteRequest request)
+    [HttpPost("DeleteProblemLanguage")]
+    public async Task<IActionResult> DeleteProblemLanguage(RequestId request)
     {
         var problemLanguage = await _context.ProblemLanguages
             .FirstOrDefaultAsync(pl => pl.ProblemLanguageID == request.Id);

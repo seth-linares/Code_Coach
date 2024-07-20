@@ -14,8 +14,8 @@
         public float? MemoryUsed { get; set; } // Judge0 "memory" field: Memory used in kilobytes; Float.
 
         // Navigation properties
-        public User User { get; set; }
-        public Problem Problem { get; set; }
-        public Language Language { get; set; }
+        public virtual User User { get; set; }
+        public virtual Problem Problem { get; set; }
+        public virtual Language Language { get; set; }
     }
 }

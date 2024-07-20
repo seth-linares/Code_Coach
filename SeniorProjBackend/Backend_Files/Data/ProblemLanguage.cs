@@ -9,7 +9,7 @@
         public string TestCode { get; set; }
 
         // Navigation properties
-        public Problem Problem { get; set; }
-        public Language Language { get; set; }
+        public virtual Problem Problem { get; set; }
+        public virtual Language Language { get; set; }
     }
 }

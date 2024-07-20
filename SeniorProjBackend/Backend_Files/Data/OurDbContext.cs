@@ -76,8 +76,8 @@ namespace SeniorProjBackend.Data
                     .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasMany(e => e.APIKeys)
-                    .WithOne()
-                    .HasForeignKey("UserId")
+                    .WithOne(a => a.User)
+                    .HasForeignKey(a => a.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasMany(e => e.UserSubmissions)
@@ -103,8 +103,6 @@ namespace SeniorProjBackend.Data
                 entity.Property(e => e.ProblemID)
                     .HasColumnType("integer");
 
-                entity.Property(e => e.LanguageID)
-                    .HasColumnType("integer");
 
                 entity.Property(e => e.StartTime)
                     .HasColumnType("timestamptz")
@@ -127,10 +125,6 @@ namespace SeniorProjBackend.Data
                     .HasForeignKey(e => e.ProblemID)
                     .OnDelete(DeleteBehavior.SetNull);
 
-                entity.HasOne(e => e.Language)
-                    .WithMany()
-                    .HasForeignKey(e => e.LanguageID)
-                    .OnDelete(DeleteBehavior.SetNull);
 
                 entity.HasMany(e => e.Messages)
                     .WithOne(e => e.Conversation)

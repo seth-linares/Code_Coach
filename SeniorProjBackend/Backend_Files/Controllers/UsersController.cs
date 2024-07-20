@@ -36,8 +36,14 @@ namespace SeniorProjBackend.Controllers
 
         private async Task<bool> SendLinkEmailAsync(User user, string subject, string linkText, string linkPath, string tokenType)
         {
-            var token = await _userManager.GenerateUserTokenAsync(user, "Default", tokenType);
-            var baseUrl = _configuration["FrontendUrl:Development"].TrimEnd('/');
+            var baseUrl = _configuration["FrontendUrl:Development"];
+            if (string.IsNullOrEmpty(baseUrl))
+            {
+                _logger.LogError("FrontendUrl:Development is not set in configuration");
+                return false;
+            }
+
+            baseUrl = baseUrl.TrimEnd('/');
 
             // Ensure the URL uses HTTPS and doesn't have a port
             if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out Uri uri) || uri.Scheme != "https")
@@ -49,8 +55,12 @@ namespace SeniorProjBackend.Controllers
                 baseUrl = $"{uri.Scheme}://{uri.Host}";
             }
 
+            var token = await _userManager.GenerateUserTokenAsync(user, "Default", tokenType);
             var link = $"{baseUrl}/{linkPath}?userId={user.Id}&token={WebUtility.UrlEncode(token)}";
-            _logger.LogInformation($"\n\n\n\nbase url: {baseUrl}\nLink: {link}\n\n\n\n");
+
+            // Log a redacted version of the link
+            var redactedLink = link.Replace(token, "[REDACTED]");
+            _logger.LogInformation($"\n\n\n\nbase url: {baseUrl}\nRedacted Link: {redactedLink}\n\n\n\n");
 
             return await _emailService.SendEmailAsync(
                 user.Email,

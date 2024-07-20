@@ -59,10 +59,6 @@
     {
         public int ProblemId { get; set; }
         public string ProblemTitle { get; set; }
-        public int TotalCount { get; set; }
-        public int PageCount { get; set; }
-        public int CurrentPage { get; set; }
-        public int PageSize { get; set; }
         public List<ProblemSubmissionDto> Submissions { get; set; }
     }
 
@@ -70,7 +66,5 @@
     public class ProblemSubmissionsRequest
     {
         public int ProblemId { get; set; }
-        public int Page { get; set; } = 1;
-        public int PageSize { get; set; } = 10;
     }
 }

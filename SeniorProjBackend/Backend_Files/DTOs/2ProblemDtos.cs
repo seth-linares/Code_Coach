@@ -2,10 +2,6 @@
 
 namespace SeniorProjBackend.DTOs
 {
-    public class ProblemDetailsRequest
-    {
-        public int ProblemId { get; set; }
-    }
 
     public class ProblemDetailsDto
     {

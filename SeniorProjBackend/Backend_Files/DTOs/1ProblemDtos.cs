@@ -1,4 +1,5 @@
 ﻿using SeniorProjBackend.Data;
+using System.Text.Json.Serialization;
 
 namespace SeniorProjBackend.DTOs
 {
@@ -7,8 +8,8 @@ namespace SeniorProjBackend.DTOs
         public string Title { get; set; }
         public string Description { get; set; }
         public int Points { get; set; }
-        public DifficultyLevel Difficulty { get; set; }
-        public ProblemCategory Category { get; set; }
+        public string Difficulty { get; set; }
+        public string Category { get; set; }
     }
 
     public class AddLanguageRequest
@@ -25,39 +26,46 @@ namespace SeniorProjBackend.DTOs
         public string TestCode { get; set; }
     }
 
-    public class ProblemListRequest : PaginationRequest
+    public class ProblemLanguageDto
     {
-        public DifficultyLevel? Difficulty { get; set; }
-        public ProblemCategory? Category { get; set; }
+        public int ProblemLanguageID { get; set; }
+        public int ProblemID { get; set; }
+        public int LanguageID { get; set; }
+        public string FunctionSignature { get; set; }
+        public string TestCode { get; set; }
     }
 
-    public class ProblemLanguageListRequest : PaginationRequest
+    public class ProblemListRequest
+    {
+        public string Difficulty { get; set; }
+        public string Category { get; set; }
+
+        [JsonIgnore]
+        public ProblemCategory? ParsedCategory { get; set; }
+        [JsonIgnore]
+        public DifficultyLevel? ParsedDifficulty { get; set; }
+    }
+
+
+
+    public class ProblemLanguageListRequest
     {
         public int? ProblemID { get; set; }
         public int? LanguageID { get; set; }
-    }
-
-    public class PaginationRequest
-    {
-        public int Page { get; set; } = 1;
-        public int PageSize { get; set; } = 20;
-    }
-
-    public class PaginatedResponse<T>
-    {
-        public List<T> Items { get; set; }
-        public int TotalCount { get; set; }
-        public int PageCount { get; set; }
-        public int CurrentPage { get; set; }
-        public int PageSize { get; set; }
     }
 
     public class ProblemListItemDto
     {
         public int ProblemID { get; set; }
         public string Title { get; set; }
-        public DifficultyLevel Difficulty { get; set; }
-        public ProblemCategory Category { get; set; }
+        public string Difficulty { get; set; }
+
+        [JsonIgnore]
+        public DifficultyLevel? ParsedDifficulty { get; set; }
+        public string Category { get; set; }
+
+        [JsonIgnore]
+        public ProblemCategory? ParsedCategory { get; set; }
         public int Points { get; set; }
     }
 
@@ -105,14 +113,17 @@ namespace SeniorProjBackend.DTOs
         public string TestCode { get; set; }
     }
 
-    public class ProblemsByCategoryRequest : PaginationRequest
+    public class ProblemsByCategoryRequest
     {
-        public ProblemCategory Category { get; set; }
+        public string Category { get; set; }
+
+        [JsonIgnore]
+        public ProblemCategory? ParsedCategory { get; set; }
     }
 
-    public class ProblemsByDifficultyRequest : PaginationRequest
+    public class ProblemsByDifficultyRequest
     {
-        public DifficultyLevel Difficulty { get; set; }
+        public string Difficulty { get; set; }
     }
 
     public class FilteredProblemListItemDto : ProblemListItemDto
