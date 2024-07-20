@@ -44,7 +44,7 @@ builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.Cookie.HttpOnly = true;
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+    options.ExpireTimeSpan = TimeSpan.FromHours(1);
     options.LoginPath = "/api/Users/Login";
     options.AccessDeniedPath = "/api/Users/AccessDenied";
     options.SlidingExpiration = true;
@@ -89,6 +89,10 @@ builder.Services.AddLogging(logging =>
 
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IEmailSender>(sp => sp.GetRequiredService<IEmailService>());
+
+builder.Services.AddHttpClient<IChatGPTService, ChatGPTService>();
+builder.Services.AddScoped<IChatGPTService, ChatGPTService>();
+
 builder.Services.AddTransient<Judge0AuthHandler>();
 
 // Configure Judge0 HttpClient

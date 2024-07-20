@@ -7,6 +7,8 @@
         public string Content { get; set; }
         public string Role { get; set; }
         public DateTimeOffset Timestamp { get; set; }
+        public int PromptTokens { get; set; }
+        public int CompletionTokens { get; set; }
 
         // Navigation property
         public AIConversation Conversation { get; set; }

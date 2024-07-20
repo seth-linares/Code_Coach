@@ -162,8 +162,17 @@ namespace SeniorProjBackend.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("ConversationID"));
 
+                    b.Property<DateTimeOffset?>("EndTime")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int?>("LanguageID")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Model")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(100)")
+                        .HasDefaultValueSql("'gpt-4o-mini'");
 
                     b.Property<int?>("ProblemID")
                         .HasColumnType("integer");
@@ -172,6 +181,9 @@ namespace SeniorProjBackend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamptz")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<int>("TotalTokens")
+                        .HasColumnType("integer");
 
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
@@ -195,11 +207,17 @@ namespace SeniorProjBackend.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("MessageID"));
 
+                    b.Property<int>("CompletionTokens")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("ConversationID")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PromptTokens")
                         .HasColumnType("integer");
 
                     b.Property<string>("Role")

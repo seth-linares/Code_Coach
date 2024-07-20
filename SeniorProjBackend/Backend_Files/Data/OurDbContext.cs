@@ -110,6 +110,13 @@ namespace SeniorProjBackend.Data
                     .HasColumnType("timestamptz")
                     .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
+                entity.Property(e => e.Model)
+                    .HasColumnType("varchar(100)")
+                    .HasDefaultValueSql("'gpt-4o-mini'");
+
+                entity.Property(e => e.TotalTokens)
+                    .HasColumnType("integer");
+
                 entity.HasOne(e => e.User)
                     .WithMany(e => e.AIConversations)
                     .HasForeignKey(e => e.UserId)
@@ -155,6 +162,12 @@ namespace SeniorProjBackend.Data
                 entity.Property(e => e.Timestamp)
                     .HasColumnType("timestamptz")
                     .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                entity.Property(e => e.PromptTokens)
+                    .HasColumnType("integer");
+
+                entity.Property(e => e.CompletionTokens)
+                    .HasColumnType("integer");
 
                 entity.HasOne(e => e.Conversation)
                     .WithMany(e => e.Messages)

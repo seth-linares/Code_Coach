@@ -2,15 +2,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SeniorProjBackend.Data;
 using SeniorProjBackend.DTOs;
+using static SeniorProjBackend.Controllers.APIKeysController;
 
 namespace SeniorProjBackend.Controllers
 {
+
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class APIKeysController : ControllerBase
@@ -24,6 +28,62 @@ namespace SeniorProjBackend.Controllers
             _context = context;
             _logger = logger;
             _userManager = userManager;
+        }
+
+        [HttpGet("list")]
+        public async Task<IActionResult> ListAPIKeys()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            var apiKeys = await _context.APIKeys
+                .Where(k => k.UserId == user.Id)
+                .Select(k => new APIKeyListItemDto
+                {
+                    APIKeyID = k.APIKeyID,
+                    KeyName = k.KeyName,
+                    IsActive = k.IsActive,
+                    CreatedAt = k.CreatedAt,
+                    LastUsedAt = k.LastUsedAt,
+                    UsageCount = k.UsageCount
+                })
+                .ToListAsync();
+
+            return Ok(apiKeys);
+        }
+
+        [HttpGet("usage/{apiKeyId}")]
+        public async Task<IActionResult> GetAPIKeyUsage(int apiKeyId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            var apiKeyUsage = await _context.APIKeys
+                .Where(k => k.UserId == user.Id && k.APIKeyID == apiKeyId)
+                .Select(k => new APIKeyUsageDto
+                {
+                    APIKeyID = k.APIKeyID,
+                    KeyName = k.KeyName,
+                    UsageCount = k.UsageCount,
+                    TotalTokensUsed = k.User.AIConversations.Sum(c => c.TotalTokens),
+                    LastUsedAt = k.LastUsedAt,
+                    AverageTokensPerUse = k.UsageCount > 0 ?
+                        (double)k.User.AIConversations.Sum(c => c.TotalTokens) / k.UsageCount : 0
+                })
+                .FirstOrDefaultAsync();
+
+            if (apiKeyUsage == null)
+            {
+                return NotFound("API Key not found");
+            }
+
+            return Ok(apiKeyUsage);
         }
 
         [HttpPost("create")]
@@ -52,30 +112,7 @@ namespace SeniorProjBackend.Controllers
             return Ok(new { Message = "API Key created successfully", APIKeyID = apiKey.APIKeyID });
         }
 
-        [HttpGet("list")]
-        public async Task<IActionResult> ListAPIKeys()
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return Unauthorized();
-            }
-
-            var apiKeys = await _context.APIKeys
-                .Where(k => k.UserId == user.Id)
-                .Select(k => new APIKeyListItemDto
-                {
-                    APIKeyID = k.APIKeyID,
-                    KeyName = k.KeyName,
-                    IsActive = k.IsActive,
-                    CreatedAt = k.CreatedAt,
-                    LastUsedAt = k.LastUsedAt,
-                    UsageCount = k.UsageCount
-                })
-                .ToListAsync();
-
-            return Ok(apiKeys);
-        }
+        
 
         [HttpPut("update")]
         public async Task<IActionResult> UpdateAPIKey(UpdateAPIKeyRequest request)
@@ -128,6 +165,9 @@ namespace SeniorProjBackend.Controllers
             return Ok(new { Message = "API Key deleted successfully" });
         }
 
+
+
+        // NEED TO ENSURE ONLY 1 KEY ACTIVE AT A TIME
         [HttpPut("set-active")]
         public async Task<IActionResult> SetActiveAPIKey(SetActiveAPIKeyRequest request)
         {
@@ -144,6 +184,8 @@ namespace SeniorProjBackend.Controllers
             {
                 return NotFound("API Key not found or does not belong to the user");
             }
+
+
 
             foreach (var key in apiKeys)
             {

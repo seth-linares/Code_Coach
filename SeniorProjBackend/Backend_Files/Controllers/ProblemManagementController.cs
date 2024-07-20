@@ -21,6 +21,25 @@ public class ProblemManagementController : ControllerBase
         _userManager = userManager;
     }
 
+
+    [HttpGet("normal_get_problems")]
+    public async Task<ActionResult<IEnumerable<Problem>>> GetProblem()
+    {
+        return await _context.Problems.ToListAsync();
+    }
+
+    [HttpGet("normal_get_problemlanguages")]
+    public async Task<ActionResult<IEnumerable<ProblemLanguage>>> GetProblemLanguage()
+    {
+        return await _context.ProblemLanguages.ToListAsync();
+    }
+
+    [HttpGet("normal_get_languages")]
+    public async Task<ActionResult<IEnumerable<Language>>> GetLanguages()
+    {
+        return await _context.Languages.ToListAsync();
+    }
+
     [HttpPost("problem")]
     public async Task<IActionResult> AddProblem(AddProblemRequest request)
     {

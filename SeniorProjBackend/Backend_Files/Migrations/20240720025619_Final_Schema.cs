@@ -185,7 +185,10 @@ namespace SeniorProjBackend.Migrations
                     UserId = table.Column<int>(type: "integer", nullable: false),
                     ProblemID = table.Column<int>(type: "integer", nullable: true),
                     LanguageID = table.Column<int>(type: "integer", nullable: true),
-                    StartTime = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                    StartTime = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    Model = table.Column<string>(type: "varchar(100)", nullable: false, defaultValueSql: "'gpt-4o-mini'"),
+                    TotalTokens = table.Column<int>(type: "integer", nullable: false),
+                    EndTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -331,7 +334,9 @@ namespace SeniorProjBackend.Migrations
                     ConversationID = table.Column<int>(type: "integer", nullable: false),
                     Content = table.Column<string>(type: "text", nullable: false),
                     Role = table.Column<string>(type: "varchar(20)", nullable: false, defaultValue: "assistant"),
-                    Timestamp = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                    Timestamp = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    PromptTokens = table.Column<int>(type: "integer", nullable: false),
+                    CompletionTokens = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {

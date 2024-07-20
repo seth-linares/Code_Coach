@@ -27,4 +27,24 @@
         public DateTimeOffset? LastUsedAt { get; set; }
         public int UsageCount { get; set; }
     }
+
+    public class APIKeyDto
+    {
+        public int APIKeyID { get; set; }
+        public string KeyName { get; set; }
+        public bool IsActive { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
+        public DateTimeOffset? LastUsedAt { get; set; }
+        public int UsageCount { get; set; }
+    }
+
+    public class APIKeyUsageDto
+    {
+        public int APIKeyID { get; set; }
+        public string KeyName { get; set; }
+        public int UsageCount { get; set; }
+        public int TotalTokensUsed { get; set; }
+        public DateTimeOffset? LastUsedAt { get; set; }
+        public double AverageTokensPerUse { get; set; }
+    }
 }
