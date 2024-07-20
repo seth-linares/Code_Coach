@@ -36,7 +36,7 @@ export function Register() {
                     name="username"
                     value={formData.username}
                     onChange={handleChange}
-                    error={validationErrors.UserName?.[0]}
+                    error={validationErrors.Username?.[0]}
                     required
                 />
                 <InputField
