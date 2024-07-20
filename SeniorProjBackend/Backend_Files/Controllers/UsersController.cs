@@ -37,7 +37,20 @@ namespace SeniorProjBackend.Controllers
         private async Task<bool> SendLinkEmailAsync(User user, string subject, string linkText, string linkPath, string tokenType)
         {
             var token = await _userManager.GenerateUserTokenAsync(user, "Default", tokenType);
-            var link = $"{_configuration["FrontendUrl:Development"]}/{linkPath}?userId={user.Id}&token={WebUtility.UrlEncode(token)}";
+            var baseUrl = _configuration["FrontendUrl:Development"].TrimEnd('/');
+
+            // Ensure the URL uses HTTPS and doesn't have a port
+            if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out Uri uri) || uri.Scheme != "https")
+            {
+                baseUrl = "https://" + baseUrl.TrimStart("http://".ToCharArray()).Split(':')[0];
+            }
+            else
+            {
+                baseUrl = $"{uri.Scheme}://{uri.Host}";
+            }
+
+            var link = $"{baseUrl}/{linkPath}?userId={user.Id}&token={WebUtility.UrlEncode(token)}";
+            _logger.LogInformation($"\n\n\n\nbase url: {baseUrl}\nLink: {link}\n\n\n\n");
 
             return await _emailService.SendEmailAsync(
                 user.Email,

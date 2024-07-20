@@ -100,7 +100,7 @@ namespace SeniorProjBackend.Controllers
                 UserId = user.Id,
                 KeyName = request.KeyName,
                 KeyValue = request.KeyValue,
-                IsActive = false,
+                IsActive = true,
                 CreatedAt = DateTimeOffset.UtcNow,
                 UsageCount = 0
             };

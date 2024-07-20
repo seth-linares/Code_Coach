@@ -40,7 +40,7 @@ public class ProblemManagementController : ControllerBase
         return await _context.Languages.ToListAsync();
     }
 
-    [HttpPost("problem")]
+    [HttpPost("AddProblem")]
     public async Task<IActionResult> AddProblem(AddProblemRequest request)
     {
         var problem = new Problem
@@ -60,7 +60,7 @@ public class ProblemManagementController : ControllerBase
         return CreatedAtAction(nameof(GetProblem), new { id = problem.ProblemID }, problem);
     }
 
-    [HttpPost("language")]
+    [HttpPost("AddLanguage")]
     public async Task<IActionResult> AddLanguage(AddLanguageRequest request)
     {
         var language = new Language
@@ -77,7 +77,7 @@ public class ProblemManagementController : ControllerBase
         return CreatedAtAction(nameof(GetLanguage), new { id = language.LanguageID }, language);
     }
 
-    [HttpPost("problem-language")]
+    [HttpPost("AddProgramLanguage")]
     public async Task<IActionResult> AddProblemLanguage(AddProblemLanguageRequest request)
     {
         var problem = await _context.Problems.FindAsync(request.ProblemID);
