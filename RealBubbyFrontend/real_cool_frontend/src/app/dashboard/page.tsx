@@ -8,13 +8,12 @@ import {Footer} from "@/components/common/Footer";
 
 export default function DashboardPage() {
     return (
-        // <AuthWrapper requireAuth={true}>
+        <AuthWrapper requireAuth={true}>
         <div className="min-h-screen flex flex-col">
             <DashboardNavbar/>
             <Dashboard/>
             <Footer/>
         </div>
-
-        // </AuthWrapper>
+        </AuthWrapper>
     );
 }

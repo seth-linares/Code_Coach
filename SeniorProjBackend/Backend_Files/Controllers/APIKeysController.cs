@@ -35,14 +35,17 @@ namespace SeniorProjBackend.Controllers
             return await _context.APIKeys.Include(k => k.User).ToListAsync();
         }
 
+        // GET: api/APIKeys/ListAPIKeys
         [HttpGet("ListAPIKeys")]
         public async Task<IActionResult> ListAPIKeys()
         {
+
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
                 return Unauthorized();
             }
+            _logger.LogInformation($"\n\n\n\nLISTING API KEYS\n\n\n\n");
 
             var apiKeys = await _context.APIKeys
                 .Where(k => k.UserId == user.Id)
@@ -56,6 +59,8 @@ namespace SeniorProjBackend.Controllers
                     UsageCount = k.UsageCount
                 })
                 .ToListAsync();
+
+            _logger.LogInformation($"\n\n\n\nAPI KEY COUNT: {apiKeys.Count}\n\n\n\n");
 
             return Ok(apiKeys);
         }
@@ -106,6 +111,7 @@ namespace SeniorProjBackend.Controllers
             {
                 key.IsActive = false;
             }
+            _logger.LogInformation($"\n\n\n\nDEACTIVATED KEYS\n\n\n\n");
 
             // Create and activate the new key
             var apiKey = new APIKey
@@ -117,9 +123,6 @@ namespace SeniorProjBackend.Controllers
                 CreatedAt = DateTimeOffset.UtcNow,
                 UsageCount = 0
             };
-
-            // Remove this line:
-            // apiKey.User = user;
 
             _context.APIKeys.Add(apiKey);
             await _context.SaveChangesAsync();
@@ -133,6 +136,7 @@ namespace SeniorProjBackend.Controllers
         [HttpPut("UpdateAPIKey")]
         public async Task<IActionResult> UpdateAPIKey(UpdateAPIKeyRequest request)
         {
+            _logger.LogInformation($"\n\n\n\nATTEMPTING TO UPDATE KEY: {request.KeyName}, {request.APIKeyID}, value: {request.KeyValue}\n\n\n\n");
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -142,6 +146,7 @@ namespace SeniorProjBackend.Controllers
             var apiKey = await _context.APIKeys.FindAsync(request.APIKeyID);
             if (apiKey == null || apiKey.UserId != user.Id)
             {
+                _logger.LogInformation($"\n\n\n\nAPI Key not found or does not belong to the user\n\n\n\n");
                 return NotFound("API Key not found or does not belong to the user");
             }
 
@@ -158,6 +163,7 @@ namespace SeniorProjBackend.Controllers
         [HttpDelete("DeleteAPIKey")]
         public async Task<IActionResult> DeleteAPIKey(RequestId KeyID)
         {
+            _logger.LogInformation($"\n\n\n\nATTEMPTING TO DELETE KEY ID: {KeyID.Id}\n\n\n\n");
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -167,11 +173,30 @@ namespace SeniorProjBackend.Controllers
             var apiKey = await _context.APIKeys.FindAsync(KeyID.Id);
             if (apiKey == null || apiKey.UserId != user.Id)
             {
+                _logger.LogInformation($"\n\n\n\nAPI Key not found or does not belong to the user\n\n\n\n");
                 return NotFound("API Key not found or does not belong to the user");
             }
 
+            bool wasActive = apiKey.IsActive;
+
             _context.APIKeys.Remove(apiKey);
             await _context.SaveChangesAsync();
+
+            if (wasActive)
+            {
+                var anotherApiKey = await _context.APIKeys
+                    .Where(k => k.UserId == user.Id)
+                    .FirstOrDefaultAsync();
+
+                if (anotherApiKey != null)
+                {
+                    anotherApiKey.IsActive = true;
+                    _context.APIKeys.Update(anotherApiKey);
+                    await _context.SaveChangesAsync();
+
+                    _logger.LogInformation($"\n\n\n\nAPI Key {anotherApiKey.APIKeyID} set to active for user {user.Id}\n\n\n\n");
+                }
+            }
 
             _logger.LogInformation($"\n\n\n\nAPI Key {KeyID.Id} deleted for user {user.Id}\n\n\n\n");
             return Ok(new { Message = "API Key deleted successfully" });
@@ -179,9 +204,11 @@ namespace SeniorProjBackend.Controllers
 
 
 
+
         [HttpPut("SetActiveAPIKey")]
         public async Task<IActionResult> SetActiveAPIKey(RequestId APIKeyID)
         {
+            _logger.LogInformation($"\n\n\n\nTRYING TO SET KEY ID: {APIKeyID.Id} ACTIVE\n\n\n\n");
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -193,6 +220,7 @@ namespace SeniorProjBackend.Controllers
 
             if (activeKey == null)
             {
+                _logger.LogInformation($"\n\n\n\nAPI Key not found or does not belong to the user\n\n\n\n");
                 return NotFound("API Key not found or does not belong to the user");
             }
 
@@ -202,6 +230,8 @@ namespace SeniorProjBackend.Controllers
             {
                 key.IsActive = false;
             }
+
+            _logger.LogInformation($"\n\n\n\nSETTING ACTIVE API KEY: {activeKey.APIKeyID}\n\n\n\n");
 
             activeKey.IsActive = true;
 

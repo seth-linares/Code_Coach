@@ -4,18 +4,8 @@
 import { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { RegisterRequest, RegisterResponse } from "@/types"
 
-export interface RegisterRequest {
-    username: string;
-    password: string;
-    confirmPassword: string;
-    emailAddress: string;
-}
-
-export interface RegisterResponse {
-    message: string;
-    userId: string;
-}
 
 function useRegistration() {
     const router = useRouter();

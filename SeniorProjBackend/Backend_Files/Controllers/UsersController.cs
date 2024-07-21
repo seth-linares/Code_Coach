@@ -36,24 +36,9 @@ namespace SeniorProjBackend.Controllers
 
         private async Task<bool> SendLinkEmailAsync(User user, string subject, string linkText, string linkPath, string tokenType)
         {
-            var baseUrl = _configuration["FrontendUrl:Development"];
-            if (string.IsNullOrEmpty(baseUrl))
-            {
-                _logger.LogError("FrontendUrl:Development is not set in configuration");
-                return false;
-            }
-
-            baseUrl = baseUrl.TrimEnd('/');
-
-            // Ensure the URL uses HTTPS and doesn't have a port
-            if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out Uri uri) || uri.Scheme != "https")
-            {
-                baseUrl = "https://" + baseUrl.TrimStart("http://".ToCharArray()).Split(':')[0];
-            }
-            else
-            {
-                baseUrl = $"{uri.Scheme}://{uri.Host}";
-            }
+            // Explicitly set the base URL
+            //var baseUrl = "https://www.codecoachapp.com"; // Prod URL
+            var baseUrl = "https://localhost"; // Dev URL
 
             var token = await _userManager.GenerateUserTokenAsync(user, "Default", tokenType);
             var link = $"{baseUrl}/{linkPath}?userId={user.Id}&token={WebUtility.UrlEncode(token)}";
@@ -195,23 +180,28 @@ namespace SeniorProjBackend.Controllers
             return Ok(new { message = "Verification code sent to your email. Please verify to enable 2FA." });
         }
 
+        public class VerificationDto
+        {
+            public string Code { get; set; }
+        }
+
         // POST: api/Users/VerifyAnd2FA
         [Authorize]
         [HttpPost("VerifyAnd2FA")]
-        public async Task<IActionResult> VerifyAnd2FA(string verificationCode)
+        public async Task<IActionResult> VerifyAnd2FA(VerificationDto verificationDto)
         {
-            _logger.LogInformation($"\n\n\n\nVerification code: {verificationCode}\n\n\n\n");
+            _logger.LogInformation($"\n\n\n\nVerification code: {verificationDto.Code}\n\n\n\n");
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
                 return NotFound("User not found");
             }
 
-            var isValid = await _userManager.VerifyTwoFactorTokenAsync(user, "Email", verificationCode);
+            var isValid = await _userManager.VerifyTwoFactorTokenAsync(user, "Email", verificationDto.Code);
             if (!isValid)
             {
                 _logger.LogInformation($"\n\n\n\nBAD VERIFICATION CODE\n\n\n\n");
-                return BadRequest("Invalid verification code");
+                return BadRequest(new { message = "Invalid verification code" });
             }
 
             var result = await _userManager.SetTwoFactorEnabledAsync(user, true);
@@ -442,7 +432,8 @@ namespace SeniorProjBackend.Controllers
         [HttpPost("ChangePassword")]
         public async Task<IActionResult> ChangePassword(ChangePasswordDto changePasswordDto)
         {
-            _logger.LogInformation($"\n\n\n\nAttempting to change password");
+            _logger.LogInformation($"\n\n\n\nAttempting to change password\nOld Pass: {changePasswordDto.CurrentPassword}\nNew: {changePasswordDto.NewPassword}" +
+                $"\nConfirm: {changePasswordDto.ConfirmNewPassword}\n\n\n\n");
 
             if (!ModelState.IsValid)
             {
@@ -460,9 +451,10 @@ namespace SeniorProjBackend.Controllers
 
             if (!changePasswordResult.Succeeded)
             {
+                _logger.LogInformation($"\n\n\n\nValidation Problems\n\n\n\n");
                 foreach (var error in changePasswordResult.Errors)
                 {
-                    ModelState.AddModelError(string.Empty, error.Description);
+                    ModelState.AddModelError(error.Code, error.Description);
                 }
                 return ValidationProblem(ModelState);
             }
@@ -624,6 +616,7 @@ namespace SeniorProjBackend.Controllers
                 TotalScore = user.TotalScore,
                 Rank = user.Rank.ToString(),
                 CompletedProblems = user.CompletedProblems,
+                AttemptedProblems = user.AttemptedProblems,
                 ProfilePictureURL = user.ProfilePictureURL,
                 RegistrationDate = user.RegistrationDate
             };

@@ -27,49 +27,38 @@ export function Dashboard() {
                     </div>
                 </div>
 
-                    <div className="grid grid-rows-1 md:grid-rows-2 lg:grid-rows-3 gap-4 px-2">
-                        <div className="flex flex-col items-center bg-base-100 p-4 rounded-lg shadow-md">
-                            <h2 className="text-4xl text-primary font-bold mb-2">Difficulty: <span
-                                className="text-green-500">
-                            Easy
-                            </span>
-                            </h2>
-                            <p className="text-2xl mb-4">Total Problems: 21</p>
-                            <button className="btn">Get Started</button>
-                        </div>
+                <div className="grid grid-rows-1 md:grid-rows-2 lg:grid-rows-3 gap-4 px-2">
+                    <div className="flex flex-col items-center bg-base-100 p-4 rounded-lg shadow-md">
+                        <h2 className="text-4xl text-primary font-bold mb-2">Difficulty: <span
+                            className="text-green-500">
+                        Easy
+                        </span>
+                        </h2>
+                        <p className="text-2xl mb-4">Total Problems: 21</p>
+                        <button className="btn">Get Started</button>
+                    </div>
 
-                        <div className="flex flex-col items-center bg-base-100 p-4 rounded-lg shadow-md">
-                            <h2 className="text-4xl text-primary font-bold mb-2">Difficulty: <span
-                                className="text-yellow-500">
-                            Medium
-                            </span>
-                            </h2>
-                            <p className="text-2xl mb-4">Total Problems: 11</p>
-                            <button className="btn">Get Started</button>
-                        </div>
+                    <div className="flex flex-col items-center bg-base-100 p-4 rounded-lg shadow-md">
+                        <h2 className="text-4xl text-primary font-bold mb-2">Difficulty: <span
+                            className="text-yellow-500">
+                        Medium
+                        </span>
+                        </h2>
+                        <p className="text-2xl mb-4">Total Problems: 11</p>
+                        <button className="btn">Get Started</button>
+                    </div>
 
-                        <div className="flex flex-col items-center bg-base-100 p-4 rounded-lg shadow-md">
-                            <h2 className="text-4xl text-primary font-bold mb-2">Difficulty: <span
-                                className="text-yellow-500">
-                            Medium
-                            </span>
-                            </h2>
-                            <p className="text-2xl mb-4">Total Problems: 11</p>
-                            <button className="btn">Get Started</button>
-                        </div>
-
-                        <div className="flex flex-col items-center bg-base-100 p-4 rounded-lg shadow-md">
-                            <h2 className="text-4xl text-primary font-bold mb-2">Difficulty: <span
-                                className="text-red-500">
-                            Hard
-                            </span>
-                            </h2>
-                            <p className="text-2xl mb-4">Total Problems: 12</p>
-                            <Link className={"btn"} href={"/problems"}>Get Started</Link>
-                            {/*<button className="btn">Get Started</button>*/}
-                        </div>
+                    <div className="flex flex-col items-center bg-base-100 p-4 rounded-lg shadow-md">
+                        <h2 className="text-4xl text-primary font-bold mb-2">Difficulty: <span
+                            className="text-red-500">
+                        Hard
+                        </span>
+                        </h2>
+                        <p className="text-2xl mb-4">Total Problems: 12</p>
+                        <Link className={"btn"} href={"/problems"}>Get Started</Link>
                     </div>
                 </div>
             </div>
-            );
-            }
+        </div>
+        );
+}
