@@ -210,9 +210,20 @@ public class ProblemManagementController : ControllerBase
         return CreatedAtAction(nameof(GetProblemLanguageById), new { id = problemLanguage.ProblemLanguageID }, dto);
     }
 
+
+
+    // LETS YOU SEARCH BY EITHER/OR 
     [HttpPost("GetProblems")]
     public async Task<IActionResult> GetProblems(ProblemListRequest request)
     {
+
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) 
+        {
+            return Unauthorized();
+        }
+
+
         if (!string.IsNullOrEmpty(request.Category))
         {
             if (!Enum.TryParse<ProblemCategory>(request.Category, true, out var category))
@@ -243,14 +254,13 @@ public class ProblemManagementController : ControllerBase
             query = query.Where(p => p.Category == request.ParsedCategory.Value);
         }
 
-        var totalCount = await query.CountAsync();
-
         var problems = await query
             .OrderBy(p => p.ProblemID)
             .Select(p => new ProblemListItemDto
             {
                 ProblemID = p.ProblemID,
                 Title = p.Title,
+                IsCompleted = p.UserSubmissions.Any(us => us.UserId == user.Id && us.IsSuccessful),
                 Difficulty = p.Difficulty.ToString(),
                 Category = p.Category.ToString(),
                 Points = p.Points
@@ -267,7 +277,6 @@ public class ProblemManagementController : ControllerBase
     [HttpPost("GetLanguageDetails")]
     public async Task<IActionResult> GetLanguageDetails()
     {
-        var totalCount = await _context.Languages.CountAsync();
 
         var languages = await _context.Languages
             .OrderBy(l => l.Name)
@@ -297,7 +306,6 @@ public class ProblemManagementController : ControllerBase
             query = query.Where(pl => pl.LanguageID == request.LanguageID.Value);
         }
 
-        var totalCount = await query.CountAsync();
 
         var problemLanguages = await query
             .OrderBy(pl => pl.ProblemLanguageID)

@@ -57,6 +57,7 @@ namespace SeniorProjBackend.DTOs
     public class ProblemListItemDto
     {
         public int ProblemID { get; set; }
+        public bool IsCompleted { get; set; }
         public string Title { get; set; }
         public string Difficulty { get; set; }
 
