@@ -610,11 +610,28 @@ namespace SeniorProjBackend.Controllers
                 return NotFound("User not found.");
             }
 
+            Dictionary<int, string> rankMap = new Dictionary<int, string>
+            {
+                { 0, "Newbie" },
+                { 1, "Novice" },
+                { 2, "Amateur" },
+                { 3, "Talented" },
+                { 4, "Pro" }
+            };
+
+
+            // Convert rank from enum value
+            var rank = user.Rank.ToString() == "Newbie" ? "Newbie" : rankMap[(int)user.Rank];
+
+
+
+            
+
             var userStats = new UserStatsDto
             {
                 Username = user.UserName,
                 TotalScore = user.TotalScore,
-                Rank = user.Rank.ToString(),
+                Rank = rank,
                 CompletedProblems = user.CompletedProblems,
                 AttemptedProblems = user.AttemptedProblems,
                 ProfilePictureURL = user.ProfilePictureURL,
