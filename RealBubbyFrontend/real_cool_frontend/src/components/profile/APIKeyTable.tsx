@@ -1,9 +1,16 @@
 // src/components/profile/APIKeyTable.tsx
 
+"use client";
+
 import React, { useEffect } from 'react';
 import { APIKey, APIKeyTableProps } from '@/types';
 
-const APIKeyTable: React.FC<APIKeyTableProps> = ({ apiKeys, onSetActive, onEdit, onDelete }) => {
+const APIKeyTable: React.FC<APIKeyTableProps> = React.memo(({
+    apiKeys,
+    onSetActive,
+    onEdit,
+    onDelete }) => {
+
     useEffect(() => {
         console.log('APIKeyTable rendered with keys:', JSON.stringify(apiKeys, null, 2));
     }, [apiKeys]);
@@ -20,6 +27,21 @@ const APIKeyTable: React.FC<APIKeyTableProps> = ({ apiKeys, onSetActive, onEdit,
 
     const sortedApiKeys = [...apiKeys].sort((a, b) => (b.isActive ? 1 : 0) - (a.isActive ? 1 : 0));
 
+    const handleSetActive = (id: number) => {
+        console.log('Set Active clicked for key:', id);
+        onSetActive(id);
+    };
+
+    const handleEdit = (key: APIKey) => {
+        console.log('Edit clicked for key:', key);
+        onEdit(key);
+    };
+
+    const handleDelete = (id: number) => {
+        console.log('Delete clicked for key:', id);
+        onDelete(id);
+    };
+
     return (
         <div className="overflow-x-auto h-64">
             <table className="table w-full">
@@ -32,57 +54,46 @@ const APIKeyTable: React.FC<APIKeyTableProps> = ({ apiKeys, onSetActive, onEdit,
                 </tr>
                 </thead>
                 <tbody>
-                {sortedApiKeys.map((key, index) => {
-                    console.log(`Rendering key ${index}:`, JSON.stringify(key, null, 2));
-                    return (
-                        <tr key={key.apiKeyID?.toString() || `fallback-key-${index}`} className="hover:bg-base-300">
-                            <td className="bg-gray-700">{key.keyName || 'N/A'}</td>
-                            <td className="bg-gray-700">{key.usageCount}</td>
-                            <td className="bg-gray-700">
-                                {key.isActive ? (
-                                    <span className="badge badge-success">Active</span>
-                                ) : (
-                                    <span className="badge">Inactive</span>
-                                )}
-                            </td>
-                            <td className="bg-gray-700">
-                                <div className="btn-group space-x-2">
-                                    <button
-                                        className="btn btn-xs btn-primary"
-                                        onClick={() => {
-                                            console.log('Set Active clicked for key:', key.apiKeyID);
-                                            onSetActive(key.apiKeyID);
-                                        }}
-                                    >
-                                        Set Active
-                                    </button>
-                                    <button
-                                        className="btn btn-xs btn-accent"
-                                        onClick={() => {
-                                            console.log('Edit clicked for key:', key);
-                                            onEdit(key);
-                                        }}
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        className="btn btn-xs btn-error"
-                                        onClick={() => {
-                                            console.log('Delete clicked for key:', key.apiKeyID);
-                                            onDelete(key.apiKeyID);
-                                        }}
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    );
-                })}
+                {sortedApiKeys.map((key, index) => (
+                    <tr key={key.apiKeyID?.toString() || `fallback-key-${index}`} className="hover:bg-base-300">
+                        <td className="bg-gray-700">{key.keyName || 'N/A'}</td>
+                        <td className="bg-gray-700">{key.usageCount}</td>
+                        <td className="bg-gray-700">
+                            {key.isActive ? (
+                                <span className="badge badge-success">Active</span>
+                            ) : (
+                                <span className="badge">Inactive</span>
+                            )}
+                        </td>
+                        <td className="bg-gray-700">
+                            <div className="btn-group space-x-2">
+                                <button
+                                    className="btn btn-xs btn-primary"
+                                    onClick={() => handleSetActive(key.apiKeyID)}
+                                >
+                                    Set Active
+                                </button>
+                                <button
+                                    className="btn btn-xs btn-accent"
+                                    onClick={() => handleEdit(key)}
+                                >
+                                    Edit
+                                </button>
+                                <button
+                                    className="btn btn-xs btn-error"
+                                    onClick={() => handleDelete(key.apiKeyID)}
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                ))}
                 </tbody>
             </table>
         </div>
     );
-};
+});
 
 export default APIKeyTable;
+
