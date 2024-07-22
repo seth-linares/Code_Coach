@@ -1,9 +1,9 @@
 // src/components/ProfilePage.tsx
-
+"use client";
 
 import React from 'react';
-import { useUserStats } from '@/hooks/useProfile';
-import { use2FA } from '@/hooks/use2FA';
+import useUserStats from '@/hooks/useProfile';
+import use2FA from '@/hooks/use2FA';
 import UserStatsCard from './UserStatsCard';
 import TwoFactorSection from './TwoFactorSection';
 import APIKeyManager from "@/components/profile/APIKeyManager";
