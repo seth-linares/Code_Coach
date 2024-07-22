@@ -27,15 +27,20 @@ public class UserSubmissionsController : ControllerBase
         _context = context;
     }
 
-
+    // POST: https://localhost/api/UserSubmissions/SubmitCode
     [HttpPost("SubmitCode")]
     public async Task<IActionResult> SubmitCode(SubmissionRequestDto submissionRequest)
     {
+
+        _logger.LogInformation($"\n\n\n\nTRYING TO SUBMIT\nJ0Lang ID: {submissionRequest.Judge0LanguageId}\nProblem ID: {submissionRequest.ProblemId}\n\n\n\n");
+        
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
         {
             return Unauthorized();
         }
+
+
 
         var problem = await _context.Problems
             .Include(p => p.ProblemLanguages)
