@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { TwoFactorStatus } from '@/types';
 
-export const use2FA = () => {
+const use2FA = () => {
     const [status, setStatus] = useState<TwoFactorStatus | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -97,3 +97,5 @@ export const use2FA = () => {
 
     return { status, loading, error, getStatus, enable2FA, verify2FA, disable2FA };
 };
+
+export default use2FA;
