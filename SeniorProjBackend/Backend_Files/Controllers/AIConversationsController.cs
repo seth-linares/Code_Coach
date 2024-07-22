@@ -94,6 +94,7 @@ namespace SeniorProjBackend.Controllers
         public async Task<IActionResult> ChatGPT(ChatGPTRequest request)
         {
             _logger.LogInformation($"\n\n\n\nReceived ChatGPT request for ProblemId: {request.ProblemId}\n\n\n\n");
+            _logger.LogInformation($"\n\n\n\nUSER MESSAGE IN BASE64: {request.Message}\n\n\n\n");
 
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
@@ -152,8 +153,10 @@ namespace SeniorProjBackend.Controllers
 
             try
             {
+                _logger.LogInformation($"\n\n\n\n\n\n\n\nTRANSLATED!! {System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(problem.Description))}\n\n\n\n");
+                _logger.LogInformation($"\n\n\n\nTRANSLATED!! {System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(request.Message))}\n\n\n\n\n\n\n\n\n");
                 // Combine problem description and user message
-                string combinedMessage = $"Problem Description (Base64 Encoded): {Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(problem.Description))}\n\nUser Message (Base64 Encoded): {request.Message}";
+                string combinedMessage = $"Problem Description (Base64 Encoded): {System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(problem.Description))}\n\nUser Message: {System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(request.Message))}";
 
                 _logger.LogInformation($"\n\n\n\nSending message to ChatGPT service. Combined message length: {combinedMessage.Length}\n\n\n\n");
 

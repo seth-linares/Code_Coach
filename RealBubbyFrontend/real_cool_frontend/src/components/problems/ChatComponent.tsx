@@ -1,7 +1,7 @@
 // components/ChatComponent.tsx
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useChatGPT } from '@/hooks/useChatGPT';
 
@@ -12,6 +12,7 @@ interface ChatComponentProps {
 const ChatComponent: React.FC<ChatComponentProps> = ({ problemId }) => {
     const { sendMessage, messages, isLoading, error, resetConversation } = useChatGPT(problemId);
     const [inputMessage, setInputMessage] = useState('');
+    const chatContainerRef = useRef<HTMLDivElement>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -21,9 +22,18 @@ const ChatComponent: React.FC<ChatComponentProps> = ({ problemId }) => {
         }
     };
 
+    useEffect(() => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+    }, [messages]);
+
     return (
-        <div className="flex-grow flex flex-col">
-            <div className="chat-container flex-grow overflow-y-auto mb-2 p-4 bg-base-200 rounded-t-lg">
+        <div className="flex flex-col h-full max-h-[calc(100vh-200px)]"> {/* Adjust 200px as needed */}
+            <div
+                ref={chatContainerRef}
+                className="flex-grow overflow-y-auto mb-2 p-4 bg-base-200 rounded-t-lg"
+            >
                 {messages.map((msg, index) => (
                     <div key={index} className={`chat ${msg.role === 'user' ? 'chat-end' : 'chat-start'} mb-4`}>
                         <div className={`chat-bubble ${msg.role === 'assistant' ? 'prose' : ''}`}>
@@ -37,13 +47,13 @@ const ChatComponent: React.FC<ChatComponentProps> = ({ problemId }) => {
                 ))}
                 {isLoading && <div className="chat-start"><div className="chat-bubble">Thinking...</div></div>}
             </div>
-            <form onSubmit={handleSubmit} className="input-container">
+            <form onSubmit={handleSubmit} className="flex mt-2">
                 <input
                     type="text"
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
                     placeholder="Chat with AI..."
-                    className="input input-bordered w-full"
+                    className="input input-bordered flex-grow"
                     id="user-input"
                 />
                 <button type="submit" disabled={isLoading} className="btn btn-primary ml-2">Send</button>
