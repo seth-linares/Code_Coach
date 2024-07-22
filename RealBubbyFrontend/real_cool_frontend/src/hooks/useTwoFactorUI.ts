@@ -1,5 +1,7 @@
 // src/hooks/useTwoFactor.ts
 
+"use client";
+
 import { useState, useEffect } from 'react';
 import { TwoFactorSectionProps } from '@/types';
 
