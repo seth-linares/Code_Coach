@@ -1,4 +1,5 @@
 // src/components/profile/ProfileHeader.tsx
+"use client";
 
 import React, { useState } from 'react';
 import InputField from '../common/InputField';
