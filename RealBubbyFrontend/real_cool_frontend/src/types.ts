@@ -114,3 +114,52 @@ export interface UseProfileActionsResult {
     changePassword: (passwordDto: ChangePasswordDto) => Promise<void>;
     logout: () => Promise<void>;
 }
+
+export interface GetProblemsRequest {
+    difficulty: string;
+    category: string;
+}
+
+export interface GetProblemsResponse {
+    problemID: number;
+    isCompleted: boolean;
+    title: string;
+    difficulty: string;
+    category: string;
+    points: string;
+}
+
+export interface ProblemLanguageDetails {
+    languageID: number;
+    languageName: string;
+    judge0LanguageId: number;
+    functionSignature: string;
+}
+
+export interface ProblemDetails {
+    problemID: number;
+    title: string;
+    description: string;
+    difficulty: number;
+    category: number;
+    points: number;
+    languageDetails: ProblemLanguageDetails[];
+}
+
+export interface SubmissionResult {
+    isSuccessful: boolean;
+    stdout?: string;
+    stderr?: string;
+    compileOutput?: string;
+    executionTime?: number;
+    memoryUsed?: number;
+    status: {
+        id: number;
+        description: string;
+    };
+}
+
+export interface SubmissionError {
+    message: string;
+    status: number;
+}
