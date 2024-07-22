@@ -372,7 +372,7 @@ public class ProblemManagementController : ControllerBase
         {
             ProblemID = problem.ProblemID,
             Title = problem.Title,
-            Description = problem.Description,
+            Description = problem.Description, // base64
             Points = problem.Points,
             Difficulty = problem.Difficulty,
             Category = problem.Category,
@@ -424,8 +424,8 @@ public class ProblemManagementController : ControllerBase
             ProblemTitle = problemLanguage.Problem.Title,
             LanguageID = problemLanguage.LanguageID,
             LanguageName = problemLanguage.Language.Name,
-            FunctionSignature = problemLanguage.FunctionSignature,
-            TestCode = problemLanguage.TestCode
+            FunctionSignature = problemLanguage.FunctionSignature, // base64
+            TestCode = problemLanguage.TestCode // base64
         };
 
         return Ok(problemLanguageDto);
