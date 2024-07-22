@@ -1,5 +1,8 @@
 // hooks/useAPIKeys.ts
 
+"use client";
+
+
 import { useState, useEffect, useCallback } from 'react';
 import axios, { AxiosError } from 'axios';
 import { APIKey, CreateAPIKeyRequest, UpdateAPIKeyRequest, ErrorResponse } from "@/types";
