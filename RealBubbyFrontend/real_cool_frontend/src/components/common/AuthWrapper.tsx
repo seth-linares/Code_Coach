@@ -1,7 +1,7 @@
 // components/AuthWrapper.tsx
 "use client";
 
-import { ReactNode, useEffect } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 import { useAuthCheck }  from '@/hooks/useAuthCheck';
 import LoadingSpinner from './LoadingSpinner';
 
@@ -10,7 +10,7 @@ interface AuthWrapperProps {
     requireAuth?: boolean;
 }
 
-const AuthWrapper: React.FC<AuthWrapperProps> = ({ children, requireAuth = false }) => {
+const AuthWrapper: React.FC<AuthWrapperProps> = React.memo(({ children, requireAuth = false }) => {
     const { isAuthenticated, isAuthChecking, checkAuth, redirectBasedOnAuth } = useAuthCheck();
 
     useEffect(() => {
@@ -32,6 +32,6 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children, requireAuth = false
     }
 
     return <>{children}</>;
-};
+});
 
 export default AuthWrapper;

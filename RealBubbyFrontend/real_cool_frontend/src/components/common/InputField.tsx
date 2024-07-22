@@ -12,7 +12,7 @@ interface InputFieldProps {
     required?: boolean;
 }
 
-const InputField: React.FC<InputFieldProps> = ({ label, type, name, value, onChange, error, required = false }) => {
+const InputField: React.FC<InputFieldProps> = React.memo(({ label, type, name, value, onChange, error, required = false }) => {
     if (type === 'checkbox') {
         return (
             <div className="form-control mb-4">
@@ -56,6 +56,6 @@ const InputField: React.FC<InputFieldProps> = ({ label, type, name, value, onCha
             )}
         </div>
     );
-};
+});
 
 export default InputField;

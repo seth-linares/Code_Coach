@@ -20,7 +20,7 @@ const languageMap: { [key: number]: string } = {
     92: 'python'   // Python
 };
 
-const CodeEditor: React.FC<CodeEditorProps> = ({ problemId, languageDetails }) => {
+const CodeEditor: React.FC<CodeEditorProps> = React.memo(({ problemId, languageDetails }) => {
     const {
         activeLanguage,
         codeByLanguage,
@@ -49,7 +49,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ problemId, languageDetails }) =
     }, [languageDetails, activeLanguage, setActiveLanguage]);
 
     const handleEditorDidMount: OnMount = (editor, monaco) => {
-        // You can add any additional setup here if needed
+        // We can add custom themes and stuff if we want, not sure what to do with it for now.
     };
 
     const handleLanguageChange = (languageId: number) => {
@@ -162,6 +162,6 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ problemId, languageDetails }) =
             )}
         </div>
     );
-}
+});
 
 export default CodeEditor;

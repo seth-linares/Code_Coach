@@ -1,13 +1,9 @@
 // src/components/common/Modal.tsx
 
 import React from 'react';
+import {ModalProps} from "@/types";
 
-interface ModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    title: string;
-    children: React.ReactNode;
-}
+
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
     if (!isOpen) return null;

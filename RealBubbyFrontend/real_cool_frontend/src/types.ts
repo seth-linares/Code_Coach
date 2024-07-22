@@ -1,5 +1,7 @@
 // src/types.ts
 
+import React from "react";
+
 export interface RegisterRequest {
     username: string;
     password: string;
@@ -162,4 +164,11 @@ export interface SubmissionResult {
 export interface SubmissionError {
     message: string;
     status: number;
+}
+
+export interface ModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    title: string;
+    children: React.ReactNode;
 }
