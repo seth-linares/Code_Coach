@@ -49,9 +49,9 @@
     // Request DTO for submitting code
     public class SubmissionRequestDto
     {
-        public string EncodedCode { get; set; }
+        public string EncodedCode { get; set; } // base64
         public int ProblemId { get; set; }
-        public int Judge0LanguageId { get; set; }
+        public int Judge0LanguageId { get; set; } // 51 = C#, 54 = C++, 94 = Python
     }
 
     // Response DTO for paginated problem submissions
