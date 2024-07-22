@@ -10,7 +10,6 @@ using SeniorProjBackend.Encryption;
 using System.Text.Json.Serialization;
 
 
-// This console write will appear in the Docker logs
 Console.WriteLine("Starting SeniorProjBackend\n\n\n\n");
 
 var builder = WebApplication.CreateBuilder(args);
@@ -152,7 +151,7 @@ builder.Services.AddRateLimiter(options =>
             factory: partition => new FixedWindowRateLimiterOptions
             {
                 AutoReplenishment = true,
-                PermitLimit = 100,
+                PermitLimit = 50,
                 QueueLimit = 0,
                 Window = TimeSpan.FromMinutes(1)
             }));

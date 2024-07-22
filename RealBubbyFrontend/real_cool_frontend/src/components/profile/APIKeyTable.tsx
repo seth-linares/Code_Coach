@@ -95,5 +95,7 @@ const APIKeyTable: React.FC<APIKeyTableProps> = React.memo(({
     );
 });
 
+APIKeyTable.displayName = 'APIKeyTable';
+
 export default APIKeyTable;
 

@@ -164,4 +164,6 @@ const CodeEditor: React.FC<CodeEditorProps> = React.memo(({ problemId, languageD
     );
 });
 
+CodeEditor.displayName = 'CodeEditor';
+
 export default CodeEditor;

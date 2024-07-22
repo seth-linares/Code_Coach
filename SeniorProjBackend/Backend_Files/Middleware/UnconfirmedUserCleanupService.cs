@@ -63,7 +63,7 @@ namespace SeniorProjBackend.Middleware
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error deleting unconfirmed user: {Username}, {Email}", user.UserName, user.Email);
+                        _logger.LogError($"\n\n\n\nException: {ex}\nError deleting unconfirmed user: {user.UserName}, {user.Email}\n\n\n\n");
                     }
                 }
             }

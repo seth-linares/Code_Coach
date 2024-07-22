@@ -93,9 +93,12 @@ namespace SeniorProjBackend.Controllers
         [HttpPost("ChatGPT")]
         public async Task<IActionResult> ChatGPT(ChatGPTRequest request)
         {
+            _logger.LogInformation($"\n\n\n\nReceived ChatGPT request for ProblemId: {request.ProblemId}\n\n\n\n");
+
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
+                _logger.LogWarning($"\n\n\n\nUnauthorized access attempt\n\n\n\n");
                 return Unauthorized();
             }
 
@@ -104,6 +107,7 @@ namespace SeniorProjBackend.Controllers
 
             if (activeApiKey == null)
             {
+                _logger.LogWarning($"\n\n\n\nNo active API key found for user: {user.Id}\n\n\n\n");
                 return BadRequest("No active API key found. Please set an active API key before starting a conversation.");
             }
 
@@ -119,6 +123,7 @@ namespace SeniorProjBackend.Controllers
                     Model = "gpt-4o-mini"
                 };
                 _context.AIConversations.Add(conversation);
+                _logger.LogInformation($"\n\n\n\nStarting new conversation for user: {user.Id}, ProblemId: {request.ProblemId}\n\n\n\n");
             }
             else
             {
@@ -129,8 +134,10 @@ namespace SeniorProjBackend.Controllers
 
                 if (conversation == null)
                 {
+                    _logger.LogWarning($"\n\n\n\nConversation not found. ConversationId: {request.ConversationId}, UserId: {user.Id}\n\n\n\n");
                     return NotFound("Conversation not found");
                 }
+                _logger.LogInformation($"\n\n\n\nContinuing conversation: {conversation.ConversationID} for user: {user.Id}\n\n\n\n");
             }
 
             // Fetch the problem description
@@ -139,21 +146,27 @@ namespace SeniorProjBackend.Controllers
 
             if (problem == null)
             {
+                _logger.LogWarning($"\n\n\n\nProblem not found. ProblemId: {request.ProblemId}\n\n\n\n");
                 return NotFound("Problem not found");
             }
 
             try
             {
                 // Combine problem description and user message
-                string combinedMessage = $"Problem Description (Base64 Encoded): {problem.Description}\n\nUser Message (Base64 Encoded): {request.Message}";
+                string combinedMessage = $"Problem Description (Base64 Encoded): {Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(problem.Description))}\n\nUser Message (Base64 Encoded): {request.Message}";
+
+                _logger.LogInformation($"\n\n\n\nSending message to ChatGPT service. Combined message length: {combinedMessage.Length}\n\n\n\n");
 
                 // Send the combined message to the ChatGPT service
                 var chatGPTResponse = await _chatGPTService.SendMessage(activeApiKey.KeyValue, combinedMessage);
 
-                if (chatGPTResponse == null || chatGPTResponse.Choices == null || chatGPTResponse.Choices.Count == 0)
+                if (chatGPTResponse?.Choices == null || chatGPTResponse.Choices.Count == 0)
                 {
+                    _logger.LogError($"\n\n\n\nReceived invalid response from ChatGPT service\n\n\n\n");
                     return StatusCode(500, "Received an invalid response from the ChatGPT service");
                 }
+
+                _logger.LogInformation($"\n\n\n\nReceived valid response from ChatGPT service. Response length: {chatGPTResponse.Choices[0].Message?.Content?.Length ?? 0}\n\n\n\n");
 
                 var userMessage = new AIMessage
                 {
@@ -167,12 +180,13 @@ namespace SeniorProjBackend.Controllers
                 var assistantMessage = new AIMessage
                 {
                     ConversationID = conversation.ConversationID,
-                    Content = chatGPTResponse.Choices[0].Message.Content,
+                    Content = chatGPTResponse.Choices[0].Message?.Content ?? "No response content",
                     Role = "assistant",
                     Timestamp = DateTimeOffset.UtcNow,
                     CompletionTokens = chatGPTResponse.Usage?.CompletionTokens ?? 0
                 };
 
+                conversation.Messages ??= new List<AIMessage>();
                 conversation.Messages.Add(userMessage);
                 conversation.Messages.Add(assistantMessage);
                 conversation.TotalTokens += chatGPTResponse.Usage?.TotalTokens ?? 0;
@@ -182,11 +196,18 @@ namespace SeniorProjBackend.Controllers
 
                 await _context.SaveChangesAsync();
 
+                _logger.LogInformation($"\n\n\n\nSuccessfully processed ChatGPT response. ConversationId: {conversation.ConversationID}, TotalTokens: {conversation.TotalTokens}\n\n\n\n");
+
                 return Ok(new
                 {
                     ConversationId = conversation.ConversationID,
                     Message = assistantMessage.Content
                 });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError($"\n\n\n\nUnauthorized access: {ex.Message}\n\n\n\n");
+                return Unauthorized(ex.Message);
             }
             catch (Exception ex)
             {

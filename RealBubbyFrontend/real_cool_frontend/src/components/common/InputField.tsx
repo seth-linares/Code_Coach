@@ -58,4 +58,6 @@ const InputField: React.FC<InputFieldProps> = React.memo(({ label, type, name, v
     );
 });
 
+InputField.displayName = 'InputField';
+
 export default InputField;

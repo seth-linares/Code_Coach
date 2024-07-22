@@ -1,6 +1,7 @@
 // src/components/profile/UserStatsCard.tsx
 
 import React from 'react';
+import Image from 'next/image';
 import { UserStats } from '@/types';
 
 interface UserStatsCardProps {
@@ -18,7 +19,13 @@ const UserStatsCard: React.FC<UserStatsCardProps> = ({ stats }) => {
                 <div className="flex items-center gap-4 mb-6">
                     <div className="avatar">
                         <div className="w-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                            <img src={stats.profilePictureURL} alt={`${stats.username}'s avatar`} />
+                            <Image
+                                src={stats.profilePictureURL}
+                                alt={`${stats.username}'s avatar`}
+                                width={96}
+                                height={96}
+                                className="rounded-full"
+                            />
                         </div>
                     </div>
                     <div>

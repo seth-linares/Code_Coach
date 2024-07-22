@@ -5,6 +5,7 @@
 import { useParams } from "next/navigation"
 import CodeEditor from "@/components/problems/CodeEditor";
 import useProblemDetails from "@/hooks/useProblemDetails";
+import ChatComponent from "@/components/problems/ChatComponent";
 
 export function Problems() {
     const params = useParams();
@@ -14,8 +15,6 @@ export function Problems() {
     if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error}</div>;
     if (!problemDetails) return <div>No problem details found</div>;
-
-    console.log(`DESCRIPTION: ${problemDetails.description}`);
 
     return (
         <div className="flex-grow bg-blend-color flex flex-col md:flex-row p-4 gap-4">
@@ -32,15 +31,7 @@ export function Problems() {
                     <pre className="whitespace-pre-wrap">{problemDetails.description}</pre>
                 </div>
 
-                <div className="flex-grow flex flex-col">
-                    <div className="chat-container flex-grow overflow-y-auto mb-2 p-4 bg-base-200 rounded-t-lg">
-                        {/* Chat messages will go here */}
-                    </div>
-                    <div className="input-container">
-                        <input type="text" placeholder="Chat with AI..." className="input input-bordered w-full"
-                               id="user-input"/>
-                    </div>
-                </div>
+                <ChatComponent problemId={probID} />
             </div>
         </div>
     );

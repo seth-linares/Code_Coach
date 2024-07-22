@@ -51,4 +51,6 @@ const APIKeyModal: React.FC<APIKeyModalProps> = React.memo(({
     );
 });
 
+APIKeyModal.displayName = 'Modal';
+
 export default APIKeyModal;

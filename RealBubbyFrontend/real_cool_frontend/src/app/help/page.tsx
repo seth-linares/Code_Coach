@@ -62,7 +62,7 @@ export default function HelpPage() {
                 </div>
                 <div className="mt-12 text-center">
                     <h2 className="text-2xl font-semibold mb-4">Need more help?</h2>
-                    <p className="mb-4">If you couldn't find the answer you were looking for, check out our resources page for more information.</p>
+                    <p className="mb-4">If you couldn&apos;t find the answer you were looking for, check out our resources page for more information.</p>
                     <Link href="https://www.codecoachapp.com/resources" className="btn btn-secondary">
                         View Resources
                     </Link>

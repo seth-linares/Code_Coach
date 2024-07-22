@@ -34,4 +34,6 @@ const AuthWrapper: React.FC<AuthWrapperProps> = React.memo(({ children, requireA
     return <>{children}</>;
 });
 
+AuthWrapper.displayName = 'AuthWrapper';
+
 export default AuthWrapper;

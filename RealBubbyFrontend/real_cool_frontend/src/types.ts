@@ -172,3 +172,23 @@ export interface ModalProps {
     title: string;
     children: React.ReactNode;
 }
+
+
+export interface ChatGPTRequest {
+    conversationId?: number;
+    problemId: number;
+    message: string;
+}
+
+export interface ChatGPTResponse {
+    conversationId: number;
+    message: string;
+}
+
+export interface UseChatGPTResult {
+    sendMessage: (message: string) => Promise<void>;
+    messages: { role: 'user' | 'assistant', content: string }[];
+    isLoading: boolean;
+    error: string | null;
+    resetConversation: () => void;
+}
