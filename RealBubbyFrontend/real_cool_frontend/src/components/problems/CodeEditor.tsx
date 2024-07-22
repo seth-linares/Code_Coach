@@ -119,9 +119,26 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ problemId, languageDetails }) =
             </div>
 
             {result && (
-                <div className="mt-4 p-4 bg-base-200 rounded-lg">
-                    <h3 className="text-lg font-bold">Submission Result</h3>
-                    <p>Status: {result.status.description}</p>
+                <div
+                    className={`mt-4 p-4 rounded-lg ${result.isSuccessful ? 'bg-success text-success-content' : 'bg-error text-error-content'}`}>
+                    <div className="flex items-center mb-2">
+                        {result.isSuccessful ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none"
+                                 viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/>
+                            </svg>
+                        ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none"
+                                 viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                      d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        )}
+                        <h3 className="text-lg font-bold">
+                            {result.isSuccessful ? 'Submission Successful' : 'Submission Failed'}
+                        </h3>
+                    </div>
+                    <p className="font-semibold">Status: {result.status.description}</p>
                     {result.executionTime !== undefined && <p>Execution Time: {result.executionTime}s</p>}
                     {result.memoryUsed !== undefined && <p>Memory Used: {result.memoryUsed} KB</p>}
                     {renderOutput("Standard Output", result.stdout)}
@@ -132,12 +149,19 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ problemId, languageDetails }) =
 
             {submissionError && (
                 <div className="mt-4 p-4 bg-error text-error-content rounded-lg">
-                    <h3 className="text-lg font-bold">Submission Error</h3>
+                    <div className="flex items-center mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
+                             stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        <h3 className="text-lg font-bold">Submission Error</h3>
+                    </div>
                     <p>{submissionError.message}</p>
                 </div>
             )}
         </div>
     );
-};
+}
 
 export default CodeEditor;
