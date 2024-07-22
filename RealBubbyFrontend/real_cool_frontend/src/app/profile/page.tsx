@@ -1,8 +1,8 @@
 // src/app/profile/page.tsx
-'use client';
 
 import dynamic from 'next/dynamic';
 import AuthWrapper from "@/components/common/AuthWrapper";
+import { Footer } from '@/components/common/Footer';
 
 const ProfilePage = dynamic(() => import('@/components/profile/ProfilePage'), {
     ssr: false,
@@ -10,12 +10,14 @@ const ProfilePage = dynamic(() => import('@/components/profile/ProfilePage'), {
 });
 
 export default function ProfileWrapper() {
-    return(
+    return (
         <AuthWrapper requireAuth={true}>
-            <div className="bg-gray-900">
-                <ProfilePage />
+            <div className="bg-gray-900 min-h-screen flex flex-col">
+                <div className="flex-grow">
+                    <ProfilePage />
+                </div>
+                <Footer/>
             </div>
-
         </AuthWrapper>
     );
 }
