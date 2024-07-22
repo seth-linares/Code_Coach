@@ -71,6 +71,17 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ problemId, languageDetails }) =
         return activeLang ? languageMap[activeLang.judge0LanguageId] : undefined;
     };
 
+    const renderOutput = (label: string, content: string | undefined | null) => {
+        if (!content) return null;
+        const decodedContent = decodeBase64(content);
+        return (
+            <div className="mt-2">
+                <h4 className="font-bold">{label}:</h4>
+                <pre className="whitespace-pre-wrap p-2 rounded">{decodedContent}</pre>
+            </div>
+        );
+    };
+
     return (
         <div className="flex flex-col">
             <div className="mb-2">
@@ -111,11 +122,11 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ problemId, languageDetails }) =
                 <div className="mt-4 p-4 bg-base-200 rounded-lg">
                     <h3 className="text-lg font-bold">Submission Result</h3>
                     <p>Status: {result.status.description}</p>
-                    <p>Execution Time: {result.executionTime}s</p>
-                    <p>Memory Used: {result.memoryUsed} KB</p>
-                    {result.stdout && <pre className="mt-2">Output: {decodeBase64(result.stdout)}</pre>}
-                    {result.stderr && <pre className="mt-2 text-error">Error: {decodeBase64(result.stderr)}</pre>}
-                    {result.compileOutput && <pre className="mt-2">Compilation Output: {decodeBase64(result.compileOutput)}</pre>}
+                    {result.executionTime !== undefined && <p>Execution Time: {result.executionTime}s</p>}
+                    {result.memoryUsed !== undefined && <p>Memory Used: {result.memoryUsed} KB</p>}
+                    {renderOutput("Standard Output", result.stdout)}
+                    {renderOutput("Standard Error", result.stderr)}
+                    {renderOutput("Compile Output", result.compileOutput)}
                 </div>
             )}
 

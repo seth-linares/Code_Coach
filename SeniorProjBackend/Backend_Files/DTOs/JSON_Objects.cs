@@ -1,40 +1,54 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace SeniorProjBackend.DTOs
 {
     public class SubmissionResult
     {
-        [JsonProperty("language_id")]
+        [JsonPropertyName("language_id")]
         public int LanguageId { get; set; }
 
-        [JsonProperty("stdout")]
+        [JsonPropertyName("stdout")]
         public string? Stdout { get; set; }
 
-        [JsonProperty("time")]
-        public float? Time { get; set; }
-
-        [JsonProperty("memory")]
-        public float? Memory { get; set; }
-        
-        [JsonProperty("stderr")]
+        [JsonPropertyName("stderr")]
         public string? Stderr { get; set; }
 
-        [JsonProperty("token")]
+        [JsonPropertyName("token")]
         public string Token { get; set; }
 
-        [JsonProperty("compile_output")]
+        [JsonPropertyName("compile_output")]
         public string? CompileOutput { get; set; }
 
-        [JsonProperty("status")]
+        [JsonPropertyName("status")]
         public StatusResult Status { get; set; }
+
+        [JsonPropertyName("language")]
+        public LanguageResult Language { get; set; }
+
+        [JsonPropertyName("time")]
+        public float? Time { get; set; }
+
+        [JsonPropertyName("memory")]
+        public float? Memory { get; set; }
     }
 
     public class StatusResult
     {
-        [JsonProperty("id")]
+        [JsonPropertyName("id")]
         public int Id { get; set; }
 
-        [JsonProperty("description")]
+        [JsonPropertyName("description")]
         public string Description { get; set; }
+    }
+
+    public class LanguageResult
+    {
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
     }
 }

@@ -8,6 +8,7 @@ import { SubmissionError, SubmissionResult } from "@/types";
 
 const API_URL = 'https://localhost/api/UserSubmissions/SubmitCode';
 
+
 const useCodeSubmission = (problemId: number, getEncodedActiveCode: () => string, getJudge0LanguageId: () => number | null) => {
     const [submitting, setSubmitting] = useState(false);
     const [result, setResult] = useState<SubmissionResult | null>(null);
@@ -15,7 +16,6 @@ const useCodeSubmission = (problemId: number, getEncodedActiveCode: () => string
 
     const submitCode = async () => {
         const judge0LanguageId = getJudge0LanguageId();
-        console.log(`Judge0 Language ID: ${judge0LanguageId}`);
         if (judge0LanguageId === null) {
             setError({ message: "No active language selected", status: 400 });
             return;

@@ -87,6 +87,9 @@ public class UserSubmissionsController : ControllerBase
         {
             return StatusCode(500, "Error processing Judge0 response");
         }
+        _logger.LogInformation($"\n\n\n\nOBJECT: {submissionResult}\n\n\n\n");
+        _logger.LogInformation($"\n\n\n\nCOMPILE ERROR: {submissionResult.CompileOutput}\n\n\n\n");
+        _logger.LogInformation($"\n\n\n\nSTD ERROR: {submissionResult.Stderr}\n\n\n\n");
 
         bool isSuccessful = IsSubmissionSuccessful(submissionResult);
 
@@ -356,7 +359,7 @@ public class UserSubmissionsController : ControllerBase
         public string Token { get; set; }
     }
 
-    [HttpGet("GetSubmissionFromToken")]
+    [HttpPost("GetSubmissionFromToken")]
     public async Task<IActionResult> GetSubmissionFromToken(TokenDto tokenDto)
     {
         _logger.LogInformation($"\n\n\n\nGetting Submission Result for token: {tokenDto.Token}\n\n\n\n");
