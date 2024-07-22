@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { UserStats } from '@/types';
 
-export const useUserStats = () => {
+const useUserStats = () => {
     const [stats, setStats] = useState<UserStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -34,3 +34,5 @@ export const useUserStats = () => {
 
     return { stats, loading, error };
 };
+
+export default useUserStats;
