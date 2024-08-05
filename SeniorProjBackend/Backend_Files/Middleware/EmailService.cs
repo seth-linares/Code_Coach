@@ -22,8 +22,7 @@ public class EmailService : IEmailService
         var baseUrl = _configuration["Mailgun:BaseUrl"];
         var ak = _configuration["Mailgun:AK"];
 
-        _logger.LogInformation($"\n\n\n\nInitializing EmailService with base URL: {baseUrl}\n");
-        _logger.LogInformation($"API Key: ... {ak.Substring(Math.Max(0, ak.Length - 4))}\n\n\n\n");
+        _logger.LogInformation("\n\n\n\nInitializing EmailService with base URL: {baseUrl}\n", baseUrl);
 
         var options = new RestClientOptions(baseUrl)
         {
@@ -50,26 +49,21 @@ public class EmailService : IEmailService
 
         try
         {
-            _logger.LogInformation($"Attempting to send email to {to} with subject: {subject}");
-            _logger.LogInformation($"Using domain: {domain}");
-            _logger.LogInformation($"From: {_configuration["Mailgun:From"]}");
 
             var response = await _client.ExecuteAsync(request);
             if (response.IsSuccessful)
             {
-                _logger.LogInformation($"Email sent successfully to {to}");
+                _logger.LogInformation("Email sent successfully to {to}", to);
                 return true;
             }
             else
             {
-                _logger.LogError($"Failed to send email. Status Code: {response.StatusCode}, Error: {response.ErrorMessage}, Content: {response.Content}");
-                _logger.LogError($"Full Response: {response.Content}");
                 return false;
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"An error occurred while sending email to {to}");
+            _logger.LogError(ex, "An error occurred while sending email to {to}", to);
             return false;
         }
     }

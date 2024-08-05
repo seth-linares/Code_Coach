@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -31,55 +26,6 @@ namespace SeniorProjBackend.Controllers
             _chatGPTService = chatGPTService;
         }
 
-        [HttpPost("test")]
-        public async Task<IActionResult> TestChatGPTService()
-        {
-            _logger.LogInformation("\n\n\n\n\nStarting ChatGPT service test\n\n\n\n\n");
-
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                _logger.LogWarning("\n\n\n\n\nUnauthorized access attempt\n\n\n\n\n");
-                return Unauthorized();
-            }
-
-            var activeApiKey = await _context.APIKeys
-                .FirstOrDefaultAsync(k => k.UserId == user.Id && k.IsActive);
-
-            if (activeApiKey == null)
-            {
-                _logger.LogWarning($"\n\n\n\n\nNo active API key found for user {user.Id}\n\n\n\n\n");
-                return BadRequest("No active API key found");
-            }
-
-            _logger.LogInformation($"\n\n\n\n\nUsing API key: {activeApiKey.KeyName}\n\n\n\n\n");
-
-            string testMessage = "SSBhbSB0cnlpbmcgdG8gc29sdmUgdGhpcyBjb2RpbmcgYmF0IGFuZCBuZWVkIGhlbHAgdW5kZXJzdGFuZGluZyB0aGUgcHJvbXB0LiBDYW4geW91IGV4cGxhaW4gaXQgdG8gbWU/OgpHaXZlbiBhIHN0cmluZywgcmV0dXJuIGEgc3RyaW5nIGxlbmd0aCAyIG1hZGUgb2YgaXRzIGZpcnN0IDIgY2hhcnMuIElmIHRoZSBzdHJpbmcgbGVuZ3RoIGlzIGxlc3MgdGhhbiAyLCB1c2UgJ0AnIGZvciB0aGUgbWlzc2luZyBjaGFycy4KCmF0Rmlyc3QoImhlbGxvIikg4oaSICJoZSIKYXRGaXJzdCgiaGkiKSDihpIgImhpIgphdEZpcnN0KCJoIikg4oaSICJoQCIK";
-            _logger.LogInformation($"\n\n\n\n\nTest message: {testMessage}\n\n\n\n\n");
-
-            try
-            {
-                var chatGPTResponse = await _chatGPTService.SendMessage(activeApiKey.KeyValue, testMessage);
-
-                activeApiKey.UsageCount++;
-                activeApiKey.LastUsedAt = DateTime.UtcNow;
-
-                _logger.LogInformation($"\n\n\n\n\nChatGPT Response:\n{chatGPTResponse.Choices[0].Message.Content}\n\n\n\n\n");
-
-                _logger.LogInformation($"\n\n\n\n\nUsage Statistics:\nPrompt Tokens: {chatGPTResponse.Usage.PromptTokens}\nCompletion Tokens: {chatGPTResponse.Usage.CompletionTokens}\nTotal Tokens: {chatGPTResponse.Usage.TotalTokens}\n\n\n\n\n");
-
-                return Ok(new 
-                { 
-                    Message = chatGPTResponse.Choices[0].Message.Content,
-                    Usage = chatGPTResponse.Usage
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"\n\n\n\n\nError occurred while testing ChatGPT service: {ex.Message}\n\nStack Trace: {ex.StackTrace}\n\n\n\n\n");
-                return StatusCode(500, "An error occurred while testing the ChatGPT service. Please check the logs for more information.");
-            }
-        }
 
         // GET: api/AIConversations
         [HttpGet]
@@ -93,13 +39,13 @@ namespace SeniorProjBackend.Controllers
         [HttpPost("ChatGPT")]
         public async Task<IActionResult> ChatGPT(ChatGPTRequest request)
         {
-            _logger.LogInformation($"\n\n\n\nReceived ChatGPT request for ProblemId: {request.ProblemId}\n\n\n\n");
-            _logger.LogInformation($"\n\n\n\nUSER MESSAGE IN BASE64: {request.Message}\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nReceived ChatGPT request for ProblemId: {ProblemID}\n\n\n\n", request.ProblemId);
+            _logger.LogInformation("\n\n\n\nUSER MESSAGE IN BASE64: {Message}\n\n\n\n", request.Message);
 
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                _logger.LogWarning($"\n\n\n\nUnauthorized access attempt\n\n\n\n");
+                _logger.LogWarning("\n\n\n\nUnauthorized access attempt\n\n\n\n");
                 return Unauthorized();
             }
 
@@ -108,7 +54,7 @@ namespace SeniorProjBackend.Controllers
 
             if (activeApiKey == null)
             {
-                _logger.LogWarning($"\n\n\n\nNo active API key found for user: {user.Id}\n\n\n\n");
+                _logger.LogWarning("\n\n\n\nNo active API key found for user: {Id}\n\n\n\n", user.Id);
                 return BadRequest("No active API key found. Please set an active API key before starting a conversation.");
             }
 
@@ -124,7 +70,7 @@ namespace SeniorProjBackend.Controllers
                     Model = "gpt-4o-mini"
                 };
                 _context.AIConversations.Add(conversation);
-                _logger.LogInformation($"\n\n\n\nStarting new conversation for user: {user.Id}, ProblemId: {request.ProblemId}\n\n\n\n");
+                _logger.LogInformation("\n\n\n\nStarting new conversation for user: {Id}, ProblemId: {ProblemId}\n\n\n\n", user.Id, request.ProblemId);
             }
             else
             {
@@ -135,10 +81,10 @@ namespace SeniorProjBackend.Controllers
 
                 if (conversation == null)
                 {
-                    _logger.LogWarning($"\n\n\n\nConversation not found. ConversationId: {request.ConversationId}, UserId: {user.Id}\n\n\n\n");
+                    _logger.LogWarning("\n\n\n\nConversation not found. ConversationId: {ConversationId}, UserId: {Id}\n\n\n\n", request.ConversationId, user.Id);
                     return NotFound("Conversation not found");
                 }
-                _logger.LogInformation($"\n\n\n\nContinuing conversation: {conversation.ConversationID} for user: {user.Id}\n\n\n\n");
+                _logger.LogInformation("\n\n\n\nContinuing conversation: {ConversationID} for user: {Id}\n\n\n\n", conversation.ConversationID, user.Id);
             }
 
             // Fetch the problem description
@@ -147,29 +93,33 @@ namespace SeniorProjBackend.Controllers
 
             if (problem == null)
             {
-                _logger.LogWarning($"\n\n\n\nProblem not found. ProblemId: {request.ProblemId}\n\n\n\n");
+                _logger.LogWarning("\n\n\n\nProblem not found. ProblemId: {ProblemId}\n\n\n\n", request.ProblemId);
                 return NotFound("Problem not found");
             }
 
             try
             {
-                _logger.LogInformation($"\n\n\n\n\n\n\n\nTRANSLATED!! {System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(problem.Description))}\n\n\n\n");
-                _logger.LogInformation($"\n\n\n\nTRANSLATED!! {System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(request.Message))}\n\n\n\n\n\n\n\n\n");
-                // Combine problem description and user message
-                string combinedMessage = $"Problem Description (Base64 Encoded): {System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(problem.Description))}\n\nUser Message: {System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(request.Message))}";
+                string description = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(problem.Description));
+                string message = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(request.Message));
 
-                _logger.LogInformation($"\n\n\n\nSending message to ChatGPT service. Combined message length: {combinedMessage.Length}\n\n\n\n");
+                _logger.LogInformation("\n\n\n\n\n\n\n\nTRANSLATED!! {Description}\n\n\n\n", description);
+                _logger.LogInformation("\n\n\n\nTRANSLATED!! {Message}\n\n\n\n\n\n\n\n\n", message);
+                // Combine problem description and user message
+                string combinedMessage = $"Problem Description (Base64 Encoded): {description}\n\nUser Message: {message}";
+
+                _logger.LogInformation("\n\n\n\nSending message to ChatGPT service. Combined message length: {Length}\n\n\n\n", combinedMessage.Length);
 
                 // Send the combined message to the ChatGPT service
                 var chatGPTResponse = await _chatGPTService.SendMessage(activeApiKey.KeyValue, combinedMessage);
 
                 if (chatGPTResponse?.Choices == null || chatGPTResponse.Choices.Count == 0)
                 {
-                    _logger.LogError($"\n\n\n\nReceived invalid response from ChatGPT service\n\n\n\n");
+                    _logger.LogError("\n\n\n\nReceived invalid response from ChatGPT service\n\n\n\n");
                     return StatusCode(500, "Received an invalid response from the ChatGPT service");
                 }
 
-                _logger.LogInformation($"\n\n\n\nReceived valid response from ChatGPT service. Response length: {chatGPTResponse.Choices[0].Message?.Content?.Length ?? 0}\n\n\n\n");
+                _logger.LogInformation("\n\n\n\nReceived valid response from ChatGPT service. Response length: {Length}\n\n\n\n",
+                    chatGPTResponse.Choices[0].Message?.Content?.Length ?? 0);
 
                 var userMessage = new AIMessage
                 {
@@ -199,7 +149,8 @@ namespace SeniorProjBackend.Controllers
 
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation($"\n\n\n\nSuccessfully processed ChatGPT response. ConversationId: {conversation.ConversationID}, TotalTokens: {conversation.TotalTokens}\n\n\n\n");
+                _logger.LogInformation("\n\n\n\nSuccessfully processed ChatGPT response. ConversationId: {ConversationID}, TotalTokens: {TotalTokens}\n\n\n\n", 
+                    conversation.ConversationID, conversation.TotalTokens);
 
                 return Ok(new
                 {
@@ -209,12 +160,12 @@ namespace SeniorProjBackend.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                _logger.LogError($"\n\n\n\nUnauthorized access: {ex.Message}\n\n\n\n");
+                _logger.LogError("\n\n\n\nUnauthorized access: {Message}\n\n\n\n", ex.Message);
                 return Unauthorized(ex.Message);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"\n\n\n\nException: {ex}\nError occurred while processing ChatGPT response\n\n\n\n");
+                _logger.LogError(ex, "\n\n\n\nError occurred while processing ChatGPT response\n\n\n\n");
                 return StatusCode(500, "An error occurred while processing your request");
             }
         }

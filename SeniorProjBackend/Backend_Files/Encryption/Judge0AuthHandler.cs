@@ -13,13 +13,12 @@
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
+            _logger.LogInformation("\n\n\n\nAttempting to send problem to Judge0\n\n\n\n");
             string rapidApiKey = _configuration["Judge0:RapidApiKey"];
             string rapidApiHost = _configuration["Judge0:RapidApiHost"];
 
             request.Headers.Add("x-rapidapi-key", rapidApiKey);
             request.Headers.Add("x-rapidapi-host", rapidApiHost);
-
-            _logger.LogInformation($"\n\n\n\nAdding headers to Judge0 request:\nx-rapidapi-key: {rapidApiKey}\nx-rapidapi-host: {rapidApiHost}\n\n\n\n");
 
             return await base.SendAsync(request, cancellationToken);
         }

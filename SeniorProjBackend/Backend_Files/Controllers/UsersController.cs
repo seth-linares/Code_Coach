@@ -37,15 +37,14 @@ namespace SeniorProjBackend.Controllers
         private async Task<bool> SendLinkEmailAsync(User user, string subject, string linkText, string linkPath, string tokenType)
         {
             // Explicitly set the base URL
-            //var baseUrl = "https://www.codecoachapp.com"; // Prod URL
-            var baseUrl = "https://localhost"; // Dev URL
+            var baseUrl = "https://www.codecoachapp.com"; // Prod URL
 
             var token = await _userManager.GenerateUserTokenAsync(user, "Default", tokenType);
             var link = $"{baseUrl}/{linkPath}?userId={user.Id}&token={WebUtility.UrlEncode(token)}";
 
             // Log a redacted version of the link
             var redactedLink = link.Replace(token, "[REDACTED]");
-            _logger.LogInformation($"\n\n\n\nbase url: {baseUrl}\nRedacted Link: {redactedLink}\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nbase url: {baseUrl}\nRedacted Link: {redactedLink}\n\n\n\n", baseUrl, redactedLink);
 
             return await _emailService.SendEmailAsync(
                 user.Email,
@@ -81,13 +80,13 @@ namespace SeniorProjBackend.Controllers
                 var existingUserName = await _userManager.FindByNameAsync(userDto.Username);
                 if (existingUserEmail != null)
                 {
-                    _logger.LogError($"\n\n\n\nEMAIL ALREADY EXISTS {userDto.EmailAddress}\n\n\n\n");
+                    _logger.LogError("\n\n\n\nEMAIL ALREADY EXISTS {EmailAddress}\n\n\n\n", userDto.EmailAddress);
                     ModelState.AddModelError("Email", "A user with this email already exists.");
                     return ValidationProblem(ModelState);
                 }
                 if (existingUserName != null)
                 {
-                    _logger.LogError($"\n\n\n\nUSERNAME ALREADY EXISTS {userDto.Username}\n\n\n\n");
+                    _logger.LogError("\n\n\n\nUSERNAME ALREADY EXISTS {userDto.Username}\n\n\n\n", userDto.Username);
                     ModelState.AddModelError("UserName", "This username is already taken.");
                     return ValidationProblem(ModelState);
                 }
@@ -105,14 +104,14 @@ namespace SeniorProjBackend.Controllers
                 {
                     foreach (var error in result.Errors)
                     {
-                        _logger.LogError($"\n\n\n\nERRORS OCCURED WHILE REGISTERING\n");
-                        _logger.LogError($"Error: {error}\n\n\n\n");
+                        _logger.LogError("\n\n\n\nERRORS OCCURED WHILE REGISTERING\n");
+                        _logger.LogError("Error: {error}\n\n\n\n", error);
                         ModelState.AddModelError(error.Code, error.Description);
                     }
                     return ValidationProblem(ModelState);
                 }
 
-                _logger.LogInformation($"\n\n\n\nUser created: {user.UserName} (ID: {user.Id})\n\n\n\n");
+                _logger.LogInformation("\n\n\n\nUser created: {user.UserName} (ID: {user.Id})\n\n\n\n", user.UserName, user.Id);
 
                 var emailSent = await SendLinkEmailAsync(
                     user,
@@ -124,12 +123,12 @@ namespace SeniorProjBackend.Controllers
 
                 if (!emailSent)
                 {
-                    _logger.LogWarning($"\n\n\n\nFailed to send confirmation email to user {user.Id}\n\n\n\n");
+                    _logger.LogWarning("\n\n\n\nFailed to send confirmation email to user {user.Id}\n\n\n\n", user.Id);
                     await _userManager.DeleteAsync(user);
                     return StatusCode(500, "User registered but failed to send confirmation email. Please try again.");
                 }
 
-                _logger.LogInformation($"\n\n\n\nConfirmation email sent to: {user.UserName} (ID: {user.Id})\n\n\n\n");
+                _logger.LogInformation("\n\n\n\nConfirmation email sent to: {user.UserName} (ID: {user.Id})\n\n\n\n", user.UserName, user.Id);
 
                 return Ok(new
                 {
@@ -139,7 +138,7 @@ namespace SeniorProjBackend.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"\n\n\n\nException: {ex}\nAn error occurred during user registration\n\n\n\n");
+                _logger.LogError(ex, "\n\n\n\nAn error occurred during user registration\n\n\n\n");
                 return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
@@ -150,7 +149,7 @@ namespace SeniorProjBackend.Controllers
         [HttpPost("Enable2FA")]
         public async Task<IActionResult> Enable2FA()
         {
-            _logger.LogInformation($"\n\n\n\nATTEMPTING TO ENABLE 2FA\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nATTEMPTING TO ENABLE 2FA\n\n\n\n");
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -176,7 +175,7 @@ namespace SeniorProjBackend.Controllers
                 return StatusCode(500, "Failed to send verification email");
             }
 
-            _logger.LogInformation($"\n\n\n\n2FA verification email sent to user: {user.UserName}\n\n\n\n");
+            _logger.LogInformation("\n\n\n\n2FA verification email sent to user: {user.UserName}\n\n\n\n", user.UserName);
             return Ok(new { message = "Verification code sent to your email. Please verify to enable 2FA." });
         }
 
@@ -190,7 +189,7 @@ namespace SeniorProjBackend.Controllers
         [HttpPost("VerifyAnd2FA")]
         public async Task<IActionResult> VerifyAnd2FA(VerificationDto verificationDto)
         {
-            _logger.LogInformation($"\n\n\n\nVerification code: {verificationDto.Code}\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nVerification code: {verificationDto.Code}\n\n\n\n", verificationDto.Code);
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -200,19 +199,18 @@ namespace SeniorProjBackend.Controllers
             var isValid = await _userManager.VerifyTwoFactorTokenAsync(user, "Email", verificationDto.Code);
             if (!isValid)
             {
-                _logger.LogInformation($"\n\n\n\nBAD VERIFICATION CODE\n\n\n\n");
+                _logger.LogInformation("\n\n\n\nBAD VERIFICATION CODE\n\n\n\n");
                 return BadRequest(new { message = "Invalid verification code" });
             }
 
             var result = await _userManager.SetTwoFactorEnabledAsync(user, true);
             if (result.Succeeded)
             {
-                _logger.LogInformation($"\n\n\n\n2FA enabled for user: {user.UserName}\n\n\n\n");
+                _logger.LogInformation("\n\n\n\n2FA enabled for user: {user.UserName}\n\n\n\n", user.UserName);
                 return Ok(new { message = "2FA has been enabled successfully" });
             }
             else
             {
-                _logger.LogWarning($"\n\n\n\nFailed to enable 2FA for {user.UserName}. Errors: {string.Join(", ", result.Errors.Select(e => e.Description))}\n\n\n\n");
                 return BadRequest(new { message = "Failed to enable 2FA", errors = result.Errors.Select(e => e.Description) });
             }
         }
@@ -221,7 +219,7 @@ namespace SeniorProjBackend.Controllers
         [HttpPost("Disable2FA")]
         public async Task<IActionResult> Disable2FA()
         {
-            _logger.LogInformation($"\n\n\n\nDisable2FA\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nDisable2FA\n\n\n\n");
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -231,12 +229,11 @@ namespace SeniorProjBackend.Controllers
             var result = await _userManager.SetTwoFactorEnabledAsync(user, false);
             if (result.Succeeded)
             {
-                _logger.LogInformation($"\n\n\n\n2FA disabled for user: {user.UserName}\n\n\n\n");
+                _logger.LogInformation("\n\n\n\n2FA disabled for user: {user.UserName}\n\n\n\n", user.UserName);
                 return Ok(new { message = "2FA has been disabled successfully" });
             }
             else
             {
-                _logger.LogWarning($"\n\n\n\nFailed to disable 2FA for {user.UserName}. Errors: {string.Join(", ", result.Errors.Select(e => e.Description))}\n\n\n\n");
                 return BadRequest(new { message = "Failed to disable 2FA", errors = result.Errors.Select(e => e.Description) });
             }
         }
@@ -245,7 +242,7 @@ namespace SeniorProjBackend.Controllers
         [HttpGet("2FAStatus")]
         public async Task<IActionResult> Get2FAStatus()
         {
-            _logger.LogInformation($"\n\n\n\nGetting 2FA Status\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nGetting 2FA Status\n\n\n\n");
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -253,7 +250,7 @@ namespace SeniorProjBackend.Controllers
             }
 
             var is2faEnabled = await _userManager.GetTwoFactorEnabledAsync(user);
-            _logger.LogInformation($"\n\n\n\nis2faEnabled: {is2faEnabled}\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nis2faEnabled: {is2faEnabled}\n\n\n\n", is2faEnabled);
             return Ok(new { is2faEnabled });
         }
 
@@ -263,29 +260,28 @@ namespace SeniorProjBackend.Controllers
         [HttpPost("ConfirmEmail")]
         public async Task<IActionResult> ConfirmEmail(ConfirmEmailDto dto)
         {
-            _logger.LogInformation($"\n\n\n\nAttempting to confirm email for user ID: {dto.UserId}\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nAttempting to confirm email for user ID: {dto.UserId}\n\n\n\n", dto.UserId);
 
             var user = await _userManager.FindByIdAsync(dto.UserId);
             if (user == null)
             {
-                _logger.LogWarning($"\n\n\n\nUnable to load user with ID '{dto.UserId}'.\n\n\n\n");
+                _logger.LogWarning("\n\n\n\nUnable to load user with ID '{dto.UserId}'.\n\n\n\n", dto.UserId);
                 return NotFound($"Unable to load user with ID '{dto.UserId}'.");
             }
 
             if (user.EmailConfirmed)
             {
-                _logger.LogInformation($"\n\n\n\nEmail already confirmed for user {dto.UserId}\n\n\n\n");
+                _logger.LogInformation("\n\n\n\nEmail already confirmed for user {dto.UserId}\n\n\n\n", dto.UserId);
                 return Ok(new { message = "Email already confirmed. You can log in to your account." });
             }
 
             var result = await _userManager.ConfirmEmailAsync(user, dto.Token);
             if (!result.Succeeded)
             {
-                _logger.LogWarning($"\n\n\n\nFailed to confirm email for user {dto.UserId}. Errors: {string.Join(", ", result.Errors.Select(e => e.Description))}\n\n\n\n");
                 return BadRequest("Error confirming your email. Please try again or contact support.");
             }
 
-            _logger.LogInformation($"\n\n\n\nEmail confirmed successfully for user {dto.UserId} \n\n\n\n");
+            _logger.LogInformation("\n\n\n\nEmail confirmed successfully for user {dto.UserId} \n\n\n\n", dto.UserId);
             return Ok(new { message = "Email confirmed successfully. You can now log in to your account." });
         }
 
@@ -297,20 +293,20 @@ namespace SeniorProjBackend.Controllers
         [HttpPost("Login")]
         public async Task<IActionResult> Login(UserLoginDto userDto)
         {
-            _logger.LogInformation($"\n\n\n\nAttempting to log in user: {userDto.Username}\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nAttempting to log in user: {userDto.Username}\n\n\n\n", userDto.Username);
 
             try
             {
                 var user = await _userManager.FindByNameAsync(userDto.Username);
                 if (user == null)
                 {
-                    _logger.LogWarning($"\n\n\n\nFailed login attempt for invalid username: {userDto.Username}\n\n\n\n");
+                    _logger.LogWarning("\n\n\n\nFailed login attempt for invalid username: {userDto.Username}\n\n\n\n", userDto.Username);
                     return Unauthorized(new { message = "Invalid username or password." });
                 }
 
                 if (!await _userManager.IsEmailConfirmedAsync(user))
                 {
-                    _logger.LogWarning($"\n\n\n\nLogin attempt for unconfirmed email: {user.Email}\n\n\n\n");
+                    _logger.LogWarning("\n\n\n\nLogin attempt for unconfirmed email: {user.Email}\n\n\n\n", user.Email);
                     return BadRequest(new { message = "Please confirm your email before logging in." });
                 }
 
@@ -328,16 +324,16 @@ namespace SeniorProjBackend.Controllers
 
                 if (result.IsLockedOut)
                 {
-                    _logger.LogWarning($"\n\n\n\nUser account locked out: {user.UserName}\n\n\n\n");
+                    _logger.LogWarning("\n\n\n\nUser account locked out: {user.UserName}\n\n\n\n", user.UserName);
                     return StatusCode(StatusCodes.Status423Locked, new { message = "Account is locked. Please try again later." });
                 }
 
-                _logger.LogWarning($"\n\n\n\nFailed login attempt for user: {user.UserName}\n\n\n\n");
+                _logger.LogWarning("\n\n\n\nFailed login attempt for user: {user.UserName}\n\n\n\n", user.UserName);
                 return Unauthorized(new { message = "Invalid username or password." });
             }
             catch (Exception ex)
             {
-                _logger.LogError($"\n\n\n\nException: {ex}\nUnexpected error during login\n\n\n\n");
+                _logger.LogError(ex, "\n\n\n\nUnexpected error during login\n\n\n\n");
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
                     message = "An unexpected error has occurred. Please try again later.",
@@ -350,7 +346,7 @@ namespace SeniorProjBackend.Controllers
         {
             await _userManager.UpdateAsync(user);
 
-            _logger.LogInformation($"\n\n\n\nUser {user.UserName} logged in successfully\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nUser {user.UserName} logged in successfully\n\n\n\n", user.UserName);
             return Ok(new { requiredTwoFactor = false, message = "Logged in successfully" });
         }
 
@@ -359,14 +355,14 @@ namespace SeniorProjBackend.Controllers
             var token = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
             await _emailService.SendEmailAsync(user.Email, "Your 2FA Code", $"Your login code is: {token}");
 
-            _logger.LogInformation($"\n\n\n\n2FA initiated for user: {user.UserName}\n\n\n\n");
+            _logger.LogInformation("\n\n\n\n2FA initiated for user: {user.UserName}\n\n\n\n", user.UserName);
             return Ok(new { requiresTwoFactor = true, message = "2FA code sent to your email." });
         }
 
         [HttpPost("VerifyTwoFactorCode")]
         public async Task<IActionResult> VerifyTwoFactorCode(TwoFactorVerificationDto twoFactorDto)
         {
-            _logger.LogInformation($"\n\n\n\nATTEMPTING TO VERIFY 2FA\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nATTEMPTING TO VERIFY 2FA\n\n\n\n");
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
@@ -376,17 +372,17 @@ namespace SeniorProjBackend.Controllers
             var result = await _signInManager.TwoFactorSignInAsync("Email", twoFactorDto.Code, twoFactorDto.RememberMe, twoFactorDto.RememberBrowser);
             if (result.Succeeded)
             {
-                _logger.LogInformation($"\n\n\n\n2FA WORKED FOR {user.UserName}\n\n\n\n");
+                _logger.LogInformation("\n\n\n\n2FA WORKED FOR {user.UserName}\n\n\n\n", user.UserName);
                 return await CompleteLoginAsync(user);
             }
             else if (result.IsLockedOut)
             {
-                _logger.LogWarning($"\n\n\n\nUser account locked out during 2FA: {user.UserName}\n\n\n\n");
+                _logger.LogWarning("\n\n\n\nUser account locked out during 2FA: {user.UserName}\n\n\n\n", user.UserName);
                 return StatusCode(StatusCodes.Status423Locked, new { message = "Account is locked. Please try again later." });
             }
             else
             {
-                _logger.LogWarning($"\n\n\n\nInvalid 2FA code attempt for user: {user.UserName}\n\n\n\n");
+                _logger.LogWarning("\n\n\n\nInvalid 2FA code attempt for user: {user.UserName}\n\n\n\n", user.UserName);
                 return BadRequest("Invalid verification code");
             }
         }
@@ -396,7 +392,7 @@ namespace SeniorProjBackend.Controllers
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
-            _logger.LogInformation($"\n\n\nLogging user out!!!\n\n\n");
+            _logger.LogInformation("\n\n\nLogging user out!!!\n\n\n");
             return Ok(new { message = "Logged out successfully" });
         }
 
@@ -405,14 +401,14 @@ namespace SeniorProjBackend.Controllers
         [HttpGet("CheckSession")]
         public async Task<IActionResult> CheckSession()
         {
-            _logger.LogInformation($"\n\n\n\nCHECKING SESSION\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nCHECKING SESSION\n\n\n\n");
             if (User.Identity.IsAuthenticated)
             {
                 
                 var user = await _userManager.GetUserAsync(User);
                 if (user != null)
                 {
-                    _logger.LogInformation($"\n\n\n\nUSER FOUND: {user.UserName}, {user.Id}\n\n\n\n");
+                    _logger.LogInformation("\n\n\n\nUSER FOUND: {user.UserName}, {user.Id}\n\n\n\n", user.UserName, user.Id);
 
                     return Ok(new
                     {
@@ -423,7 +419,7 @@ namespace SeniorProjBackend.Controllers
                     });
                 }
             }
-            _logger.LogInformation($"\n\n\n\nNO AUTHENTICATION FOUND\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nNO AUTHENTICATION FOUND\n\n\n\n");
             return Ok(new { isAuthenticated = false });
         }
 
@@ -432,8 +428,6 @@ namespace SeniorProjBackend.Controllers
         [HttpPost("ChangePassword")]
         public async Task<IActionResult> ChangePassword(ChangePasswordDto changePasswordDto)
         {
-            _logger.LogInformation($"\n\n\n\nAttempting to change password\nOld Pass: {changePasswordDto.CurrentPassword}\nNew: {changePasswordDto.NewPassword}" +
-                $"\nConfirm: {changePasswordDto.ConfirmNewPassword}\n\n\n\n");
 
             if (!ModelState.IsValid)
             {
@@ -451,7 +445,7 @@ namespace SeniorProjBackend.Controllers
 
             if (!changePasswordResult.Succeeded)
             {
-                _logger.LogInformation($"\n\n\n\nValidation Problems\n\n\n\n");
+                _logger.LogInformation("\n\n\n\nValidation Problems\n\n\n\n");
                 foreach (var error in changePasswordResult.Errors)
                 {
                     ModelState.AddModelError(error.Code, error.Description);
@@ -462,7 +456,7 @@ namespace SeniorProjBackend.Controllers
             // Optional: Sign in the user again to update the authentication cookie
             await _signInManager.RefreshSignInAsync(user);
 
-            _logger.LogInformation($"\n\n\n\nUser {user.UserName} successfully changed their password.\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nUser {user.UserName} successfully changed their password.\n\n\n\n", user.UserName);
 
             return Ok("Your password has been changed successfully.");
         }
@@ -477,7 +471,7 @@ namespace SeniorProjBackend.Controllers
         [HttpPost("ForgotPassword")]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordDto forgotPasswordDto)
         {
-            _logger.LogInformation($"\n\n\n\nATTEMPTING TO HANDLE FORGOT PASSWORD WITH EMAIL: {forgotPasswordDto.Email}\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nATTEMPTING TO HANDLE FORGOT PASSWORD WITH EMAIL: {forgotPasswordDto.Email}\n\n\n\n", forgotPasswordDto.Email);
             
             if (!ModelState.IsValid)
             {
@@ -488,7 +482,7 @@ namespace SeniorProjBackend.Controllers
             var user = await _userManager.FindByEmailAsync(forgotPasswordDto.Email);
             if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
             {
-                _logger.LogInformation($"\n\n\n\nFAKE USER EMAIL: {forgotPasswordDto.Email}\n\n\n\n");
+                _logger.LogInformation("\n\n\n\nFAKE USER EMAIL: {forgotPasswordDto.Email}\n\n\n\n", forgotPasswordDto.Email);
                 // Don't reveal that the user does not exist or is not confirmed
                 return Ok("If your email is registered and confirmed, you will receive a password reset link shortly.");
             }
@@ -503,7 +497,7 @@ namespace SeniorProjBackend.Controllers
 
             if (!emailSent)
             {
-                _logger.LogWarning($"\n\n\n\nFailed to send password reset email to user {user.Id}\n\n\n\n");
+                _logger.LogWarning("\n\n\n\nFailed to send password reset email to user {user.Id}\n\n\n\n", user.Id);
                 return StatusCode(500, "Failed to send password reset email. Please try again later.");
             }
 
@@ -514,7 +508,7 @@ namespace SeniorProjBackend.Controllers
         [HttpPost("ResetPassword")]
         public async Task<IActionResult> ResetPassword(ResetPasswordDto resetPasswordDto)
         {
-            _logger.LogInformation($"\n\n\n\nATTEMPTING TO RESET PASSWORD\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nATTEMPTING TO RESET PASSWORD\n\n\n\n");
             if (!ModelState.IsValid)
             {
                 return ValidationProblem(ModelState);
@@ -524,7 +518,7 @@ namespace SeniorProjBackend.Controllers
             var user = await _userManager.FindByIdAsync(resetPasswordDto.UserId);
             if (user == null)
             {
-                _logger.LogInformation($"\n\n\n\nUSER NOT FOUND IN RESET\n\n\n\n");
+                _logger.LogInformation("\n\n\n\nUSER NOT FOUND IN RESET\n\n\n\n");
                 // Don't reveal that the user does not exist
                 return Ok("If your account exists, your password has been reset.");
             }
@@ -532,7 +526,7 @@ namespace SeniorProjBackend.Controllers
             var result = await _userManager.ResetPasswordAsync(user, resetPasswordDto.Token, resetPasswordDto.NewPassword);
             if (result.Succeeded)
             {
-                _logger.LogInformation($"\n\n\n\nPassword reset successfully for user {user.Id}\n\n\n\n");
+                _logger.LogInformation("\n\n\n\nPassword reset successfully for user {user.Id}\n\n\n\n", user.Id);
                 return Ok("Your password has been reset successfully.");
             }
 
@@ -540,7 +534,7 @@ namespace SeniorProjBackend.Controllers
             {
                 ModelState.AddModelError(string.Empty, error.Description);
             }
-            _logger.LogInformation($"\n\n\n\nERRORS CAME UP WHEN RESETTING PASSWORD\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nERRORS CAME UP WHEN RESETTING PASSWORD\n\n\n\n");
             return ValidationProblem(ModelState);
         }
 
@@ -550,7 +544,7 @@ namespace SeniorProjBackend.Controllers
         [HttpPost("DeleteAccount")]
         public async Task<IActionResult> DeleteAccount(DeleteAccountDto deleteAccountDto)
         {
-            _logger.LogInformation($"\n\n\n\nAttemping to delete account\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nAttemping to delete account\n\n\n\n");
             if (!ModelState.IsValid)
             {
                 return ValidationProblem(ModelState);
@@ -576,13 +570,13 @@ namespace SeniorProjBackend.Controllers
                 var deleteResult = await _userManager.DeleteAsync(user);
                 if (!deleteResult.Succeeded)
                 {
-                    _logger.LogError($"\n\n\n\nFailed to delete user: {user.UserName} (ID: {user.Id})\n\n\n\n");
+                    _logger.LogError("\n\n\n\nFailed to delete user: {user.UserName} (ID: {user.Id})\n\n\n\n", user.UserName, user.Id);
                     // You can include error details from deleteResult.Errors if they provide useful context
                     return StatusCode(500, "Failed to delete user. Please try again later.");
                 }
 
                 // Log the account deletion
-                _logger.LogInformation($"\n\n\n\nUser account deleted: {user.UserName} (ID: {user.Id})\n\n\n\n");
+                _logger.LogInformation("\n\n\n\nUser account deleted: {user.UserName} (ID: {user.Id})\n\n\n\n", user.UserName, user.Id);
 
                 // Sign out the user
                 await _signInManager.SignOutAsync();
@@ -591,7 +585,7 @@ namespace SeniorProjBackend.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"\n\n\n\nException:{ex}\nError deleting user account: {user.UserName} (ID: {user.Id})\n\n\n\n");
+                _logger.LogError(ex, "\n\n\n\nError deleting user account: {user.UserName} (ID: {user.Id})\n\n\n\n", user.UserName, user.Id);
                 return StatusCode(500, "An error occurred while deleting your account. Please try again later.");
             }
         }
@@ -600,13 +594,13 @@ namespace SeniorProjBackend.Controllers
         [HttpGet("stats")]
         public async Task<ActionResult<UserStatsDto>> GetUserStats()
         {
-            _logger.LogInformation($"\n\n\n\nATTEMPTING TO GET USER STATS\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nATTEMPTING TO GET USER STATS\n\n\n\n");
             // Get the current user
             var user = await _userManager.GetUserAsync(User);
 
             if (user == null)
             {
-                _logger.LogInformation($"\n\n\n\nUSER NOT FOUND\n\n\n\n");
+                _logger.LogInformation("\n\n\n\nUSER NOT FOUND\n\n\n\n");
                 return NotFound("User not found.");
             }
 
@@ -638,7 +632,7 @@ namespace SeniorProjBackend.Controllers
                 RegistrationDate = user.RegistrationDate
             };
 
-            _logger.LogInformation($"\n\n\n\nSUCCESSFULLY RETURNING STATS\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nSUCCESSFULLY RETURNING STATS\n\n\n\n");
             return userStats;
         }
 

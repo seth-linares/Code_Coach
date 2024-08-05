@@ -2,10 +2,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using SeniorProjBackend.Data;
 using SeniorProjBackend.DTOs;
-using System.Linq;
 using System.Text;
 
 
@@ -32,7 +30,7 @@ public class UserSubmissionsController : ControllerBase
     public async Task<IActionResult> SubmitCode(SubmissionRequestDto submissionRequest)
     {
 
-        _logger.LogInformation($"\n\n\n\nTRYING TO SUBMIT\nJ0Lang ID: {submissionRequest.Judge0LanguageId}\nProblem ID: {submissionRequest.ProblemId}\n\n\n\n");
+        _logger.LogInformation("\n\n\n\nTRYING TO SUBMIT\nJ0Lang ID: {Judge0LanguageId}\nProblem ID: {ProblemId}\n\n\n\n", submissionRequest.Judge0LanguageId, submissionRequest.ProblemId);
         
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
@@ -77,7 +75,7 @@ public class UserSubmissionsController : ControllerBase
 
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogError($"\n\n\n\nJudge0 API error: {response.StatusCode}\n\n\n\n");
+            _logger.LogError("\n\n\n\nJudge0 API error: {response.StatusCode}\n\n\n\n", response.StatusCode);
             return StatusCode((int)response.StatusCode, "Error submitting code to Judge0");
         }
 
@@ -87,9 +85,8 @@ public class UserSubmissionsController : ControllerBase
         {
             return StatusCode(500, "Error processing Judge0 response");
         }
-        _logger.LogInformation($"\n\n\n\nOBJECT: {submissionResult}\n\n\n\n");
-        _logger.LogInformation($"\n\n\n\nCOMPILE ERROR: {submissionResult.CompileOutput}\n\n\n\n");
-        _logger.LogInformation($"\n\n\n\nSTD ERROR: {submissionResult.Stderr}\n\n\n\n");
+        _logger.LogInformation("\n\n\n\nCOMPILE ERROR: {submissionResult.CompileOutput}\n\n\n\n", submissionResult.CompileOutput);
+        _logger.LogInformation("\n\n\n\nSTD ERROR: {submissionResult.Stderr}\n\n\n\n", submissionResult.Stderr);
 
         bool isSuccessful = IsSubmissionSuccessful(submissionResult);
 
@@ -126,7 +123,7 @@ public class UserSubmissionsController : ControllerBase
     private string CombineCode(string userCode, string testCode, int languageId)
     {
 
-        _logger.LogInformation($"\n\n\n\nCOMBINING THE CODE\n\n\n\n");
+        _logger.LogInformation("\n\n\n\nCOMBINING THE CODE\n\n\n\n");
         // Assuming both userCode and testCode are already Base64 encoded
         byte[] userCodeBytes = Convert.FromBase64String(userCode);
         byte[] testCodeBytes = Convert.FromBase64String(testCode);
@@ -142,7 +139,7 @@ public class UserSubmissionsController : ControllerBase
 
         var combinedEncoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(combinedCode));
 
-        _logger.LogInformation($"\n\n\n\nCombined encoded: {combinedEncoded}\n\n\n\n");
+        _logger.LogInformation("\n\n\n\nCombined encoded: {combinedEncoded}\n\n\n\n", combinedEncoded);
 
         return combinedEncoded;
     }
@@ -163,7 +160,7 @@ public class UserSubmissionsController : ControllerBase
 
         bool zeroErrors = lastLine == "Failed: 0";
 
-        _logger.LogInformation($"\n\n\n\nLast line is 'Failed: 0': {zeroErrors}\nLast line: '{lastLine}'\n\n\n\n");
+        _logger.LogInformation("\n\n\n\nLast line is 'Failed: 0': {zeroErrors}\nLast line: '{lastLine}'\n\n\n\n", zeroErrors, lastLine);
 
         return zeroErrors;
     }
@@ -333,7 +330,7 @@ public class UserSubmissionsController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError($"\n\n\n\nException: {ex}\nError getting about information from Judge0\n\n\n\n");
+            _logger.LogError(ex, "\n\n\n\nError getting about information from Judge0\n\n\n\n");
             return StatusCode(500, "An error occurred while processing your request.");
         }
     }
@@ -349,7 +346,7 @@ public class UserSubmissionsController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError($"\n\n\n\nException: {ex}\nUnable to reach Judge0\n\n\n\n");
+            _logger.LogError(ex, "\n\n\n\nUnable to reach Judge0\n\n\n\n");
             return StatusCode(500, $"Unable to reach Judge0: {ex.Message}");
         }
     }
@@ -362,7 +359,7 @@ public class UserSubmissionsController : ControllerBase
     [HttpPost("GetSubmissionFromToken")]
     public async Task<IActionResult> GetSubmissionFromToken(TokenDto tokenDto)
     {
-        _logger.LogInformation($"\n\n\n\nGetting Submission Result for token: {tokenDto.Token}\n\n\n\n");
+        _logger.LogInformation("\n\n\n\nGetting Submission Result for token: {tokenDto.Token}\n\n\n\n", tokenDto.Token);
         try
         {
             var response = await _httpClient.GetAsync($"submissions/{tokenDto.Token}?base64_encoded=true&fields=*");
@@ -370,7 +367,7 @@ public class UserSubmissionsController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError($"\n\n\n\n{ex}\nError getting submission result for token: {tokenDto.Token}\n\n\n\n");
+            _logger.LogError(ex, "\n\n\n\nError getting submission result for token: {tokenDto.Token}\n\n\n\n", tokenDto.Token);
             return StatusCode(500, "An error occurred while processing your request.");
         }
     }
@@ -386,7 +383,7 @@ public class UserSubmissionsController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError($"\n\n\n\nException: {ex}\nError getting languages\n\n\n\n");
+            _logger.LogError(ex, "\n\n\n\nError getting languages\n\n\n\n");
             return StatusCode(500, "An error occurred while processing your request.");
         }
     }
@@ -411,8 +408,8 @@ public class UserSubmissionsController : ControllerBase
     {
         var content = await response.Content.ReadAsStringAsync();
 
-        _logger.LogInformation($"\n\n\n\nResponse Status Code: {response.StatusCode}\n\n\n\n");
-        _logger.LogInformation($"\n\n\n\nResponse Content: {content}\n\n\n\n");
+        _logger.LogInformation("\n\n\n\nResponse Status Code: {response.StatusCode}\n\n\n\n", response.StatusCode);
+        _logger.LogInformation("\n\n\n\nResponse Content: {content}\n\n\n\n", content);
 
         if (response.IsSuccessStatusCode)
         {

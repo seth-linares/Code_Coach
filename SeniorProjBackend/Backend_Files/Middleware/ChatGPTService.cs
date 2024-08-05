@@ -54,13 +54,14 @@ namespace SeniorProjBackend.Middleware
                 response.EnsureSuccessStatusCode();
                 var responseString = await response.Content.ReadAsStringAsync();
 
-                _logger.LogInformation($"\n\n\n\n\nRaw API Response:\n{responseString}\n\n\n\n\n");
+                _logger.LogInformation("\n\n\n\n\nRaw API Response:\n{responseString}\n\n\n\n\n", responseString);
 
                 var chatGPTResponse = JsonSerializer.Deserialize<ChatGPTResponse>(responseString, options);
 
                 if (chatGPTResponse != null && chatGPTResponse.Usage != null)
                 {
-                    _logger.LogInformation($"\n\n\n\nCompletion Tokens: {chatGPTResponse.Usage.CompletionTokens}\nPrompt Tokens: {chatGPTResponse.Usage.PromptTokens}\nTotal Tokens: {chatGPTResponse.Usage.TotalTokens}\n\n\n\n");
+                    _logger.LogInformation("\n\n\n\nCompletion Tokens: {CompletionTokens}\nPrompt Tokens: {PromptTokens}\nTotal Tokens: {TotalTokens}\n\n\n\n",
+                        chatGPTResponse.Usage.CompletionTokens, chatGPTResponse.Usage.PromptTokens, chatGPTResponse.Usage.TotalTokens);
                 }
                 else
                 {

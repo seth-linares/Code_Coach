@@ -53,7 +53,7 @@ namespace SeniorProjBackend.Middleware
                         var result = await userManager.DeleteAsync(user);
                         if (result.Succeeded)
                         {
-                            _logger.LogInformation($"\n\n\n\nDeleted unconfirmed user: {user.UserName}, {user.Email}\n\n\n\n");
+                            _logger.LogInformation("\n\n\n\nDeleted unconfirmed user: {user.UserName}, {user.Email}\n\n\n\n", user.UserName, user.Email);
                         }
                         else
                         {
@@ -63,7 +63,7 @@ namespace SeniorProjBackend.Middleware
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError($"\n\n\n\nException: {ex}\nError deleting unconfirmed user: {user.UserName}, {user.Email}\n\n\n\n");
+                        _logger.LogError(ex, "\n\n\n\nError deleting unconfirmed user: {user.UserName}, {user.Email}\n\n\n\n", user.UserName, user.Email);
                     }
                 }
             }

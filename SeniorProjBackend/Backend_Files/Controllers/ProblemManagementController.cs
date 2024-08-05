@@ -136,7 +136,7 @@ public class ProblemManagementController : ControllerBase
         _context.Problems.Add(problem);
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation($"New problem added: {problem.ProblemID}");
+        _logger.LogInformation("New problem added: {ProblemID}", problem.ProblemID);
 
         return CreatedAtAction(nameof(GetProblemById), new { id = problem.ProblemID }, problem);
     }
@@ -154,7 +154,7 @@ public class ProblemManagementController : ControllerBase
         _context.Languages.Add(language);
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation($"\n\n\n\nNew language added: {language.LanguageID}\n\n\n\n");
+        _logger.LogInformation("\n\n\n\nNew language added: {LanguageID}\n\n\n\n", language.LanguageID);
 
         return CreatedAtAction(nameof(GetLanguageById), new { id = language.LanguageID }, language);
     }
@@ -196,7 +196,7 @@ public class ProblemManagementController : ControllerBase
             .Reference(pl => pl.Language)
             .LoadAsync();
 
-        _logger.LogInformation($"\n\n\n\nNew problem-language association added: {problemLanguage.ProblemLanguageID}\n\n\n\n");
+        _logger.LogInformation("\n\n\n\nNew problem-language association added: {ProblemLanguageID}\n\n\n\n", problemLanguage.ProblemLanguageID);
 
         var dto = new ProblemLanguageDto
         {
@@ -452,12 +452,12 @@ public class ProblemManagementController : ControllerBase
         try
         {
             await _context.SaveChangesAsync();
-            _logger.LogInformation($"\n\n\n\nProblem with ID {request.ProblemID} has been updated.\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nProblem with ID {ProblemID} has been updated.\n\n\n\n", request.ProblemID);
             return Ok($"Problem with ID {request.ProblemID} has been successfully updated.");
         }
         catch (Exception ex)
         {
-            _logger.LogError($"\n\n\n\nException: {ex}\nAn error occurred while updating Problem with ID {request.ProblemID}\n\n\n\n");
+            _logger.LogError(ex, "\n\n\n\nAn error occurred while updating Problem with ID {ProblemID}\n\n\n\n", request.ProblemID);
             return StatusCode(500, "An error occurred while processing your request. Please try again later.");
         }
     }
@@ -478,12 +478,12 @@ public class ProblemManagementController : ControllerBase
         try
         {
             await _context.SaveChangesAsync();
-            _logger.LogInformation($"\n\n\n\nLanguage with ID {request.LanguageID} has been updated.\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nLanguage with ID {LanguageID} has been updated.\n\n\n\n", request.LanguageID);
             return Ok($"Language with ID {request.LanguageID} has been successfully updated.");
         }
         catch (Exception ex)
         {
-            _logger.LogError($"\n\n\n\nException: {ex}\nAn error occurred while updating Language with ID {request.LanguageID}\n\n\n\n");
+            _logger.LogError(ex, "\n\n\n\nAn error occurred while updating Language with ID {LanguageID}\n\n\n\n", request.LanguageID);
             return StatusCode(500, "An error occurred while processing your request. Please try again later.");
         }
     }
@@ -504,12 +504,12 @@ public class ProblemManagementController : ControllerBase
         try
         {
             await _context.SaveChangesAsync();
-            _logger.LogInformation($"\n\n\n\nProblemLanguage with ID {request.ProblemLanguageID} has been updated.\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nProblemLanguage with ID {ProblemLanguageID} has been updated.\n\n\n\n", request.ProblemLanguageID);
             return Ok($"ProblemLanguage with ID {request.ProblemLanguageID} has been successfully updated.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"\n\n\n\nAn error occurred while updating ProblemLanguage with ID {request.ProblemLanguageID}\n\n\n\n");
+            _logger.LogError(ex, "\n\n\n\nAn error occurred while updating ProblemLanguage with ID {ProblemLanguageID}\n\n\n\n", request.ProblemLanguageID);
             return StatusCode(500, "An error occurred while processing your request. Please try again later.");
         }
     }
@@ -538,12 +538,12 @@ public class ProblemManagementController : ControllerBase
         try
         {
             await _context.SaveChangesAsync();
-            _logger.LogInformation($"\n\n\n\nProblem with ID {request.Id} and its associated ProblemLanguages have been deleted.\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nProblem with ID {Id} and its associated ProblemLanguages have been deleted.\n\n\n\n", request.Id);
             return Ok($"Problem with ID {request.Id} has been successfully deleted.");
         }
         catch (Exception ex)
         {
-            _logger.LogError($"\n\n\n\nException: {ex}\nAn error occurred while deleting Problem with ID {request.Id}\n\n\n\n");
+            _logger.LogError(ex, "\n\n\n\nAn error occurred while deleting Problem with ID {Id}\n\n\n\n", request.Id);
             return StatusCode(500, "An error occurred while processing your request. Please try again later.");
         }
     }
@@ -571,12 +571,12 @@ public class ProblemManagementController : ControllerBase
         try
         {
             await _context.SaveChangesAsync();
-            _logger.LogInformation($"\n\n\n\nLanguage with ID {request.Id} has been deleted.\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nLanguage with ID {request.Id} has been deleted.\n\n\n\n", request.Id);
             return Ok($"Language with ID {request.Id} has been successfully deleted.");
         }
         catch (Exception ex)
         {
-            _logger.LogError($"\n\n\n\nException: {ex}\nAn error occurred while deleting Language with ID {request.Id}\n\n\n\n");
+            _logger.LogError(ex, "\n\n\n\nAn error occurred while deleting Language with ID {Id}\n\n\n\n", request.Id);
             return StatusCode(500, "An error occurred while processing your request. Please try again later.");
         }
     }
@@ -599,12 +599,12 @@ public class ProblemManagementController : ControllerBase
         try
         {
             await _context.SaveChangesAsync();
-            _logger.LogInformation($"\n\n\n\nProblemLanguage with ID {request.Id} has been deleted.\n\n\n\n");
+            _logger.LogInformation("\n\n\n\nProblemLanguage with ID {Id} has been deleted.\n\n\n\n", request.Id);
             return Ok($"ProblemLanguage with ID {request.Id} has been successfully deleted.");
         }
         catch (Exception ex)
         {
-            _logger.LogError($"\n\n\n\nException: {ex}\nAn error occurred while deleting ProblemLanguage with ID {request.Id}\n\n\n\n");
+            _logger.LogError(ex, "\n\n\n\nAn error occurred while deleting ProblemLanguage with ID {Id}\n\n\n\n", request.Id);
             return StatusCode(500, "An error occurred while processing your request. Please try again later.");
         }
     }
