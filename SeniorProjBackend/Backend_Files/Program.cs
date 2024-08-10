@@ -100,6 +100,11 @@ builder.Services.AddOptions<EmailServiceOptions>()
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
+builder.Services.AddOptions<Judge0Options>()
+    .Bind(builder.Configuration.GetSection("Judge0"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
 
 // Lifetime services:
 
