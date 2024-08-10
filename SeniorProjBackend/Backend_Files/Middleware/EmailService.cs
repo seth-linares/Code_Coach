@@ -1,74 +1,86 @@
-﻿using Microsoft.AspNetCore.Identity.UI.Services;
+﻿using Microsoft.Extensions.Options;
 using RestSharp;
 using RestSharp.Authenticators;
+using System.ComponentModel.DataAnnotations;
 
-public interface IEmailService : IEmailSender
+namespace SeniorProjBackend.Middleware
 {
-    Task<bool> SendEmailAsync(string to, string subject, string body, string htmlBody = null);
-}
-
-public class EmailService : IEmailService
-{
-    private readonly IConfiguration _configuration;
-    private readonly ILogger<EmailService> _logger;
-    private readonly RestClient _client;
-
-    public EmailService(IConfiguration configuration, ILogger<EmailService> logger)
+    public interface IEmailService
     {
-        _configuration = configuration;
-        _logger = logger;
-
-        var baseUrl = _configuration["Mailgun:BaseUrl"];
-        var ak = _configuration["Mailgun:AK"];
-
-        _logger.LogInformation("\n\n\n\nInitializing EmailService with base URL: {baseUrl}\n", baseUrl);
-
-        var options = new RestClientOptions(baseUrl)
-        {
-            Authenticator = new HttpBasicAuthenticator("api", ak)
-        };
-
-        _client = new RestClient(options);
+        Task<bool> TrySendEmailAsync(string to, string subject, string body, string? htmlBody = null);
     }
 
-    public async Task<bool> SendEmailAsync(string to, string subject, string body, string htmlBody = null)
+    public class EmailService : IEmailService
     {
-        var domain = _configuration["Mailgun:Domain"];
-        var request = new RestRequest($"{domain}/messages", Method.Post);
+        private readonly ILogger<EmailService> _logger;
+        private readonly RestClient _client;
+        private readonly IOptions<EmailServiceOptions> _options;
 
-        request.AddParameter("from", _configuration["Mailgun:From"]);
-        request.AddParameter("to", to);
-        request.AddParameter("subject", subject);
-        request.AddParameter("text", body);
-
-        if (!string.IsNullOrEmpty(htmlBody))
+        public EmailService(IOptions<EmailServiceOptions> mailGunOptions, ILogger<EmailService> logger)
         {
-            request.AddParameter("html", htmlBody);
+            _options = mailGunOptions;
+            _logger = logger;
+
+            _logger.LogInformation("\n\n\n\nInitializing EmailService with base URL: {baseUrl}\n\n\n\n", _options.Value.BaseURL);
+
+            var restClientOptions = new RestClientOptions(mailGunOptions.Value.BaseURL)
+            {
+                Authenticator = new HttpBasicAuthenticator("api", mailGunOptions.Value.AK)
+            };
+
+            _client = new RestClient(restClientOptions);
         }
 
-        try
+        public async Task<bool> TrySendEmailAsync(string to, string subject, string body, string? htmlBody = null)
         {
+            var request = new RestRequest($"{_options.Value.Domain}/messages", Method.Post);
 
-            var response = await _client.ExecuteAsync(request);
-            if (response.IsSuccessful)
+            request.AddParameter("from", _options.Value.From);
+            request.AddParameter("to", to);
+            request.AddParameter("subject", subject);
+            request.AddParameter("text", body);
+
+            if (!string.IsNullOrEmpty(htmlBody))
             {
-                _logger.LogInformation("Email sent successfully to {to}", to);
-                return true;
+                request.AddParameter("html", htmlBody);
             }
-            else
+
+            try
             {
+
+                var response = await _client.ExecuteAsync(request);
+                if (response.IsSuccessful)
+                {
+                    _logger.LogInformation("Email sent successfully to {to}", to);
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while sending email to {to}", to);
                 return false;
             }
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "An error occurred while sending email to {to}", to);
-            return false;
-        }
+
     }
 
-    public async Task SendEmailAsync(string email, string subject, string htmlMessage)
+    public class EmailServiceOptions
     {
-        await SendEmailAsync(email, subject, htmlMessage, htmlMessage);
+        [Required]
+        [StringLength(150, MinimumLength = 1)]
+        public string BaseURL { get; set; }
+        [Required]
+        [StringLength(300, MinimumLength = 1)]
+        public string AK { get; set; }
+        [Required]
+        [StringLength(150, MinimumLength = 1)]
+        public string Domain { get; set; }
+        [Required]
+        [StringLength(100, MinimumLength = 1)]
+        public string From { get; set; }
     }
 }

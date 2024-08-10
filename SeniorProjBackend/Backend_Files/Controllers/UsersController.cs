@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SeniorProjBackend.Data;
 using SeniorProjBackend.DTOs;
+using SeniorProjBackend.Middleware;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 
@@ -46,7 +47,7 @@ namespace SeniorProjBackend.Controllers
             var redactedLink = link.Replace(token, "[REDACTED]");
             _logger.LogInformation("\n\n\n\nbase url: {baseUrl}\nRedacted Link: {redactedLink}\n\n\n\n", baseUrl, redactedLink);
 
-            return await _emailService.SendEmailAsync(
+            return await _emailService.TrySendEmailAsync(
                 user.Email,
                 subject,
                 $"{linkText}: {link}",
@@ -165,7 +166,7 @@ namespace SeniorProjBackend.Controllers
             var token = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
 
             // Send the verification email
-            var emailSent = await _emailService.SendEmailAsync(
+            var emailSent = await _emailService.TrySendEmailAsync(
                 user.Email,
                 "Verify your email for 2FA",
                 $"Your verification code is: {token}");
@@ -353,7 +354,7 @@ namespace SeniorProjBackend.Controllers
         private async Task<IActionResult> InitiateTwoFactorAuthenticationAsync(User user)
         {
             var token = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
-            await _emailService.SendEmailAsync(user.Email, "Your 2FA Code", $"Your login code is: {token}");
+            await _emailService.TrySendEmailAsync(user.Email, "Your 2FA Code", $"Your login code is: {token}");
 
             _logger.LogInformation("\n\n\n\n2FA initiated for user: {user.UserName}\n\n\n\n", user.UserName);
             return Ok(new { requiresTwoFactor = true, message = "2FA code sent to your email." });

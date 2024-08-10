@@ -93,6 +93,16 @@ builder.Services.AddLogging(logging =>
     logging.AddConsole();
 });
 
+
+// Options
+builder.Services.AddOptions<EmailServiceOptions>()
+    .Bind(builder.Configuration.GetSection("Mailgun"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+
+// Lifetime services:
+
 // No state, but beneficial to keep RestSharp instance over the runtime
 builder.Services.AddSingleton<IEmailService, EmailService>(); 
 

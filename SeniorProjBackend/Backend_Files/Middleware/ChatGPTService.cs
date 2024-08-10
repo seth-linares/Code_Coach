@@ -1,5 +1,4 @@
 ﻿using System.Net.Http.Headers;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -14,6 +13,11 @@ namespace SeniorProjBackend.Middleware
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<ChatGPTService> _logger;
+        private static readonly JsonSerializerOptions _jsonOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
         private const string API_URL = "https://api.openai.com/v1/chat/completions";
 
         public ChatGPTService(HttpClient httpClient, ILogger<ChatGPTService> logger)
@@ -24,7 +28,7 @@ namespace SeniorProjBackend.Middleware
 
         public async Task<ChatGPTResponse> SendMessage(string apiKey, string userMessage)
         {
-            var messages = new List<object>
+            var messages = new[]
             {
                 new { role = "system", content = AI_TUTOR_PROMPT },
                 new { role = "user", content = userMessage }
@@ -33,39 +37,28 @@ namespace SeniorProjBackend.Middleware
             var requestBody = new
             {
                 model = "gpt-4o-mini",
-                messages = messages
+                messages
             };
 
-            var options = new JsonSerializerOptions
+            using var request = new HttpRequestMessage(HttpMethod.Post, API_URL)
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
-
-            var request = new HttpRequestMessage(HttpMethod.Post, API_URL)
-            {
-                Content = new StringContent(JsonSerializer.Serialize(requestBody, options), Encoding.UTF8, "application/json")
+                Content = JsonContent.Create(requestBody, options: _jsonOptions)
             };
 
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
             try
             {
-                var response = await _httpClient.SendAsync(request);
+                using var response = await _httpClient.SendAsync(request);
                 response.EnsureSuccessStatusCode();
                 var responseString = await response.Content.ReadAsStringAsync();
 
-                _logger.LogInformation("\n\n\n\n\nRaw API Response:\n{responseString}\n\n\n\n\n", responseString);
+                var chatGPTResponse = JsonSerializer.Deserialize<ChatGPTResponse>(responseString, _jsonOptions);
 
-                var chatGPTResponse = JsonSerializer.Deserialize<ChatGPTResponse>(responseString, options);
-
-                if (chatGPTResponse != null && chatGPTResponse.Usage != null)
+                if (chatGPTResponse == null)
                 {
-                    _logger.LogInformation("\n\n\n\nCompletion Tokens: {CompletionTokens}\nPrompt Tokens: {PromptTokens}\nTotal Tokens: {TotalTokens}\n\n\n\n",
-                        chatGPTResponse.Usage.CompletionTokens, chatGPTResponse.Usage.PromptTokens, chatGPTResponse.Usage.TotalTokens);
-                }
-                else
-                {
-                    _logger.LogWarning("\n\n\n\nUsage statistics not available in the response\n\n\n\n");
+                    _logger.LogError("\n\n\n\nChatGPT response came back NULL.\n\n\n\n");
+                    throw new InvalidOperationException("Received null response from ChatGPT API");
                 }
 
                 return chatGPTResponse;
@@ -73,6 +66,11 @@ namespace SeniorProjBackend.Middleware
             catch (HttpRequestException ex)
             {
                 _logger.LogError(ex, "Error calling ChatGPT API");
+                throw;
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "Error deserializing ChatGPT response");
                 throw;
             }
         }
