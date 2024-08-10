@@ -85,7 +85,7 @@ namespace SeniorProjBackend.Middleware
         3. Critical thinking and problem-solving encouragement
         4. Adaptive teaching based on student's level
         5. Relevant analogies and real-world examples
-        6. 1-2 follow-up questions to deepen understanding
+        6. 1-2 follow-up questions to deepen understanding. Preface the section with a bold header to distinguish it.
         7. Consideration of provided code problem context
         8. Balance between assistance and fostering independence
         9. Multiple approaches or interpretations when applicable
