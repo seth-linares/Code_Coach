@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using SeniorProjBackend.Data;
@@ -44,7 +43,7 @@ builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.Cookie.HttpOnly = true;
-    options.ExpireTimeSpan = TimeSpan.FromHours(1);
+    options.ExpireTimeSpan = TimeSpan.FromHours(12);
     options.LoginPath = "/api/Users/Login";
     options.AccessDeniedPath = "/api/Users/AccessDenied";
     options.SlidingExpiration = true;
@@ -110,22 +109,19 @@ builder.Services.AddHttpClient("Judge0", (serviceProvider, client) =>
     client.BaseAddress = new Uri(baseUrl);
 }).AddHttpMessageHandler<Judge0AuthHandler>();
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "SeniorProjBackend API", Version = "v1" });
-});
 
-//Configure CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll",
-        builder =>
-        {
+
+builder.Services.AddEndpointsApiExplorer();
+
+// Configure CORS for production
+builder.Services.AddCors(options => {
+    options.AddPolicy("ProductionCorsPolicy",
+        builder => {
             builder
-                .AllowAnyOrigin()
+                .WithOrigins("https://codecoachapp.com")
                 .AllowAnyMethod()
-                .AllowAnyHeader();
+                .AllowAnyHeader()
+                .AllowCredentials();
         });
 });
 
@@ -150,13 +146,14 @@ builder.Services.AddRateLimiter(options =>
             factory: partition => new FixedWindowRateLimiterOptions
             {
                 AutoReplenishment = true,
-                PermitLimit = 50,
+                PermitLimit = 40,
                 QueueLimit = 0,
                 Window = TimeSpan.FromMinutes(1)
             }));
 
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
+
 
 
 var app = builder.Build();
@@ -183,16 +180,25 @@ else
     app.UseHsts();
 }
 
-// HTTPS redirection is removed as we're using Nginx for SSL termination
-// app.UseHttpsRedirection();
-
-//app.MapIdentityApi<User>();
-
-app.UseCors("AllowAll");
+// Use the production CORS policy
+app.UseCors("ProductionCorsPolicy");
 
 app.UseAuthentication();
 app.UseRateLimiter();
 app.UseAuthorization();
+
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Frame-Options", "DENY");
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+    context.Response.Headers.Append("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https:; upgrade-insecure-requests;");
+
+    context.Response.Headers.Append("Permissions-Policy", "geolocation=(), midi=(), camera=(), usb=(), payment=(), microphone=()");
+    context.Response.Headers.Append("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+
+    await next();
+});
 
 app.MapControllers();
 
