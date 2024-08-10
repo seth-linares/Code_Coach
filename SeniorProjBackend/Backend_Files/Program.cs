@@ -124,7 +124,10 @@ builder.Services.AddHttpClient("Judge0", (serviceProvider, client) =>
 {
     var configuration = serviceProvider.GetRequiredService<IConfiguration>();
     var baseUrl = configuration["Judge0:BaseUrl"];
-
+    if (string.IsNullOrEmpty(baseUrl))
+    {
+        throw new InvalidOperationException("Judge0:BaseUrl is not configured");
+    }
     client.BaseAddress = new Uri(baseUrl);
 }).AddHttpMessageHandler<Judge0AuthHandler>();
 
