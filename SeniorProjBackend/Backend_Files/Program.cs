@@ -94,8 +94,7 @@ builder.Services.AddLogging(logging =>
     logging.AddConsole();
 });
 
-builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<IEmailSender>(sp => sp.GetRequiredService<IEmailService>());
+builder.Services.AddSingleton<IEmailService, EmailService>(); // No state, but beneficial to keep RestSharp instance over the runtime
 
 builder.Services.AddHttpClient<IChatGPTService, ChatGPTService>();
 builder.Services.AddScoped<IChatGPTService, ChatGPTService>();
