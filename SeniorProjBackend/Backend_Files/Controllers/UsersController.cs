@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SeniorProjBackend.Data;
 using SeniorProjBackend.DTOs;
-using Microsoft.AspNetCore.Identity;
-using System.Net;
-using Microsoft.AspNetCore.Authorization;
 using System.ComponentModel.DataAnnotations;
+using System.Net;
 
 
 
@@ -404,7 +404,7 @@ namespace SeniorProjBackend.Controllers
             _logger.LogInformation("\n\n\n\nCHECKING SESSION\n\n\n\n");
             if (User.Identity.IsAuthenticated)
             {
-                
+
                 var user = await _userManager.GetUserAsync(User);
                 if (user != null)
                 {
@@ -472,12 +472,12 @@ namespace SeniorProjBackend.Controllers
         public async Task<IActionResult> ForgotPassword(ForgotPasswordDto forgotPasswordDto)
         {
             _logger.LogInformation("\n\n\n\nATTEMPTING TO HANDLE FORGOT PASSWORD WITH EMAIL: {forgotPasswordDto.Email}\n\n\n\n", forgotPasswordDto.Email);
-            
+
             if (!ModelState.IsValid)
             {
                 return ValidationProblem(ModelState);
             }
-                
+
 
             var user = await _userManager.FindByEmailAsync(forgotPasswordDto.Email);
             if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
@@ -504,7 +504,7 @@ namespace SeniorProjBackend.Controllers
             return Ok("If your email is registered and confirmed, you will receive a password reset link shortly.");
         }
 
-        
+
         [HttpPost("ResetPassword")]
         public async Task<IActionResult> ResetPassword(ResetPasswordDto resetPasswordDto)
         {
@@ -513,7 +513,7 @@ namespace SeniorProjBackend.Controllers
             {
                 return ValidationProblem(ModelState);
             }
-                
+
 
             var user = await _userManager.FindByIdAsync(resetPasswordDto.UserId);
             if (user == null)
@@ -619,7 +619,7 @@ namespace SeniorProjBackend.Controllers
 
 
 
-            
+
 
             var userStats = new UserStatsDto
             {
@@ -652,13 +652,13 @@ namespace SeniorProjBackend.Controllers
             return StatusCode(StatusCodes.Status403Forbidden, new { message = "Access denied. You do not have permission to access this resource." });
         }
 
-        
 
 
-        
 
 
-        
+
+
+
 
 
 

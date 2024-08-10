@@ -12,7 +12,7 @@ namespace SeniorProjBackend.DTOs
         public bool RememberBrowser { get; set; }
     }
 
-    
+
 
     public class ConfirmEmailDto
     {
@@ -23,5 +23,5 @@ namespace SeniorProjBackend.DTOs
         public string Token { get; set; }
     }
 
-    
+
 }

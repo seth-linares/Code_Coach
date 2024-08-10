@@ -1,10 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SeniorProjBackend.Data;
-using System.Threading.Tasks;
 using SeniorProjBackend.DTOs;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authorization;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -100,7 +98,7 @@ public class ProblemManagementController : ControllerBase
                 ProblemID = p.ProblemID,
                 Title = p.Title,
                 Difficulty = p.Difficulty.ToString(),
-                Category = p.Category.ToString(), 
+                Category = p.Category.ToString(),
                 Points = p.Points,
                 IsCompleted = p.UserSubmissions.Any(us => us.UserId == user.Id && us.IsSuccessful)
             })
@@ -218,7 +216,7 @@ public class ProblemManagementController : ControllerBase
     {
 
         var user = await _userManager.GetUserAsync(User);
-        if (user == null) 
+        if (user == null)
         {
             return Unauthorized();
         }
@@ -581,7 +579,7 @@ public class ProblemManagementController : ControllerBase
         }
     }
 
-    
+
 
     [HttpPost("DeleteProblemLanguage")]
     public async Task<IActionResult> DeleteProblemLanguage(RequestId request)

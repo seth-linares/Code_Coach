@@ -31,7 +31,7 @@ public class UserSubmissionsController : ControllerBase
     {
 
         _logger.LogInformation("\n\n\n\nTRYING TO SUBMIT\nJ0Lang ID: {Judge0LanguageId}\nProblem ID: {ProblemId}\n\n\n\n", submissionRequest.Judge0LanguageId, submissionRequest.ProblemId);
-        
+
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
         {

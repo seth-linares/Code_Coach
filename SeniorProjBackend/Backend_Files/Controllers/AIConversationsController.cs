@@ -105,7 +105,7 @@ namespace SeniorProjBackend.Controllers
                 _logger.LogInformation("\n\n\n\n\n\n\n\nTRANSLATED!! {Description}\n\n\n\n", description);
                 _logger.LogInformation("\n\n\n\nTRANSLATED!! {Message}\n\n\n\n\n\n\n\n\n", message);
                 // Combine problem description and user message
-                string combinedMessage = $"Problem Description (Base64 Encoded): {description}\n\nUser Message: {message}";
+                string combinedMessage = $"Problem Description: {description}\n\nUser Message: {message}";
 
                 _logger.LogInformation("\n\n\n\nSending message to ChatGPT service. Combined message length: {Length}\n\n\n\n", combinedMessage.Length);
 
@@ -149,7 +149,7 @@ namespace SeniorProjBackend.Controllers
 
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("\n\n\n\nSuccessfully processed ChatGPT response. ConversationId: {ConversationID}, TotalTokens: {TotalTokens}\n\n\n\n", 
+                _logger.LogInformation("\n\n\n\nSuccessfully processed ChatGPT response. ConversationId: {ConversationID}, TotalTokens: {TotalTokens}\n\n\n\n",
                     conversation.ConversationID, conversation.TotalTokens);
 
                 return Ok(new

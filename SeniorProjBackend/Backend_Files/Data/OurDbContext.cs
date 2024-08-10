@@ -67,8 +67,8 @@ namespace SeniorProjBackend.Data
                     .HasDefaultValue(0);
 
                 entity.Property(e => e.AttemptedProblems)
-                    .HasColumnType ("integer")
-                    .HasDefaultValue (0);
+                    .HasColumnType("integer")
+                    .HasDefaultValue(0);
 
                 entity.HasMany(e => e.AIConversations)
                     .WithOne(e => e.User)
@@ -211,7 +211,7 @@ namespace SeniorProjBackend.Data
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-    
+
 
 
             modelBuilder.Entity<Problem>(entity =>

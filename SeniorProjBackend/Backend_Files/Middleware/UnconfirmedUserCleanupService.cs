@@ -15,7 +15,7 @@ namespace SeniorProjBackend.Middleware
             _services = services;
             _logger = logger;
         }
-        
+
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)

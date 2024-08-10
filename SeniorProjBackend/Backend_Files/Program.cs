@@ -1,13 +1,13 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using SeniorProjBackend.Data;
-using System.Threading.RateLimiting;
-using SeniorProjBackend.Middleware;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using SeniorProjBackend.Encryption;
+using SeniorProjBackend.Middleware;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 
 
 Console.WriteLine("Starting SeniorProjBackend\n\n\n\n");

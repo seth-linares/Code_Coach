@@ -6,7 +6,7 @@ namespace SeniorProjBackend.Data
     public enum Ranks
     {
         Newbie = 0,
-        Novice = 25, 
+        Novice = 25,
         Amateur = 75,
         Talented = 150,
         Pro = 300

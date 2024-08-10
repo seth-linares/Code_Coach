@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.UI.Services;
 using RestSharp;
 using RestSharp.Authenticators;
-using SeniorProjBackend.Data;
 
 public interface IEmailService : IEmailSender
 {
