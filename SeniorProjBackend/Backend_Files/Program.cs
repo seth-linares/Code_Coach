@@ -93,13 +93,17 @@ builder.Services.AddLogging(logging =>
     logging.AddConsole();
 });
 
-builder.Services.AddSingleton<IEmailService, EmailService>(); // No state, but beneficial to keep RestSharp instance over the runtime
+// No state, but beneficial to keep RestSharp instance over the runtime
+builder.Services.AddSingleton<IEmailService, EmailService>(); 
 
+// We can reuse the HttpClient, no request-specific state
+builder.Services.AddSingleton<IChatGPTService, ChatGPTService>();
 builder.Services.AddHttpClient<IChatGPTService, ChatGPTService>();
-builder.Services.AddScoped<IChatGPTService, ChatGPTService>();
 
+
+
+// There is no state, but also nothing that needs to be re-used, so we should just transient it.
 builder.Services.AddTransient<Judge0AuthHandler>();
-
 // Configure Judge0 HttpClient
 builder.Services.AddHttpClient("Judge0", (serviceProvider, client) =>
 {
