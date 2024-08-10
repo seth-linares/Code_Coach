@@ -24,7 +24,7 @@ namespace SeniorProjBackend.Controllers
         private readonly IEmailService _emailService;
 
         public UsersController(OurDbContext context, ILogger<UsersController> logger, UserManager<User> userManager,
-            SignInManager<User> signInManager, IEmailService emailService, IConfiguration configuration)
+            SignInManager<User> signInManager, IEmailService emailService)
         {
             _context = context;
             _logger = logger;
