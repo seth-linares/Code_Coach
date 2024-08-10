@@ -22,7 +22,6 @@ namespace SeniorProjBackend.Controllers
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly IEmailService _emailService;
-        private readonly IConfiguration _configuration;
 
         public UsersController(OurDbContext context, ILogger<UsersController> logger, UserManager<User> userManager,
             SignInManager<User> signInManager, IEmailService emailService, IConfiguration configuration)
@@ -32,7 +31,6 @@ namespace SeniorProjBackend.Controllers
             _userManager = userManager;
             _signInManager = signInManager;
             _emailService = emailService;
-            _configuration = configuration;
         }
 
         private async Task<bool> SendLinkEmailAsync(User user, string subject, string linkText, string linkPath, string tokenType)
