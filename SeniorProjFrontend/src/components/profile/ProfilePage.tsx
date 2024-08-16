@@ -2,7 +2,7 @@
 "use client";
 
 import React from 'react';
-import useProfile from '@/hooks/useProfile';
+import useUserStats from '@/hooks/useUserStats';
 import use2FA from '@/hooks/use2FA';
 import UserStatsCard from './UserStatsCard';
 import TwoFactorSection from './TwoFactorSection';
@@ -10,7 +10,7 @@ import APIKeyManager from "@/components/profile/APIKeyManager";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 
 const ProfilePage: React.FC = () => {
-    const { stats, loading: statsLoading, error: statsError } = useProfile();
+    const { stats, loading: statsLoading, error: statsError } = useUserStats();
     const { status, loading: twoFALoading, error: twoFAError, getStatus, enable2FA, verify2FA, disable2FA } = use2FA();
 
     return (
