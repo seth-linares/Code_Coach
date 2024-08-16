@@ -1,33 +1,50 @@
-# Production stage
+# Use Node.js LTS version for building the application
+FROM node:18-alpine AS builder
+
+# Install pnpm and clean up npm cache
+RUN npm install -g pnpm && npm cache clean --force
+
+# Set working directory
+WORKDIR /app
+
+# Copy only necessary files to take advantage of Docker's layer caching
+COPY package.json pnpm-lock.yaml* ./
+
+# Install dependencies based on lock file
+RUN pnpm install --prod --frozen-lockfile
+
+# Copy the rest of your app's source code
+COPY . .
+
+# Build the Next.js app
+RUN pnpm run build
+
+# Production image
 FROM node:18-alpine AS runner
 
 WORKDIR /app
 
-# Lock pnpm version and create non-root user
-RUN npm install -g pnpm@8.6.2 && \
-    addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
+# Install pnpm and clean up npm cache
+RUN npm install -g pnpm && npm cache clean --force
 
-# Copy necessary files from builder stage
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-
-# Install production dependencies
-RUN pnpm install --prod --frozen-lockfile --no-cache --prefer-offline
-
-# Use non-root user for better security
-USER nextjs
+# Set a non-root user (optional but recommended)
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
 
 # Set environment variables
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# Copy production dependencies and built assets from builder stage
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/next.config.mjs ./next.config.mjs
+
 # Expose the port the app runs on
 EXPOSE 3000
-
-# Add a health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost:3000/_next/health || exit 1
 
 # Start the application
 CMD ["pnpm", "start"]
