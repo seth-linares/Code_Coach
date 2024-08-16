@@ -3,7 +3,9 @@ import Link from 'next/link';
 
 export const HeroSection = () => {
     return (
-        <div className="hero min-h-screen" style={{ backgroundImage: `url('https://i.pinimg.com/originals/0d/10/d2/0d10d2fe48a7956a4fdc9f7251132236.gif')`}}>
+        <div className="hero min-h-screen"
+             style={{ backgroundImage: "url('/typing.gif')", backgroundSize: 'cover', backgroundPosition: 'center'}}>
+
             <div className="hero-overlay bg-black bg-opacity-70"></div> {/*lessen image to make text readable*/}
             <div className="hero-content text-center text-neutral-content">
                 <div className="min-w-64 px-6 py-12">
