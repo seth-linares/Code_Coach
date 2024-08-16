@@ -1,4 +1,4 @@
-// src/hooks/useProfile.ts
+// src/hooks/useUserStats.ts
 "use client";
 
 
