@@ -8,7 +8,7 @@ namespace SeniorProjBackend.Middleware
     {
         private readonly IServiceProvider _services;
         private readonly ILogger<UnconfirmedUserCleanupService> _logger;
-        private readonly TimeSpan _cleanupInterval = TimeSpan.FromMinutes(1);
+        private readonly TimeSpan _cleanupInterval = TimeSpan.FromHours(1);
 
         public UnconfirmedUserCleanupService(IServiceProvider services, ILogger<UnconfirmedUserCleanupService> logger)
         {
@@ -41,7 +41,7 @@ namespace SeniorProjBackend.Middleware
                 using var scope = _services.CreateScope();
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
-                var cutoffDate = DateTime.UtcNow.AddMinutes(-2);
+                var cutoffDate = DateTime.UtcNow.AddHours(-12);
                 var unconfirmedUsers = await userManager.Users
                     .Where(u => !u.EmailConfirmed && u.RegistrationDate < cutoffDate)
                     .ToListAsync();
