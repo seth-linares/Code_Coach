@@ -30,7 +30,7 @@ export default function ConfirmEmailClient() {
                     const token = decodeURIComponent(encodedToken);
                     console.log(`URI Token: ${token}`);
 
-                    const response = await axios.post('https://localhost/api/Users/ConfirmEmail', { userId, token });
+                    const response = await axios.post('https://www.codecoachapp.com/api/Users/ConfirmEmail', { userId, token });
                     setStatus('success');
                     setMessage(response.data.message);
                     setTimeout(() => router.push('/login'), 3000);
