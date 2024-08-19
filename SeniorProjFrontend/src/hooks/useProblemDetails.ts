@@ -1,11 +1,10 @@
 // src/hooks/useProblemDetails.ts
-"use client";
 
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { ProblemDetails, ProblemLanguageDetails } from "@/types";
 
-const API_URL: string = "https://localhost/api/ProblemManagement/GetProblemDetails";
+const API_URL: string = "https://www.codecoachapp.com/api/ProblemManagement/GetProblemDetails";
 
 export const decodeBase64 = (str: string): string => {
     try {
@@ -50,7 +49,11 @@ const useProblemDetails = (problemId: number) => {
         fetchProblemDetails();
     }, [problemId]);
 
-    return { problemDetails, loading, error };
+    return {
+        problemDetails,
+        loading,
+        error
+    };
 };
 
 export default useProblemDetails;

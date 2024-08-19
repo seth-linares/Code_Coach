@@ -1,13 +1,14 @@
 // src/hooks/useCodeEditor.ts
-"use client";
 
-import { useState, useEffect } from 'react';
-import { ProblemLanguageDetails } from "@/types";
+import {useState, useEffect, useCallback} from 'react';
+import {EditorState, ProblemLanguageDetails} from "@/types";
 
-interface EditorState {
-    activeLanguage: number | null;
-    codeByLanguage: Record<number, string>;
-}
+// used to set Monaco editor's language
+const languageMap: { [key: number]: string } = {
+    51: 'csharp',  // C#
+    54: 'cpp',     // C++
+    92: 'python'   // Python
+};
 
 const useCodeEditor = (languageDetails: ProblemLanguageDetails[]) => {
     const [editorState, setEditorState] = useState<EditorState>({
@@ -24,46 +25,60 @@ const useCodeEditor = (languageDetails: ProblemLanguageDetails[]) => {
                     return acc;
                 }, {} as Record<number, string>),
             };
-            console.log(`activeLanguage: ${initialState.activeLanguage} - codeByLanguage:`, initialState.codeByLanguage);
+            console.log(`activeLanguage: ${initialState.activeLanguage} - codeByLanguage: TESTTT HELLO!!`, initialState.codeByLanguage);
             setEditorState(initialState);
         }
     }, [languageDetails]);
 
-    const setActiveLanguage = (languageId: number) => {
+    const updateCode = (newValue: string | undefined) => {
+        const newCode = newValue ?? ""; // Handle undefined case
+        setEditorState(prevState => {
+            const updatedState = {
+                ...prevState,
+                codeByLanguage: {
+                    ...prevState.codeByLanguage,
+                    [prevState.activeLanguage!]: newCode,
+                },
+            };
+
+            console.log(`${prevState.activeLanguage} set to:\n${newCode} PEEPPOOP`);
+            return updatedState;
+        });
+    };
+
+
+
+
+    const setActiveLanguage = useCallback((languageId: number) => {
         setEditorState(prevState => ({
             ...prevState,
             activeLanguage: languageId,
         }));
         console.log(`activeLanguage set to: ${languageId}`);
+    }, []);
+
+
+    // if languageDetails is not null and the active language is null, set the initial language
+    useEffect(() => {
+        if (languageDetails.length > 0 && !editorState.activeLanguage) {
+            setActiveLanguage(languageDetails[0].languageID);
+        }
+        console.log(`Setting initial active language: ${languageDetails[0].languageID}`);
+    }, [languageDetails, editorState.activeLanguage, setActiveLanguage]);
+
+
+    // used to get the language name for the editor
+    const getMonacoLanguage = (): string => {
+        const activeLang: ProblemLanguageDetails | undefined = languageDetails.find(lang => lang.languageID === editorState.activeLanguage);
+        return activeLang ? languageMap[activeLang.judge0LanguageId] : 'csharp';
     };
 
-    const updateCode = (languageId: number, newCode: string) => {
-        setEditorState(prevState => ({
-            ...prevState,
-            codeByLanguage: {
-                ...prevState.codeByLanguage,
-                [languageId]: newCode,
-            },
-        }));
-    };
-
-    const getActiveCode = (): string => {
-        return editorState.activeLanguage !== null
-            ? editorState.codeByLanguage[editorState.activeLanguage]
-            : '';
-    };
-
-    const getEncodedActiveCode = (): string => {
-        return btoa(getActiveCode());
-    };
 
     return {
-        activeLanguage: editorState.activeLanguage,
-        codeByLanguage: editorState.codeByLanguage,
+        editorState,
         setActiveLanguage,
         updateCode,
-        getActiveCode,
-        getEncodedActiveCode,
+        getMonacoLanguage,
     };
 };
 

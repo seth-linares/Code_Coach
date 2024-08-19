@@ -1,5 +1,4 @@
 // src/hooks/useUserStats.ts
-"use client";
 
 
 import { useState, useEffect } from 'react';
@@ -14,7 +13,7 @@ const useUserStats = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const response = await axios.get<UserStats>('https://localhost/api/Users/stats', {
+                const response = await axios.get<UserStats>('https://www.codecoachapp.com/api/Users/stats', {
                     withCredentials: true,
                 });
                 setStats(response.data);

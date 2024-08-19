@@ -1,12 +1,10 @@
 // src/hooks/useDashboard.ts
 
-"use client";
-
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { GetProblemsRequest, GetProblemsResponse } from "@/types";
 
-const API_URL = "https://localhost/api/ProblemManagement/GetProblems";
+const API_URL = "https://www.codecoachapp.com/api/ProblemManagement/GetProblems";
 
 interface ErrorResponse {
     status: number;

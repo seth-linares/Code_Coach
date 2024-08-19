@@ -1,8 +1,7 @@
-// https://localhost/api/Users/ChangePassword
+// https://www.codecoachapp.com/api/Users/ChangePassword
 
 // src/hooks/useChangePassword.ts
 
-"use client";
 
 import { useState, useCallback } from 'react';
 import axios from 'axios';
@@ -36,7 +35,7 @@ export const useProfileActions = (): UseProfileActionsResult => {
         setMessage(null);
         setValidationErrors(null);
         try {
-            const response = await axios.post('https://localhost/api/Users/ChangePassword', passwordDto, {
+            const response = await axios.post('https://www.codecoachapp.com/api/Users/ChangePassword', passwordDto, {
                 withCredentials: true,
             });
             setMessage(response.data);
@@ -70,7 +69,7 @@ export const useProfileActions = (): UseProfileActionsResult => {
         setError(null);
         setMessage(null);
         try {
-            const response = await axios.post('https://localhost/api/Users/Logout', {}, {
+            const response = await axios.post('https://www.codecoachapp.com/api/Users/Logout', {}, {
                 withCredentials: true,
             });
             setMessage(response.data.message);

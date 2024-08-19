@@ -1,7 +1,5 @@
 // src/hooks/use2FA.ts
 
-"use client";
-
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { TwoFactorStatus } from '@/types';
@@ -15,7 +13,7 @@ const use2FA = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.get<TwoFactorStatus>('https://localhost/api/Users/2FAStatus', {
+            const response = await axios.get<TwoFactorStatus>('https://www.codecoachapp.com/api/Users/2FAStatus', {
                 withCredentials: true,
             });
             setStatus(response.data);
@@ -38,7 +36,7 @@ const use2FA = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.post<{ message: string }>('https://localhost/api/Users/Enable2FA', {}, {
+            const response = await axios.post<{ message: string }>('https://www.codecoachapp.com/api/Users/Enable2FA', {}, {
                 withCredentials: true,
             });
             await getStatus(); // Refresh the status after enabling
@@ -58,7 +56,7 @@ const use2FA = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.post<{ message: string }>('https://localhost/api/Users/VerifyAnd2FA',
+            const response = await axios.post<{ message: string }>('https://www.codecoachapp.com/api/Users/VerifyAnd2FA',
                 { code: verificationCode },
                 { withCredentials: true }
             );
@@ -79,7 +77,7 @@ const use2FA = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.post<{ message: string }>('https://localhost/api/Users/Disable2FA', {}, {
+            const response = await axios.post<{ message: string }>('https://www.codecoachapp.com/api/Users/Disable2FA', {}, {
                 withCredentials: true,
             });
             await getStatus(); // Refresh the status after disabling
@@ -95,7 +93,15 @@ const use2FA = () => {
         }
     }, [getStatus]);
 
-    return { status, loading, error, getStatus, enable2FA, verify2FA, disable2FA };
+    return {
+        status,
+        loading,
+        error,
+        getStatus,
+        enable2FA,
+        verify2FA,
+        disable2FA
+    };
 };
 
 export default use2FA;

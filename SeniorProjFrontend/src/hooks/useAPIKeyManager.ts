@@ -1,8 +1,6 @@
 // hooks/useAPIKeyManager.ts
 
 
-"use client";
-
 import {useCallback, useEffect, useState} from "react";
 import useAPIKeys from "@/hooks/useAPIKeys";
 import {APIKey, CreateAPIKeyRequest, UpdateAPIKeyRequest} from "@/types";

@@ -1,5 +1,4 @@
 // src/hooks/useRegistration.ts
-"use client";
 
 import { useState } from "react";
 import axios from "axios";
@@ -32,7 +31,7 @@ function useRegistration() {
         setIsLoading(true);
 
         try {
-            const response = await axios.post<RegisterResponse>('https://localhost/api/Users/Register', formData);
+            const response = await axios.post<RegisterResponse>('https://www.codecoachapp.com/api/Users/Register', formData);
             setSuccess(response.data.message);
             setTimeout(() => router.push("/login"), 3000);
 

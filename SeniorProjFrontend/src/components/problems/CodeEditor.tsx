@@ -3,77 +3,42 @@
 "use client";
 
 import React, { useEffect } from 'react';
-import Editor, { OnMount } from "@monaco-editor/react";
+import Editor from "@monaco-editor/react";
 import useCodeEditor from '@/hooks/useCodeEditor';
 import useCodeSubmission from '@/hooks/useCodeSubmission';
-import { ProblemLanguageDetails } from "@/types";
+import { ProblemLanguageDetails, CodeEditorProps } from "@/types";
 import { decodeBase64 } from "@/hooks/useProblemDetails";
 
-interface CodeEditorProps {
-    problemId: number;
-    languageDetails: ProblemLanguageDetails[];
-}
 
-const languageMap: { [key: number]: string } = {
-    51: 'csharp',  // C#
-    54: 'cpp',     // C++
-    92: 'python'   // Python
-};
+
 
 const CodeEditor: React.FC<CodeEditorProps> = React.memo(({ problemId, languageDetails }) => {
     const {
-        activeLanguage,
-        codeByLanguage,
+        editorState,
         setActiveLanguage,
         updateCode,
-        getActiveCode,
-        getEncodedActiveCode,
+        getMonacoLanguage,
     } = useCodeEditor(languageDetails);
 
-    const getJudge0LanguageId = () => {
-        const activeLang = languageDetails.find(lang => lang.languageID === activeLanguage);
-        return activeLang ? activeLang.judge0LanguageId : null;
-    };
+
 
     const {
         submitCode,
         submitting,
         result,
-        error: submissionError
-    } = useCodeSubmission(problemId, getEncodedActiveCode, getJudge0LanguageId);
+        error: submissionError, // create const with new name to be more clear
+    } = useCodeSubmission(problemId, languageDetails, editorState);
 
-    useEffect(() => {
-        if (languageDetails.length > 0 && !activeLanguage) {
-            setActiveLanguage(languageDetails[0].languageID);
-        }
-    }, [languageDetails, activeLanguage, setActiveLanguage]);
 
-    const handleEditorDidMount: OnMount = (editor, monaco) => {
-        // We can add custom themes and stuff if we want, not sure what to do with it for now.
+    const printStuff = () => {
+        console.log(editorState);
     };
 
-    const handleLanguageChange = (languageId: number) => {
-        setActiveLanguage(languageId);
-    };
 
-    const handleEditorChange = (value: string | undefined) => {
-        if (activeLanguage && value !== undefined) {
-            updateCode(activeLanguage, value);
-        }
-    };
-
-    const handleSubmit = () => {
-        submitCode();
-    };
-
-    const getMonacoLanguage = () => {
-        const activeLang = languageDetails.find(lang => lang.languageID === activeLanguage);
-        return activeLang ? languageMap[activeLang.judge0LanguageId] : undefined;
-    };
 
     const renderOutput = (label: string, content: string | undefined | null) => {
         if (!content) return null;
-        const decodedContent = decodeBase64(content);
+        const decodedContent: string = decodeBase64(content);
         return (
             <div className="mt-2">
                 <h4 className="font-bold">{label}:</h4>
@@ -86,8 +51,8 @@ const CodeEditor: React.FC<CodeEditorProps> = React.memo(({ problemId, languageD
         <div className="flex flex-col">
             <div className="mb-2">
                 <select
-                    value={activeLanguage || ''}
-                    onChange={(e) => handleLanguageChange(Number(e.target.value))}
+                    value={editorState.activeLanguage || ''}
+                    onChange={(e) => setActiveLanguage(Number(e.target.value))}
                     className="select select-bordered select-sm"
                 >
                     {languageDetails.map((lang) => (
@@ -101,20 +66,29 @@ const CodeEditor: React.FC<CodeEditorProps> = React.memo(({ problemId, languageD
             <Editor
                 height="60vh"
                 language={getMonacoLanguage()}
-                value={activeLanguage ? codeByLanguage[activeLanguage] : ''}
+                value={editorState.activeLanguage ? editorState.codeByLanguage[editorState.activeLanguage] : ''}
+                onChange={updateCode}
                 theme="vs-dark"
-                onChange={handleEditorChange}
-                onMount={handleEditorDidMount}
                 className="rounded-t-lg"
             />
 
             <div className="mt-2">
                 <button
-                    onClick={handleSubmit}
+                    onClick={submitCode}
                     disabled={submitting}
                     className="btn btn-primary btn-sm"
                 >
                     {submitting ? 'Submitting...' : 'Submit Code'}
+                </button>
+            </div>
+
+            <div className="mt-2">
+                <button
+                    onClick={printStuff}
+                    disabled={submitting}
+                    className="btn btn-primary btn-sm"
+                >
+                    Test Button
                 </button>
             </div>
 

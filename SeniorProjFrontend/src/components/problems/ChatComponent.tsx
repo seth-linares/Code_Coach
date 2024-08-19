@@ -4,16 +4,24 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useChatGPT } from '@/hooks/useChatGPT';
+import {ChatComponentProps} from "@/types";
 
-interface ChatComponentProps {
-    problemId: number;
-}
 
-const ChatComponent: React.FC<ChatComponentProps> = ({ problemId }) => {
-    const { sendMessage, messages, isLoading, error, resetConversation } = useChatGPT(problemId);
+
+const ChatComponent: React.FC<ChatComponentProps> = ( { problemId }: ChatComponentProps ) => {
+    const {
+        sendMessage,
+        messages,
+        isLoading,
+        error,
+        resetConversation
+    } = useChatGPT(problemId);
+
     const [inputMessage, setInputMessage] = useState('');
     const chatContainerRef = useRef<HTMLDivElement>(null);
 
+
+    // check this one out
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (inputMessage.trim()) {

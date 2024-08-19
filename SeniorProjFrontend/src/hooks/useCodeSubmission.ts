@@ -1,16 +1,14 @@
 // src/hooks/useCodeSubmission.ts
 
-"use client";
-
 import { useState } from 'react';
 import axios from 'axios';
-import { SubmissionError, SubmissionResult } from "@/types";
+import {SubmissionError, SubmissionResult, ProblemLanguageDetails, EditorState} from "@/types";
 
-const API_URL = 'https://localhost/api/UserSubmissions/SubmitCode';
+const API_URL = 'https://www.codecoachapp.com/api/UserSubmissions/SubmitCode';
 
 
-const useCodeSubmission = (problemId: number, getEncodedActiveCode: () => string, getJudge0LanguageId: () => number | null) => {
-    const [submitting, setSubmitting] = useState(false);
+const useCodeSubmission = (problemId: number, languageDetails: ProblemLanguageDetails[], editorState: EditorState) => {
+    const [submitting, setSubmitting] = useState<boolean>(false);
     const [result, setResult] = useState<SubmissionResult | null>(null);
     const [error, setError] = useState<SubmissionError | null>(null);
 
@@ -50,7 +48,27 @@ const useCodeSubmission = (problemId: number, getEncodedActiveCode: () => string
         }
     };
 
-    return { submitCode, submitting, result, error };
+    const getJudge0LanguageId = (): number => {
+        const activeLang: ProblemLanguageDetails | undefined = languageDetails.find(lang => lang.languageID === editorState.activeLanguage);
+        return activeLang ? activeLang.judge0LanguageId : 51;
+    };
+
+    const getActiveCode = (): string => {
+        return editorState.activeLanguage !== null
+            ? editorState.codeByLanguage[editorState.activeLanguage]
+            : '';
+    };
+
+    const getEncodedActiveCode = (): string => {
+        return btoa(getActiveCode());
+    };
+
+    return {
+        submitCode,
+        submitting,
+        result,
+        error,
+    };
 };
 
 export default useCodeSubmission;

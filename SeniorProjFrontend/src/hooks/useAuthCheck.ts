@@ -1,5 +1,4 @@
 // hooks/useAuthCheck.ts
-"use client";
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
@@ -18,7 +17,7 @@ export function useAuthCheck() {
 
     const checkAuth = useCallback(async () => {
         try {
-            const response = await axios.get('https://localhost/api/Users/CheckSession');
+            const response = await axios.get('https://www.codecoachapp.com/api/Users/CheckSession');
             const isAuthenticated = response.data.isAuthenticated;
             setAuthState({ isAuthenticated, isAuthChecking: false });
             return isAuthenticated;
@@ -47,5 +46,9 @@ export function useAuthCheck() {
         }
     }, [router]);
 
-    return { ...authState, checkAuth, redirectBasedOnAuth };
+    return {
+        ...authState,
+        checkAuth,
+        redirectBasedOnAuth
+    };
 }

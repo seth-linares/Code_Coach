@@ -1,8 +1,5 @@
 // hooks/useAPIKeys.ts
 
-"use client";
-
-
 import { useState, useEffect, useCallback } from 'react';
 import axios, { AxiosError } from 'axios';
 import { APIKey, CreateAPIKeyRequest, UpdateAPIKeyRequest, ErrorResponse } from "@/types";
@@ -33,7 +30,7 @@ const useAPIKeys = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.get<APIKey[]>('https://localhost/api/APIKeys/ListAPIKeys');
+            const response = await axios.get<APIKey[]>('https://www.codecoachapp.com/api/APIKeys/ListAPIKeys');
             console.log('\n\nRaw response data:', response.data);
             console.log('\n\nParsed keys:');
             response.data.forEach((key, index) => {
@@ -51,7 +48,7 @@ const useAPIKeys = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.post<{ Message: string, APIKeyID: number }>('https://localhost/api/APIKeys/CreateAPIKey', request);
+            const response = await axios.post<{ Message: string, APIKeyID: number }>('https://www.codecoachapp.com/api/APIKeys/CreateAPIKey', request);
             const newKey: APIKey = {
                 apiKeyID: response.data.APIKeyID,
                 keyName: request.KeyName,
@@ -72,7 +69,7 @@ const useAPIKeys = () => {
         setLoading(true);
         setError(null);
         try {
-            await axios.delete('https://localhost/api/APIKeys/DeleteAPIKey', { data: { Id: keyId } });
+            await axios.delete('https://www.codecoachapp.com/api/APIKeys/DeleteAPIKey', { data: { Id: keyId } });
             setApiKeys(prevKeys => prevKeys.filter(key => key.apiKeyID !== keyId));
         } catch (err) {
             handleError(err, 'Failed to delete API key');
@@ -86,7 +83,7 @@ const useAPIKeys = () => {
         setLoading(true);
         setError(null);
         try {
-            await axios.put('https://localhost/api/APIKeys/SetActiveAPIKey', { Id: keyId });
+            await axios.put('https://www.codecoachapp.com/api/APIKeys/SetActiveAPIKey', { Id: keyId });
             setApiKeys(prevKeys => prevKeys.map(key => ({
                 ...key,
                 IsActive: key.apiKeyID === keyId
@@ -103,7 +100,7 @@ const useAPIKeys = () => {
         setLoading(true);
         setError(null);
         try {
-            await axios.put('https://localhost/api/APIKeys/UpdateAPIKey', request);
+            await axios.put('https://www.codecoachapp.com/api/APIKeys/UpdateAPIKey', request);
             setApiKeys(prevKeys => prevKeys.map(key =>
                 key.apiKeyID === request.APIKeyID
                     ? { ...key, KeyName: request.KeyName }

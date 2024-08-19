@@ -1,12 +1,10 @@
 // src/hooks/useChatGPT.ts
 
-"use client";
-
 import { useState, useCallback } from 'react';
 import axios from 'axios';
 import { ChatGPTRequest, ChatGPTResponse, UseChatGPTResult } from "@/types";
 
-const API_URL = 'https://localhost/api/AIConversations/ChatGPT';
+const API_URL = 'https://www.codecoachapp.com/api/AIConversations/ChatGPT';
 
 export const useChatGPT = (problemId: number): UseChatGPTResult => {
     const [conversationId, setConversationId] = useState<number | undefined>(undefined);

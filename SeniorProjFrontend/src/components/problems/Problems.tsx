@@ -9,7 +9,7 @@ import ChatComponent from "@/components/problems/ChatComponent";
 
 export function Problems() {
     const params = useParams();
-    const probID = parseInt(params.id as string, 10);
+    const probID: number = parseInt(params.id as string, 10);
     const { problemDetails, loading, error } = useProblemDetails(probID);
 
     if (loading) return <div className="flex items-center justify-center h-screen">Loading...</div>;

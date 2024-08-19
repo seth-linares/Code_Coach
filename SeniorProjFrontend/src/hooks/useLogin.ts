@@ -1,6 +1,5 @@
 // src/hooks/useLogin.ts
 
-"use client";
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -61,7 +60,7 @@ export function useLogin() {
         setIsLoading(true);
 
         try {
-            const response = await axios.post<LoginResponse>('https://localhost/api/Users/Login', formData);
+            const response = await axios.post<LoginResponse>('https://www.codecoachapp.com/api/Users/Login', formData);
 
             if (response.data.requiresTwoFactor) {
                 setRequiresTwoFactor(true);
@@ -84,7 +83,7 @@ export function useLogin() {
         setIsLoading(true);
 
         try {
-            const response = await axios.post<LoginResponse>('https://localhost/api/Users/VerifyTwoFactorCode', twoFactorData);
+            const response = await axios.post<LoginResponse>('https://www.codecoachapp.com/api/Users/VerifyTwoFactorCode', twoFactorData);
             setSuccess(response.data.message);
             setRequiresTwoFactor(false);
             router.push("/dashboard");
