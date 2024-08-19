@@ -192,3 +192,17 @@ export interface UseChatGPTResult {
     error: string | null;
     resetConversation: () => void;
 }
+
+export interface ChatComponentProps {
+    problemId: number;
+}
+
+export interface CodeEditorProps {
+    problemId: number;
+    languageDetails: ProblemLanguageDetails[];
+}
+
+export interface EditorState {
+    activeLanguage: number | null;
+    codeByLanguage: Record<number, string>;
+}
