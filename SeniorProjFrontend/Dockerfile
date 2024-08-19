@@ -2,7 +2,7 @@
 FROM node:18-alpine AS builder
 
 # Install pnpm and clean up npm cache
-RUN npm install -g pnpm && npm cache clean --force
+RUN npm install -g pnpm
 
 # Set working directory
 WORKDIR /app
@@ -10,14 +10,9 @@ WORKDIR /app
 # Copy only necessary files to take advantage of Docker's layer caching
 COPY package.json pnpm-lock.yaml* ./
 
-# Install dependencies based on lock file
-RUN pnpm install --prod --frozen-lockfile
 
 # Copy the rest of your app's source code
 COPY . .
-
-# Build the Next.js app
-RUN pnpm run build
 
 # Production image
 FROM node:18-alpine AS runner
@@ -25,7 +20,7 @@ FROM node:18-alpine AS runner
 WORKDIR /app
 
 # Install pnpm and clean up npm cache
-RUN npm install -g pnpm && npm cache clean --force
+RUN npm install -g pnpm
 
 # Set a non-root user (optional but recommended)
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
