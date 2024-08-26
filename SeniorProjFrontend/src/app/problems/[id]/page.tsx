@@ -8,12 +8,10 @@ import AuthWrapper from "@/components/common/AuthWrapper";
 export default function ProblemsPage() {
     return (
         <AuthWrapper requireAuth={true}>
-            <div className="flex flex-col min-h-screen bg-gray-900">
-                    <DashboardNavbar/>
-                    <main className="flex-grow">
-                        <Problems/>
-                    </main>
-                    <Footer/>
+            <div className="flex flex-col h-screen overflow-hidden bg-gray-900">
+                <DashboardNavbar/>
+                <Problems/>
+
             </div>
         </AuthWrapper>
     );
