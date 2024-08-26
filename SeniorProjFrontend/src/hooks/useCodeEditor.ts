@@ -10,11 +10,16 @@ const languageMap: { [key: number]: string } = {
     92: 'python'   // Python
 };
 
+
+
 const useCodeEditor = (languageDetails: ProblemLanguageDetails[]) => {
     const [editorState, setEditorState] = useState<EditorState>({
         activeLanguage: null,
         codeByLanguage: {},
     });
+
+
+    const [fontSize, setFontSize] = useState<number>(12);
 
     useEffect(() => {
         if (languageDetails.length > 0) {
@@ -79,6 +84,8 @@ const useCodeEditor = (languageDetails: ProblemLanguageDetails[]) => {
         setActiveLanguage,
         updateCode,
         getMonacoLanguage,
+        fontSize,
+        setFontSize,
     };
 };
 
