@@ -1,6 +1,6 @@
 // src/hooks/useCodeSubmission.ts
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import {SubmissionError, SubmissionResult, ProblemLanguageDetails, EditorState} from "@/types";
 
@@ -11,6 +11,13 @@ const useCodeSubmission = (problemId: number, languageDetails: ProblemLanguageDe
     const [submitting, setSubmitting] = useState<boolean>(false);
     const [result, setResult] = useState<SubmissionResult | null>(null);
     const [error, setError] = useState<SubmissionError | null>(null);
+    const [activeTab, setActiveTab] = useState<"editor" | "output">("editor");
+
+    useEffect(() => {
+        if(result !== null || error !== null) {
+            setActiveTab("output");
+        }
+    }, [result, error]);
 
     const submitCode = async () => {
         const judge0LanguageId = getJudge0LanguageId();
@@ -64,6 +71,8 @@ const useCodeSubmission = (problemId: number, languageDetails: ProblemLanguageDe
     };
 
     return {
+        activeTab,
+        setActiveTab,
         submitCode,
         submitting,
         result,
