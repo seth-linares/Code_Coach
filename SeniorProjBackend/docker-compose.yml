@@ -1,13 +1,10 @@
-version: '3.4'
-
 services:
   seniorprojbackend:
-    image: ${DOCKER_REGISTRY-}seniorprojbackend
     build:
-      context: Backend_Files
+      context: /home/jared/Senior_Project/SeniorProjBackend/Backend_Files
       dockerfile: Dockerfile
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
     ports:
       - "8080:8080"
@@ -15,21 +12,23 @@ services:
       - postgres
     networks:
       - app-network
+    restart: unless-stopped
 
   frontend:
     build:
-      context: ../RealBubbyFrontend/real_cool_frontend
+      context: /home/jared/Senior_Project/SeniorProjFrontend
       dockerfile: Dockerfile
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
     volumes:
-      - ../RealBubbyFrontend/real_cool_frontend:/app
+      - /home/jared/Senior_Project/SeniorProjFrontend:/app
       - /app/node_modules
     ports:
       - "3000:3000"
-    command: pnpm run dev
+    command: ["pnpm", "start"]
     networks:
       - app-network
+    restart: unless-stopped
 
   nginx:
     image: nginx:alpine
@@ -38,7 +37,7 @@ services:
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ../RealBubbyFrontend/real_cool_frontend/certs:/etc/nginx/certs:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - seniorprojbackend
       - frontend
@@ -50,30 +49,15 @@ services:
     container_name: postgres
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: Password123!!
-      POSTGRES_DB: CodeCoach
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Password123!!}
+      POSTGRES_DB: ${POSTGRES_DB:-CodeCoach}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - app-network
-
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - "5050:80"
-    depends_on:
-      - postgres
-    networks:
-      - app-network
-
 
 networks:
   app-network:
