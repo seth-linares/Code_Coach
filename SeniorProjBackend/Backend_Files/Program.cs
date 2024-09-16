@@ -69,6 +69,17 @@ builder.Services.AddAntiforgery(options =>
 });
 
 
+/*
+
+
+            NEED TO ADD SEEDING AND MIGRATION
+            NEED TO ADD SEEDING AND MIGRATION
+            NEED TO ADD SEEDING AND MIGRATION
+            NEED TO ADD SEEDING AND MIGRATION
+            NEED TO ADD SEEDING AND MIGRATION
+            NEED TO ADD SEEDING AND MIGRATION
+*/
+
 // Configure services
 builder.Services.AddDbContext<OurDbContext>(options =>
 {
