@@ -14,14 +14,10 @@ Console.WriteLine("Starting SeniorProjBackend\n\n\n\n");
 var builder = WebApplication.CreateBuilder(args);
 
 
-builder.Services.AddAuthorization();
-builder.Services.AddAuthentication();
-
-
-
 // Add Identity
 builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
 {
+
     // Configure Identity options
     options.Password.RequireDigit = true;
     options.Password.RequireLowercase = true;
@@ -42,6 +38,8 @@ builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
+    // Perhaps could break the cookies with Nginx!!!!
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.Cookie.HttpOnly = true;
     options.ExpireTimeSpan = TimeSpan.FromHours(12);
     options.LoginPath = "/api/Users/Login";
@@ -120,7 +118,7 @@ builder.Services.AddOptions<Judge0Options>()
 // Lifetime services:
 
 // No state, but beneficial to keep RestSharp instance over the runtime
-builder.Services.AddSingleton<IEmailService, EmailService>(); 
+builder.Services.AddSingleton<IEmailService, EmailService>();
 
 // We can reuse the HttpClient, no request-specific state
 builder.Services.AddSingleton<IChatGPTService, ChatGPTService>();
