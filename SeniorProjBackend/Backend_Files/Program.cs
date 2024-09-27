@@ -146,7 +146,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 // Configure CORS for production
 builder.Services.AddCors(options => {
-    options.AddPolicy("ProductionCorsPolicy",
+    options.AddPolicy("AllowNextJSApp",
         builder => {
             builder
                 .WithOrigins("https://codecoachapp.com")
@@ -166,6 +166,7 @@ builder.WebHost.UseKestrel(options =>
 
 // Cleanup Unconfirmed User Service
 builder.Services.AddHostedService<UnconfirmedUserCleanupService>();
+
 
 
 // Rate limiting
@@ -212,21 +213,23 @@ else
 }
 
 // Use the production CORS policy
-app.UseCors("ProductionCorsPolicy");
+app.UseCors("AllowNextJSApp");
 
 app.UseAuthentication();
 app.UseRateLimiter();
 app.UseAuthorization();
 
+// Simplified security headers
 app.Use(async (context, next) =>
 {
-    context.Response.Headers.Append("X-Frame-Options", "DENY");
     context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
     context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
-    context.Response.Headers.Append("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https:; upgrade-insecure-requests;");
 
-    context.Response.Headers.Append("Permissions-Policy", "geolocation=(), midi=(), camera=(), usb=(), payment=(), microphone=()");
-    context.Response.Headers.Append("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+    // Only add HSTS header if not in development
+    if (!app.Environment.IsDevelopment())
+    {
+        context.Response.Headers.Append("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+    }
 
     await next();
 });
