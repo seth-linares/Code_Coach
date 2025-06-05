@@ -1,1 +1,1 @@
-Senior Project
+Code Coach
