@@ -4,6 +4,6 @@
 **/Properties/
 **/.idea/
 **/pnpm-lock.yaml
-SeniorProjBackend/Backend_Files/appsettings.json
+CodeCoachBackend/Backend_Files/appsettings.json
 RealBubbyFrontend/real_cool_frontend/pnpm-lock.yaml
 /.idea
